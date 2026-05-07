@@ -12,7 +12,7 @@ import type { AppSession } from '@/lib/auth-types'
 type DashboardShellProps = {
   session: AppSession
   title: string
-  subtitle: string
+  subtitle?: string
   active: 'dashboard' | 'profile'
   children: ReactNode
 }
@@ -81,11 +81,27 @@ export function DashboardShell({
 
       <main className={styles.main}>
         <header className={styles.header}>
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignSelf: 'flex-start',
+                padding: '6px 10px',
+                borderRadius: '999px',
+                background: 'rgba(26, 75, 140, 0.08)',
+                color: 'var(--unpad-blue)',
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.8px',
+                textTransform: 'uppercase',
+              }}
+            >
+              {title}
+            </span>
             <h1 className={styles.greeting}>
               Selamat datang, <span>{displayName}</span> 👋
             </h1>
-            <p className={styles.subGreeting}>{subtitle}</p>
+            {subtitle?.trim() ? <p className={styles.subGreeting}>{subtitle}</p> : null}
           </div>
           <div className={styles.headerUser}>
             {session.user.avatarUrl ? (

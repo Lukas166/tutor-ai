@@ -84,10 +84,6 @@ export function ProfileEditor({ session }: ProfileEditorProps) {
         />
       </div>
 
-      <p className={styles.helperText}>
-        Nama dan avatar ini dipakai oleh mahasiswa, dosen, dan admin pada satu profile yang sama.
-      </p>
-
       {error && <div className={styles.messageError}>{error}</div>}
       {message && <div className={styles.messageSuccess}>{message}</div>}
 

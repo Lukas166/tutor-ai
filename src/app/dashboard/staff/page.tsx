@@ -29,8 +29,7 @@ export default async function StaffDashboardPage() {
     <DashboardShell
       session={session}
       active="dashboard"
-      title="Dashboard Staff"
-      subtitle="Mode dosen dan admin memakai profile yang sama, dengan akses kerja yang terpisah di backend token."
+      title="Dashboard Dosen / Admin"
     >
       <section className={styles.infoCard}>
         <div className={styles.infoCardHeader}>
