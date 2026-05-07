@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'LiVE Unpad – Learning Innovation & Virtual Education',
-  description: 'Platform e-learning resmi Universitas Padjadjaran',
+  title: 'Tutor-AI Unpad',
+  description: 'Platform belajar dengan backend TypeScript, token role, dan satu profile terpadu.',
 }
 
 export default function RootLayout({

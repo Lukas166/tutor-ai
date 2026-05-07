@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
-const nextConfig = {
-  images: {
-    domains: ['lh3.googleusercontent.com'],
+const nextConfig: NextConfig = {
+  turbopack: {
+    root: process.cwd(),
   },
 };
 

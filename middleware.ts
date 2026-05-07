@@ -1,53 +1,56 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
+  const { pathname } = request.nextUrl
+  const cookieHeader = request.headers.get('cookie') ?? ''
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:4000'
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
+  let session: { user: { role: 'mahasiswa' | 'dosen' | 'admin' } } | null = null
+
+  if (cookieHeader) {
+    try {
+      const response = await fetch(new URL('/auth/me', backendUrl), {
+        headers: { cookie: cookieHeader },
+        cache: 'no-store',
+      })
+
+      if (response.ok) {
+        session = (await response.json()) as { user: { role: 'mahasiswa' | 'dosen' | 'admin' } }
+      }
+    } catch {
+      session = null
     }
-  )
+  }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const isAuthenticated = Boolean(session)
+  const dashboardPath = session?.user.role === 'mahasiswa' ? '/dashboard/mahasiswa' : '/dashboard/staff'
 
-  // Redirect unauthenticated users away from protected routes
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+  if (!isAuthenticated && (pathname.startsWith('/dashboard') || pathname === '/profile')) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // Redirect authenticated users away from auth pages
-  if (user && request.nextUrl.pathname === '/login') {
+  if (isAuthenticated && pathname === '/login') {
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    url.pathname = dashboardPath
     return NextResponse.redirect(url)
   }
 
-  return supabaseResponse
+  if (pathname === '/') {
+    const url = request.nextUrl.clone()
+    url.pathname = isAuthenticated ? dashboardPath : '/login'
+    return NextResponse.redirect(url)
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/',
+    '/login',
+    '/dashboard/:path*',
+    '/profile',
   ],
 }

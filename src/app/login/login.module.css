@@ -232,6 +232,12 @@
 .formHeader {
   margin-bottom: 32px;
 }
+.modeNote {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--unpad-muted);
+}
 .formTitle {
   font-family: var(--font-display);
   font-size: 30px;

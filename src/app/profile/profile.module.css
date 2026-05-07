@@ -1,0 +1,207 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.85fr);
+  gap: 20px;
+}
+
+.editorCard,
+.summaryCard {
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 1px 3px rgba(0, 33, 71, 0.06), 0 4px 12px rgba(0, 33, 71, 0.06);
+}
+
+.cardHeader {
+  margin-bottom: 22px;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.badge,
+.badgeMuted {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge {
+  background: #f0f6ff;
+  color: var(--unpad-blue);
+}
+
+.badgeMuted {
+  background: #f8fafc;
+  color: var(--unpad-muted);
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--unpad-navy);
+  margin-bottom: 8px;
+}
+
+.cardDescription {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--unpad-muted);
+}
+
+.summaryList {
+  display: grid;
+  gap: 12px;
+}
+
+.summaryItem {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--unpad-off-white);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summaryLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 700;
+  color: var(--unpad-muted);
+}
+
+.summaryValue {
+  font-size: 14px;
+  color: var(--unpad-text);
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--unpad-text);
+}
+
+.input {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px solid var(--unpad-gray);
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--unpad-text);
+  background: var(--unpad-off-white);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--unpad-mid-blue);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(37, 99, 168, 0.1);
+}
+
+.helperText {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--unpad-muted);
+}
+
+.messageSuccess,
+.messageError {
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.messageSuccess {
+  background: #f0fdf4;
+  color: var(--unpad-success);
+  border: 1px solid #bbf7d0;
+}
+
+.messageError {
+  background: #fef2f2;
+  color: var(--unpad-error);
+  border: 1px solid #fecaca;
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.primaryButton,
+.secondaryButton {
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 12px 18px;
+  transition: all 0.2s ease;
+}
+
+.primaryButton {
+  background: linear-gradient(135deg, var(--unpad-blue) 0%, var(--unpad-mid-blue) 100%);
+  color: white;
+  box-shadow: 0 4px 16px rgba(26, 75, 140, 0.22);
+}
+
+.primaryButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(26, 75, 140, 0.3);
+}
+
+.primaryButton:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  background: #eef4fb;
+  color: var(--unpad-blue);
+}
+
+.secondaryButton:hover {
+  background: #e0ebf8;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .editorCard,
+  .summaryCard {
+    padding: 22px;
+  }
+}
