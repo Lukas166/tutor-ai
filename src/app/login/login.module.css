@@ -232,12 +232,6 @@
 .formHeader {
   margin-bottom: 32px;
 }
-.modeNote {
-  margin-top: 8px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--unpad-muted);
-}
 .formTitle {
   font-family: var(--font-display);
   font-size: 30px;
@@ -250,6 +244,55 @@
   font-size: 14px;
   color: var(--unpad-muted);
   line-height: 1.5;
+}
+
+/* ===================== ROLE SWITCH ===================== */
+.roleSwitch {
+  margin-bottom: 24px;
+}
+
+.roleSwitchButtons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.roleSwitchButton {
+  border: 1.5px solid var(--unpad-gray);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--unpad-off-white);
+  color: var(--unpad-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.roleSwitchButton:hover {
+  border-color: #a9bfdc;
+  background: #f7faff;
+  transform: translateY(-1px);
+}
+
+.roleSwitchButtonActive {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--unpad-blue) 0%, var(--unpad-mid-blue) 100%);
+  color: white;
+  box-shadow: 0 8px 18px rgba(26,75,140,0.18);
+}
+
+.roleSwitchButtonActive:hover {
+  background: linear-gradient(135deg, var(--unpad-blue) 0%, var(--unpad-mid-blue) 100%);
+  transform: translateY(-1px);
+}
+
+.roleSwitchHint {
+  margin-top: 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--unpad-muted);
 }
 
 /* ===================== GOOGLE BUTTON ===================== */
@@ -529,4 +572,8 @@
     box-shadow: 0 4px 24px rgba(0,33,71,0.1);
   }
   .formTitle { font-size: 26px; }
+
+  .roleSwitchButtons {
+    grid-template-columns: 1fr;
+  }
 }

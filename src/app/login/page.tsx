@@ -6,16 +6,22 @@ import { backendRequestJson } from '@/lib/backend'
 import type { AppSession } from '@/lib/auth-types'
 import styles from './login.module.css'
 
+type LoginRole = 'mahasiswa' | 'dosen'
+
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
   const [isRegister, setIsRegister] = useState(false)
+  const [loginRole, setLoginRole] = useState<LoginRole>('mahasiswa')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   const router = useRouter()
+  const loginRoleLabel = loginRole === 'mahasiswa' ? 'Mahasiswa' : 'Dosen'
+  const emailPlaceholder =
+    loginRole === 'mahasiswa' ? 'mahasiswa@unpad.ac.id' : 'dosen@unpad.ac.id'
 
   const handleEmailAuth = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -77,14 +83,9 @@ export default function LoginPage() {
           </div>
 
           <div className={styles.hero}>
-            <h1 className={styles.heroTitle}>
-              Satu akun,<br />
-              tiga peran,<br />
-              <em>satu profile</em>
-            </h1>
+            <h1 className={styles.heroTitle}>Tutor ai</h1>
             <p className={styles.heroDesc}>
-              Platform belajar yang memisahkan akses mahasiswa, dosen, dan admin
-              lewat token yang dikelola backend TypeScript.
+              Platform Learning berbasis LMS dengan integrasi Chatbot.
             </p>
           </div>
 
@@ -134,17 +135,41 @@ export default function LoginPage() {
             <h2 className={styles.formTitle}>
               {isRegister ? 'Buat Akun Baru' : 'Selamat Datang'}
             </h2>
-            <p className={styles.formSubtitle}>
-              {isRegister
-                ? 'Akun baru dibuat sebagai mahasiswa. Role staff disesuaikan lewat profile dan SQL.'
-                : 'Masuk ke akun Tutor-AI yang terhubung ke satu profile.'}
-            </p>
-            <p className={styles.modeNote}>
-              {isRegister
-                ? 'Gunakan akun mahasiswa untuk registrasi mandiri.'
-                : 'Admin dan dosen memakai jalur autentikasi yang sama, lalu diarahkan ke halaman staff.'}
-            </p>
           </div>
+
+          {!isRegister && (
+            <div className={styles.roleSwitch}>
+              <div className={styles.roleSwitchButtons} role="tablist" aria-label="Pilih role login">
+                <button
+                  type="button"
+                  className={`${styles.roleSwitchButton} ${
+                    loginRole === 'mahasiswa' ? styles.roleSwitchButtonActive : ''
+                  }`}
+                  onClick={() => {
+                    setLoginRole('mahasiswa')
+                    setError('')
+                  }}
+                  aria-pressed={loginRole === 'mahasiswa'}
+                >
+                  Login Mahasiswa
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.roleSwitchButton} ${
+                    loginRole === 'dosen' ? styles.roleSwitchButtonActive : ''
+                  }`}
+                  onClick={() => {
+                    setLoginRole('dosen')
+                    setError('')
+                  }}
+                  aria-pressed={loginRole === 'dosen'}
+                >
+                  Login Dosen
+                </button>
+              </div>
+              <p className={styles.roleSwitchHint}>Pilih tombol login sesuai role Anda.</p>
+            </div>
+          )}
 
           {/* Email/Password Form */}
           <form onSubmit={handleEmailAuth} className={styles.form}>
@@ -185,7 +210,7 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   className={styles.input}
-                  placeholder="mahasiswa@unpad.ac.id"
+                    placeholder={emailPlaceholder}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -257,7 +282,9 @@ export default function LoginPage() {
                   <span>Memproses...</span>
                 </>
               ) : (
-                <span>{isRegister ? 'Buat Akun Mahasiswa' : 'Masuk ke Tutor-AI'}</span>
+                <span>
+                  {isRegister ? 'Buat Akun Mahasiswa' : `Masuk ${loginRoleLabel}`}
+                </span>
               )}
             </button>
           </form>
