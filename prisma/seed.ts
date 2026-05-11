@@ -5,9 +5,38 @@ async function main() {
   console.log("Seeding database...");
 
   const users = [
-    { email: "admin@mail.unpad.ac.id", password: "password", name: "Admin", role: "admin" },
-    { email: "dosen@mail.unpad.ac.id", password: "password", name: "Dosen", role: "lecturer" },
-    { email: "mahasiswa@mail.unpad.ac.id", password: "password", name: "Mahasiswa", role: "student" },
+    { email: "admin@mail.unpad.ac.id", password: "password", name: "Administrator", role: "admin" },
+    { email: "dosen@mail.unpad.ac.id", password: "password", name: "Dr. Budi Santoso", role: "dosen" },
+    { 
+      email: "mahasiswaS1@mail.unpad.ac.id", 
+      password: "password", 
+      name: "Andi Pratama", 
+      role: "mahasiswa",
+      academicLevel: "S1",
+      npm: "140810200001",
+      major: "Teknik Informatika",
+      faculty: "MIPA"
+    },
+    { 
+      email: "mahasiswaS2@mail.unpad.ac.id", 
+      password: "password", 
+      name: "Siti Aminah", 
+      role: "mahasiswa",
+      academicLevel: "S2",
+      npm: "140820230005",
+      major: "Ilmu Komputer",
+      faculty: "MIPA"
+    },
+    { 
+      email: "mahasiswaS3@mail.unpad.ac.id", 
+      password: "password", 
+      name: "Dr. Ahmad Hidayat", 
+      role: "mahasiswa",
+      academicLevel: "S3",
+      npm: "170130240010",
+      major: "Hukum",
+      faculty: "Hukum"
+    },
   ];
 
   for (const user of users) {
@@ -18,9 +47,6 @@ async function main() {
     if (!existingUser) {
       console.log(`Creating user: ${user.email} (Role: ${user.role})`);
       
-      // We use Better Auth's server-side API to correctly hash the password
-      // Since we also added a custom 'role' field, we need to update the created user afterwards.
-      // Better Auth by default doesn't accept unknown fields like 'role' unless configured via plugins.
       const response = await auth.api.signUpEmail({
         body: {
           email: user.email,
@@ -30,10 +56,16 @@ async function main() {
       });
 
       if (response?.user) {
-        // Update the custom role field
+        // Update the custom fields
         await prisma.user.update({
           where: { id: response.user.id },
-          data: { role: user.role },
+          data: { 
+            role: user.role,
+            academicLevel: (user as any).academicLevel || null,
+            npm: (user as any).npm || null,
+            major: (user as any).major || null,
+            faculty: (user as any).faculty || null,
+          },
         });
         console.log(`Successfully created ${user.email}`);
       } else {

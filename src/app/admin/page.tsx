@@ -1,73 +1,84 @@
-'use client';
+"use client";
 
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Loader2, LogOut, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Users, BookOpen, UserCheck, ShieldCheck, GraduationCap, ClipboardList } from "lucide-react";
 
-export default function AdminPage() {
-    const { data: session, isPending } = authClient.useSession();
-    const router = useRouter();
+interface Stats {
+  total: number;
+  admin: number;
+  dosen: number;
+  mahasiswa: number;
+  totalCourses: number;
+  activeCourses: number;
+  totalEnrollments: number;
+}
 
-    async function handleLogout() {
-        await authClient.signOut({
-            fetchOptions: {
-                onSuccess: () => {
-                    router.push("/login");
-                },
-            },
-        });
-    }
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  color,
+}: {
+  title: string;
+  value: number | undefined;
+  icon: React.ElementType;
+  color: string;
+}) {
+  return (
+    <Card className="overflow-hidden border-border/50">
+      <CardContent className="p-6">
+        <div className="flex items-center gap-6 ml-1">
+          <Icon className={`size-12 ${color}`} strokeWidth={1.5} />
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            {value !== undefined ? (
+              <p className="text-3xl font-bold tracking-tight">{value}</p>
+            ) : (
+              <Skeleton className="h-9 w-20" />
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
-    if (isPending) {
-        return (
-            <div className="flex h-svh items-center justify-center">
-                <Loader2 className="size-8 animate-spin text-brand" />
-            </div>
-        );
-    }
+export default function AdminOverviewPage() {
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
 
-    if (!session || (session.user as any).role !== "admin") {
-        return null; // Will be handled by middleware
-    }
+  useEffect(() => {
+    fetch("/api/admin/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
-    return (
-        <main className="min-h-svh bg-muted/20 p-6 lg:p-10">
-            <div className="mx-auto max-w-5xl space-y-8">
-                <header className="flex items-center justify-between border-b border-border pb-6">
-                    <div className="flex items-center gap-4">
-                        <div className="flex size-12 items-center justify-center rounded-xl bg-brand text-white shadow-lg shadow-brand/20">
-                            <ShieldCheck className="size-6" />
-                        </div>
-                        <div className="space-y-1">
-                            <h1 className="text-2xl font-bold tracking-tight">Admin Portal</h1>
-                            <p className="text-sm text-muted-foreground">
-                                Authorized access for <span className="font-semibold text-foreground">{session.user.name}</span>
-                            </p>
-                        </div>
-                    </div>
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleLogout}
-                        className="gap-2 text-destructive hover:bg-destructive/5 hover:text-destructive transition-colors"
-                    >
-                        <LogOut className="size-4" />
-                        Logout
-                    </Button>
-                </header>
+  const cards = [
+    { title: "Users", value: stats?.total, icon: Users, color: "text-brand" },
+    { title: "Admin", value: stats?.admin, icon: ShieldCheck, color: "text-red-500" },
+    { title: "Dosen", value: stats?.dosen, icon: UserCheck, color: "text-blue-500" },
+    { title: "Mahasiswa", value: stats?.mahasiswa, icon: GraduationCap, color: "text-emerald-500" },
+    { title: "Courses", value: stats?.totalCourses, icon: BookOpen, color: "text-violet-500" },
+    { title: "Active Courses", value: stats?.activeCourses, icon: BookOpen, color: "text-amber-500" },
+    { title: "Enrollments", value: stats?.totalEnrollments, icon: ClipboardList, color: "text-pink-500" },
+  ];
 
-                <div className="grid gap-6">
-                    <div className="rounded-xl border border-brand/20 bg-brand/5 p-6">
-                        <h2 className="text-lg font-semibold text-brand mb-2">System Status</h2>
-                        <p className="text-sm text-muted-foreground">Admin-only area. Manage users, courses, and system configurations here.</p>
-                    </div>
+  return (
+    <div className="flex flex-col gap-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
+        <p className="text-muted-foreground">Monitor aktivitas dan statistik sistem Tutor AI</p>
+      </div>
 
-                    <div className="rounded-2xl border border-dashed border-border p-20 text-center bg-card">
-                        <p className="text-muted-foreground">UI Dummy - Admin management tools will appear here.</p>
-                    </div>
-                </div>
-            </div>
-        </main>
-    );
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {cards.map((card) => (
+          <StatCard key={card.title} {...card} />
+        ))}
+      </div>
+    </div>
+  );
 }

@@ -21,8 +21,33 @@ export const auth = betterAuth({
             role: {
                 type: "string",
                 required: false,
-                defaultValue: "user"
-            }
-        }
-    }
+                defaultValue: "mahasiswa", // admin | dosen | mahasiswa
+            },
+            academicLevel: {
+                type: "string",
+                required: false,
+                defaultValue: null, // S1 | S2 | S3 — hanya untuk mahasiswa
+            },
+            npm: {
+                type: "string",
+                required: false,
+                defaultValue: null, // Nomor Pokok Mahasiswa — hanya untuk mahasiswa
+            },
+            major: {
+                type: "string",
+                required: false,
+                defaultValue: null, // jurusan
+            },
+            faculty: {
+                type: "string",
+                required: false,
+                defaultValue: null, // fakultas
+            },
+            bio: {
+                type: "string",
+                required: false,
+                defaultValue: null,
+            },
+        },
+    },
 });
