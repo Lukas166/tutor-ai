@@ -377,11 +377,11 @@ export default function UsersPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="pl-6">NPM</TableHead>
               <TableHead>Nama</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Jenjang</TableHead>
-              <TableHead>NPM</TableHead>
               <TableHead>Jurusan</TableHead>
               <TableHead className="w-[60px]" />
             </TableRow>
@@ -406,6 +406,9 @@ export default function UsersPage() {
             ) : (
               users.map((user) => (
                 <TableRow key={user.id}>
+                  <TableCell className="pl-6 font-mono text-xs">
+                    {user.npm ?? "—"}
+                  </TableCell>
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell className="text-muted-foreground">{user.email}</TableCell>
                   <TableCell>
@@ -414,9 +417,6 @@ export default function UsersPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>{user.academicLevel ?? "—"}</TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {user.npm ?? "—"}
-                  </TableCell>
                   <TableCell>{user.major ?? "—"}</TableCell>
                   <TableCell>
                     <DropdownMenu>

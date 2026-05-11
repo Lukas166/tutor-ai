@@ -206,7 +206,7 @@ export default function CoursesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Judul</TableHead>
+              <TableHead className="pl-6">Judul</TableHead>
               <TableHead>Enrollment Key</TableHead>
               <TableHead className="text-center">Dosen</TableHead>
               <TableHead className="text-center">Mahasiswa</TableHead>
@@ -234,7 +234,7 @@ export default function CoursesPage() {
             ) : (
               courses.map((course) => (
                 <TableRow key={course.id}>
-                  <TableCell>
+                  <TableCell className="pl-6">
                     <div>
                       <p className="font-medium">{course.title}</p>
                       {course.description && (

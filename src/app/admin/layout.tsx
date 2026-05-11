@@ -181,7 +181,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <AdminSidebar />
       <SidebarInset>
         {/* Header kanan: h-14 simetris dengan sidebar header */}
-        <header className="flex h-14 shrink-0 items-center justify-between border-b px-6">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b px-10">
           <div className="flex items-center gap-3">
             <SidebarTrigger className="md:hidden" />
             <span className="text-sm font-medium text-muted-foreground">Admin Panel</span>
@@ -190,7 +190,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Konten halaman */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 px-10 pb-10 pt-6">
           {children}
         </main>
       </SidebarInset>
