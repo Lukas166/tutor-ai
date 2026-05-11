@@ -1,30 +1,25 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 // ─── Schema ──────────────────────────────────────────────────────────
 
 const loginSchema = z.object({
-  email: z.email('Invalid email format'),
+  email: z.string().email('Invalid email format'),
   password: z
     .string()
     .min(1, 'Password is required')
     .min(8, 'Password must be at least 8 characters'),
-  terms: z.boolean().refine((val) => val === true, {
-    message: 'You need to agree to the Terms and Privacy to continue',
-  }),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -42,7 +37,6 @@ export function LoginForm() {
     defaultValues: {
       email: '',
       password: '',
-      terms: false,
     },
   });
 
@@ -79,8 +73,8 @@ export function LoginForm() {
       onSubmit={form.handleSubmit(onSubmit)}
       className="flex flex-col gap-4"
     >
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="email">Email</Label>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</Label>
         <Input
           id="email"
           type="email"
@@ -89,21 +83,23 @@ export function LoginForm() {
           {...form.register('email')}
           aria-invalid={!!form.formState.errors.email}
           className={cn(
-            'h-10 rounded-md shadow-sm',
+            'h-10 rounded-lg border-muted-foreground/20 px-3.5 transition-all focus:border-brand focus:ring-1 focus:ring-brand shadow-none',
             form.formState.errors.email &&
               'border-destructive focus-visible:ring-destructive/20',
           )}
-          placeholder="name@company.com"
+          placeholder="name@email.com"
         />
         {form.formState.errors.email && (
-          <p className="text-xs text-destructive">
+          <p className="text-[11px] text-destructive">
             {form.formState.errors.email.message}
           </p>
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Password</Label>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password" title="Password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Password</Label>
+        </div>
         <div className="relative">
           <Input
             id="password"
@@ -112,7 +108,7 @@ export function LoginForm() {
             {...form.register('password')}
             aria-invalid={!!form.formState.errors.password}
             className={cn(
-              'h-10 rounded-md pr-10 shadow-sm',
+              'h-10 rounded-lg border-muted-foreground/20 pl-3.5 pr-10 transition-all focus:border-brand focus:ring-1 focus:ring-brand shadow-none',
               form.formState.errors.password &&
                 'border-destructive focus-visible:ring-destructive/20',
             )}
@@ -134,73 +130,28 @@ export function LoginForm() {
           </Button>
         </div>
         {form.formState.errors.password && (
-          <p className="text-xs text-destructive">
+          <p className="text-[11px] text-destructive">
             {form.formState.errors.password.message}
           </p>
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div className="flex items-start gap-3">
-          <Controller
-            control={form.control}
-            name="terms"
-            render={({ field }) => (
-              <Checkbox
-                id="terms"
-                checked={field.value}
-                onCheckedChange={field.onChange}
-                className="mt-1 shrink-0 cursor-pointer"
-              />
-            )}
-          />
-          <Label
-            htmlFor="terms"
-            className="min-w-0 flex-1 text-sm leading-relaxed text-muted-foreground select-none"
-          >
-            I agree to the{' '}
-            <Link
-              href="/terms"
-              className="font-semibold text-brand underline-offset-4 hover:underline cursor-pointer"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link
-              href="/privacy"
-              className="font-semibold text-brand underline-offset-4 hover:underline cursor-pointer"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Privacy Policy
-            </Link>
-            .
-          </Label>
-        </div>
-
-        {form.formState.errors.terms && (
-          <p className="text-xs text-destructive">
-            {form.formState.errors.terms.message}
-          </p>
-        )}
-      </div>
-
       {/* Server Error */}
-      {formError && <p className="text-xs text-destructive">{formError}</p>}
+      {formError && (
+        <div className="rounded-lg bg-destructive/10 p-2.5">
+          <p className="text-xs text-destructive text-center font-medium">{formError}</p>
+        </div>
+      )}
 
       <Button
         type="submit"
-        variant="default"
-        size="lg"
         disabled={isPending}
-        className="mt-2 h-10 w-full rounded-md shadow-sm"
+        className="h-10 w-full rounded-lg bg-brand text-white text-sm font-bold transition-all hover:bg-brand/80 active:scale-[0.98] shadow-none"
       >
         {isPending ? (
-          <Loader2 className="animate-spin" data-icon="inline-start" />
+          <Loader2 className="mr-2 animate-spin size-4" />
         ) : null}
-        {isPending ? 'Processing...' : 'Login'}
+        {isPending ? 'Signing in...' : 'Sign In'}
       </Button>
     </form>
   );

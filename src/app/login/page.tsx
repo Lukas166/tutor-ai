@@ -1,5 +1,11 @@
 import { LoginBrandPanel } from '@/components/login/login-brand-panel';
 import { LoginCard } from '@/components/login/login-card';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Login | Tutor AI',
+  description: 'Login to your Tutor AI account to access courses and materials.',
+};
 
 export default async function LoginPage() {
   return (
