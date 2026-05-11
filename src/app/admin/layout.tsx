@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 import {
   Sidebar,
   SidebarContent,
@@ -17,9 +18,15 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Users,
@@ -38,16 +45,6 @@ const NAV_ITEMS = [
 
 function AdminSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { data: session } = authClient.useSession();
-
-  async function handleLogout() {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => router.push("/login"),
-      },
-    });
-  }
 
   const isActive = (href: string) => {
     if (href === "/admin") return pathname === "/admin";
@@ -55,40 +52,43 @@ function AdminSidebar() {
   };
 
   return (
-    <Sidebar variant="inset" collapsible="icon">
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/admin" className="gap-3">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-brand text-white">
-                  <GraduationCap className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-bold">Tutor AI</span>
-                  <span className="truncate text-xs text-muted-foreground">Admin Panel</span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+    <Sidebar collapsible="icon">
+      {/* Header: h-14, tanpa garis pembatas */}
+      <SidebarHeader className="h-14 flex flex-row items-center justify-between px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
+        {/* Logo — hanya "Tutor AI", hilang saat collapsed */}
+        <Link
+          href="/admin"
+          className="flex min-w-0 items-center gap-2 group-data-[collapsible=icon]:hidden"
+        >
+          <div className="flex size-8 shrink-0 items-center justify-center">
+            <img src="/black_unpad.png" alt="Logo" className="size-8 object-contain" />
+          </div>
+          <span className="truncate font-bold text-lg">Tutor AI</span>
+        </Link>
+
+        {/* Trigger — satu-satunya, selalu visible */}
+        <SidebarTrigger className="shrink-0" />
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Management</SidebarGroupLabel>
+          <SidebarGroupLabel>Management Panel</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {NAV_ITEMS.map((item) => (
-                <SidebarMenuItem key={item.href}>
+                <SidebarMenuItem key={item.href} className="py-0.5">
                   <SidebarMenuButton
                     asChild
                     isActive={isActive(item.href)}
                     tooltip={item.title}
+                    className={cn(
+                      "transition-colors hover:bg-brand/10 hover:text-brand gap-3 px-4 h-10",
+                      isActive(item.href) && "bg-brand text-black hover:text-white data-[active=true]:bg-brand data-[active=true]:text-black shadow-sm"
+                    )}
                   >
-                    <Link href={item.href}>
-                      <item.icon />
-                      <span>{item.title}</span>
+                    <Link href={item.href} className="flex items-center gap-3">
+                      <item.icon className="size-[18px] shrink-0" />
+                      <span className="text-sm font-medium">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -98,32 +98,66 @@ function AdminSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <div className="flex items-center gap-3 px-2 py-1.5">
-              <Avatar className="size-7">
-                <AvatarFallback className="bg-brand/15 text-brand text-xs font-bold">
-                  {session?.user?.name?.charAt(0)?.toUpperCase() ?? "A"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                <span className="truncate text-xs font-semibold">{session?.user?.name}</span>
-                <span className="truncate text-xs text-muted-foreground">{session?.user?.email}</span>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-7 text-muted-foreground hover:text-destructive group-data-[collapsible=icon]:hidden"
-                onClick={handleLogout}
-              >
-                <LogOut className="size-3.5" />
-              </Button>
-            </div>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+      {/* Footer kosong — profile sudah di header kanan */}
+      <SidebarFooter />
     </Sidebar>
+  );
+}
+
+function ProfileDropdown() {
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+
+  async function handleLogout() {
+    await authClient.signOut({
+      fetchOptions: { onSuccess: () => router.push("/login") },
+    });
+  }
+
+  const name = session?.user?.name ?? "Admin";
+  const email = session?.user?.email ?? "";
+  const initials = name.charAt(0).toUpperCase();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <Avatar className="size-8 shrink-0">
+            <AvatarFallback className="bg-brand text-black text-sm font-bold">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="hidden min-w-0 sm:grid">
+            <span className="truncate text-sm font-medium leading-none">{name}</span>
+          </div>
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" className="w-72">
+        {/* Card info: nama + email */}
+        <DropdownMenuLabel className="font-normal p-4">
+          <div className="flex items-center gap-3">
+            <Avatar className="size-10 shrink-0">
+              <AvatarFallback className="bg-brand text-black text-base font-bold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col gap-0.5 min-w-0">
+              <p className="text-sm font-semibold leading-snug">{name}</p>
+              <p className="text-xs text-muted-foreground truncate">{email}</p>
+            </div>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={handleLogout}
+          className="mx-1 mb-1 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+        >
+          <LogOut className="mr-2 size-4" />
+          Logout
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -146,12 +180,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <SidebarProvider>
       <AdminSidebar />
       <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
-          <span className="text-sm font-medium text-muted-foreground">Admin Panel</span>
+        {/* Header kanan: h-14 simetris dengan sidebar header */}
+        <header className="flex h-14 shrink-0 items-center justify-between border-b px-6">
+          <div className="flex items-center gap-3">
+            <SidebarTrigger className="md:hidden" />
+            <span className="text-sm font-medium text-muted-foreground">Admin Panel</span>
+          </div>
+          <ProfileDropdown />
         </header>
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+
+        {/* Konten halaman */}
+        <main className="flex-1 p-6">
+          {children}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );
