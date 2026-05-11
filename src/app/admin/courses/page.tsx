@@ -375,12 +375,14 @@ export default function CoursesPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="description">Deskripsi</Label>
+                <Label htmlFor="description">
+                  Deskripsi <span className="text-muted-foreground font-normal text-xs">(opsional)</span>
+                </Label>
                 <Input
                   id="description"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Opsional"
+                  placeholder="Deskripsi singkat course"
                 />
               </div>
             </div>

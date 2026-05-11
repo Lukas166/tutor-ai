@@ -178,21 +178,25 @@ function UserFormFields({
         </>
       )}
       <div className="grid gap-2">
-        <Label htmlFor="major">Jurusan</Label>
+        <Label htmlFor="major">
+          Jurusan <span className="text-muted-foreground font-normal text-xs">(opsional)</span>
+        </Label>
         <Input
           id="major"
           value={form.major || ""}
           onChange={(e) => setForm({ ...form, major: e.target.value })}
-          placeholder="Opsional"
+          placeholder="Contoh: Teknik Informatika"
         />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="faculty">Fakultas</Label>
+        <Label htmlFor="faculty">
+          Fakultas <span className="text-muted-foreground font-normal text-xs">(opsional)</span>
+        </Label>
         <Input
           id="faculty"
           value={form.faculty || ""}
           onChange={(e) => setForm({ ...form, faculty: e.target.value })}
-          placeholder="Opsional"
+          placeholder="Contoh: FTIP"
         />
       </div>
     </div>

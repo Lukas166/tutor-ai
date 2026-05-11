@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 
 export const createCourseSchema = z.object({
   title: z.string().min(3, "Judul minimal 3 karakter"),
-  description: z.string().optional(),
+  description: z.string().nullable().optional(),
 });
 
 export const updateCourseSchema = z.object({
