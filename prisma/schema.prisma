@@ -13,9 +13,14 @@ model User {
   email         String    @unique
   emailVerified Boolean
   image         String?
+  role          String    @default("mahasiswa") // admin | dosen | mahasiswa
+  academicLevel String?   // S1 | S2 | S3 — diisi saat registrasi mahasiswa
+  npm           String?   @unique // hanya untuk mahasiswa
+  major         String?   // jurusan
+  faculty       String?   // fakultas
+  bio           String?
   createdAt     DateTime
   updatedAt     DateTime
-  role          String    @default("user")
   sessions      Session[]
   accounts      Account[]
 
