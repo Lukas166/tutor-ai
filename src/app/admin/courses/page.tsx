@@ -195,7 +195,7 @@ export default function CoursesPage() {
           <h1 className="text-3xl font-bold tracking-tight">Course Management</h1>
           <p className="text-muted-foreground">Kelola mata kuliah dan dosen pengampu</p>
         </div>
-        <Button onClick={openCreate} className="gap-2 bg-brand text-white hover:bg-brand/90">
+        <Button onClick={openCreate} className="gap-2 bg-brand text-black hover:bg-brand/90">
           <Plus data-icon="inline-start" />
           Tambah Course
         </Button>
@@ -354,7 +354,7 @@ export default function CoursesPage() {
             <Button
               onClick={handleSubmit}
               disabled={submitting}
-              className="bg-brand text-white hover:bg-brand/90"
+              className="bg-brand text-black hover:bg-brand/90"
             >
               {submitting && <Loader2 className="animate-spin" data-icon="inline-start" />}
               {editingCourse ? "Simpan" : "Buat Course"}

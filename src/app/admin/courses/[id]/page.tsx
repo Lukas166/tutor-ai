@@ -297,7 +297,7 @@ export default function CourseDetailPage() {
             <Button
               onClick={openAssignDialog}
               size="sm"
-              className="gap-2 bg-brand text-white hover:bg-brand/90"
+              className="gap-2 bg-brand text-black hover:bg-brand/90"
             >
               <UserPlus data-icon="inline-start" />
               Tambah Dosen
@@ -442,7 +442,7 @@ export default function CourseDetailPage() {
             <Button
               onClick={handleAssign}
               disabled={assigning || !selectedDosen}
-              className="bg-brand text-white hover:bg-brand/90"
+              className="bg-brand text-black hover:bg-brand/90"
             >
               {assigning && <Loader2 className="animate-spin" data-icon="inline-start" />}
               Tugaskan

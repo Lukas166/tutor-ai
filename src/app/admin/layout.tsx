@@ -121,14 +121,14 @@ function ProfileDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <Avatar className="size-8 shrink-0">
+        <button className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <Avatar className="size-7 shrink-0">
             <AvatarFallback className="bg-brand text-black text-sm font-bold">
               {initials}
             </AvatarFallback>
           </Avatar>
           <div className="hidden min-w-0 sm:grid">
-            <span className="truncate text-sm font-medium leading-none">{name}</span>
+            <span className="truncate text-base font-semibold leading-none">{name}</span>
           </div>
         </button>
       </DropdownMenuTrigger>
