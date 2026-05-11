@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
   const isAuthenticated = Boolean(session)
   const dashboardPath = session?.user.role === 'mahasiswa' ? '/dashboard/mahasiswa' : '/dashboard/staff'
 
-  if (!isAuthenticated && (pathname.startsWith('/dashboard') || pathname === '/profile')) {
+  if (!isAuthenticated && pathname === '/profile') {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -37,9 +37,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (pathname === '/') {
+  if (pathname === '/' && isAuthenticated) {
     const url = request.nextUrl.clone()
-    url.pathname = isAuthenticated ? dashboardPath : '/login'
+    url.pathname = dashboardPath
     return NextResponse.redirect(url)
   }
 

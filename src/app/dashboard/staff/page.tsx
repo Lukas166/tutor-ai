@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { DashboardShell } from '@/components/dashboard-shell'
-import { getDisplayName, getRoleLabel } from '@/lib/auth-types'
+import { getDisplayName, getRoleLabel, getGuestSession } from '@/lib/auth-types'
 import { getServerSession } from '@/lib/session'
 import styles from '../dashboard.module.css'
 
@@ -13,11 +13,7 @@ const staffStats = [
 ]
 
 export default async function StaffDashboardPage() {
-  const session = await getServerSession()
-
-  if (!session) {
-    redirect('/login')
-  }
+  const session = (await getServerSession()) ?? getGuestSession('dosen')
 
   if (session.user.roleGroup !== 'staff') {
     redirect('/dashboard/mahasiswa')

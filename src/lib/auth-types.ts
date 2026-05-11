@@ -65,3 +65,29 @@ function getFallbackName(email: string | null | undefined) {
 export function getDisplayName(fullName: string | null | undefined, email: string | null | undefined) {
   return fullName?.trim() || getFallbackName(email) || 'Pengguna'
 }
+
+export function getGuestSession(role: AppRole): AppSession {
+  const roleGroup = getRoleGroup(role)
+  const name = role === 'mahasiswa' ? 'Guest Mahasiswa' : 'Guest Staff'
+  const email = `guest-${role}@tutor-ai.id`
+
+  return {
+    user: {
+      id: `guest-${role}`,
+      email,
+      fullName: name,
+      avatarUrl: null,
+      role,
+      roleGroup,
+    },
+    profile: {
+      id: `guest-${role}`,
+      full_name: name,
+      avatar_url: null,
+      email,
+      role,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+  }
+}

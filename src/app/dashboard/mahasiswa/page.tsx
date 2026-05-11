@@ -2,16 +2,12 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { DashboardShell } from '@/components/dashboard-shell'
 import { StudentCourseBoard } from '@/components/student-course-board'
-import { getDisplayName } from '@/lib/auth-types'
+import { getDisplayName, getGuestSession } from '@/lib/auth-types'
 import { getServerSession } from '@/lib/session'
 import styles from '../dashboard.module.css'
 
 export default async function MahasiswaDashboardPage() {
-  const session = await getServerSession()
-
-  if (!session) {
-    redirect('/login')
-  }
+  const session = (await getServerSession()) ?? getGuestSession('mahasiswa')
 
   if (session.user.roleGroup !== 'mahasiswa') {
     redirect('/dashboard/staff')
