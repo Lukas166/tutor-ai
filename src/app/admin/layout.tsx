@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -45,6 +46,7 @@ const NAV_ITEMS = [
 ];
 
 function AdminSidebar() {
+  const { setOpenMobile, isMobile } = useSidebar();
   const pathname = usePathname();
 
   const isActive = (href: string) => {
@@ -52,11 +54,18 @@ function AdminSidebar() {
     return pathname.startsWith(href);
   };
 
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="border-r">
       <SidebarHeader className="flex h-16 shrink-0 flex-row items-center justify-between px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
         <Link
           href="/admin"
+          onClick={handleNavClick}
           className="flex min-w-0 items-center gap-3 group-data-[collapsible=icon]:hidden"
         >
           <div className="flex size-8 shrink-0 items-center justify-center">
@@ -88,7 +97,7 @@ function AdminSidebar() {
                       isActive(item.href) && "bg-brand text-black hover:text-white data-[active=true]:bg-brand data-[active=true]:text-black shadow-sm"
                     )}
                   >
-                    <Link href={item.href} className="flex items-center gap-4">
+                    <Link href={item.href} onClick={handleNavClick} className="flex items-center gap-4">
                       <item.icon className="size-[18px] shrink-0" />
                       <span className={cn("text-sm font-medium", isActive(item.href) && "font-bold")}>
                         {item.title}

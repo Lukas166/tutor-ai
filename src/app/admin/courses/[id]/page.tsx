@@ -293,16 +293,16 @@ export default function CourseDetailPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="instructors" className="w-full">
-        <div className="flex items-center justify-between mb-4 w-full">
-          <TabsList className="!h-10 p-1 flex items-center">
-            <TabsTrigger value="instructors" className="px-4 h-full">Dosen Pengampu</TabsTrigger>
-            <TabsTrigger value="enrollments" className="px-4 h-full">Mahasiswa Terdaftar</TabsTrigger>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+          <TabsList className="!h-10 p-1 flex items-center w-full sm:w-fit">
+            <TabsTrigger value="instructors" className="flex-1 px-4 h-full sm:flex-none">Dosen Pengampu</TabsTrigger>
+            <TabsTrigger value="enrollments" className="flex-1 px-4 h-full sm:flex-none">Mahasiswa Terdaftar</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="instructors" className="m-0 ml-auto flex justify-end">
+          <TabsContent value="instructors" className="m-0 sm:ml-auto">
             <Button
               onClick={openAssignDialog}
-              className="gap-2 h-10 bg-brand text-black hover:bg-brand/90 px-5"
+              className="w-full sm:w-auto gap-2 h-10 bg-brand text-black hover:bg-brand/90 px-5"
             >
               <UserPlus data-icon="inline-start" />
               Tambah Dosen

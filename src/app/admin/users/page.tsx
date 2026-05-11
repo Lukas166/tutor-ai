@@ -353,32 +353,34 @@ export default function UsersPage() {
             </button>
           )}
         </div>
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="all">Semua Role</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="dosen">Dosen</SelectItem>
-              <SelectItem value="mahasiswa">Mahasiswa</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <Select value={levelFilter} onValueChange={setLevelFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="all">Semua Jenjang</SelectItem>
-              <SelectItem value="S1">S1</SelectItem>
-              <SelectItem value="S2">S2</SelectItem>
-              <SelectItem value="S3">S3</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="flex-1 sm:w-[150px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="all">Semua Role</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="dosen">Dosen</SelectItem>
+                <SelectItem value="mahasiswa">Mahasiswa</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Select value={levelFilter} onValueChange={setLevelFilter}>
+            <SelectTrigger className="flex-1 sm:w-[150px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="all">Semua Jenjang</SelectItem>
+                <SelectItem value="S1">S1</SelectItem>
+                <SelectItem value="S2">S2</SelectItem>
+                <SelectItem value="S3">S3</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Table */}
