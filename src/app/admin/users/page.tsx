@@ -316,8 +316,8 @@ export default function UsersPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">User Management</h1>
-          <p className="text-sm text-muted-foreground">Kelola semua pengguna sistem</p>
+          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
+          <p className="text-muted-foreground">Kelola semua pengguna sistem</p>
         </div>
         <Button onClick={openCreate} className="gap-2 bg-brand text-white hover:bg-brand/90">
           <Plus data-icon="inline-start" />

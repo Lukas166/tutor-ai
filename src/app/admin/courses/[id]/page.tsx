@@ -230,13 +230,13 @@ export default function CourseDetailPage() {
         </Button>
         <div className="flex-1">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight">{course.title}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{course.title}</h1>
             <Badge variant={course.isActive ? "default" : "secondary"}>
               {course.isActive ? "Aktif" : "Nonaktif"}
             </Badge>
           </div>
           {course.description && (
-            <p className="text-sm text-muted-foreground">{course.description}</p>
+            <p className="text-muted-foreground">{course.description}</p>
           )}
         </div>
       </div>
