@@ -74,7 +74,7 @@ export function LoginForm() {
       className="flex flex-col gap-4"
     >
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</Label>
+        <Label htmlFor="email" className="text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground">Email</Label>
         <div className="relative">
           <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -101,7 +101,7 @@ export function LoginForm() {
 
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
-          <Label htmlFor="password" title="Password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Password</Label>
+          <Label htmlFor="password" title="Password" className="text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground">Password</Label>
         </div>
         <div className="relative">
           <Lock className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -140,7 +140,7 @@ export function LoginForm() {
         )}
       </div>
 
-      <p className="text-left text-[11px] text-muted-foreground leading-relaxed">
+      <p className="mt-[-10px] text-left text-[11px] text-muted-foreground leading-relaxed">
         Dengan login, Anda telah menyetujui seluruh kebijakan dan ketentuan layanan Tutor AI.
       </p>
 
@@ -154,7 +154,7 @@ export function LoginForm() {
       <Button
         type="submit"
         disabled={isPending}
-        className="h-10 w-full rounded-lg bg-brand text-white text-sm font-bold transition-all hover:bg-brand/80 active:scale-[0.98] shadow-none"
+        className="h-10 w-full rounded-lg bg-brand text-white text-sm font-bold transition-all hover:bg-brand/80 active:scale-[0.98] shadow-none mt-2"
       >
         {isPending ? (
           <Loader2 className="mr-2 animate-spin size-4" />
