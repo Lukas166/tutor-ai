@@ -10,8 +10,15 @@ function generateEnrollmentKey(): string {
   return key;
 }
 
-export async function listCourses() {
+export async function listCourses(search?: string) {
   return prisma.course.findMany({
+    where: search ? {
+      OR: [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { enrollmentKey: { contains: search, mode: 'insensitive' } },
+      ]
+    } : {},
     include: {
       creator: { select: { id: true, name: true } },
       _count: {

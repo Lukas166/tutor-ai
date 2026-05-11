@@ -225,18 +225,17 @@ export default function CourseDetailPage() {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/courses")}>
-          <ArrowLeft className="size-4" />
-        </Button>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight">{course.title}</h1>
-            <Badge variant={course.isActive ? "default" : "secondary"}>
+            <h1 className="text-3xl font-bold tracking-tight truncate">{course.title}</h1>
+            <Badge variant={course.isActive ? "default" : "secondary"} className="shrink-0">
               {course.isActive ? "Aktif" : "Nonaktif"}
             </Badge>
           </div>
           {course.description && (
-            <p className="text-muted-foreground">{course.description}</p>
+            <p className="text-muted-foreground whitespace-pre-wrap break-all mt-2">
+              {course.description}
+            </p>
           )}
         </div>
       </div>

@@ -53,6 +53,8 @@ import {
   ToggleRight,
   Users,
   KeyRound,
+  Search,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -81,17 +83,22 @@ export default function CoursesPage() {
   // Delete dialog
   const [deleteCourse, setDeleteCourse] = useState<Course | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
 
   const fetchCourses = useCallback(() => {
     setLoading(true);
-    fetch("/api/admin/courses")
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+
+    fetch(`/api/admin/courses?${params}`)
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) setCourses(data);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [search]);
 
   useEffect(() => {
     fetchCourses();
@@ -201,6 +208,35 @@ export default function CoursesPage() {
         </Button>
       </div>
 
+      {/* Filters/Search */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Cari judul atau enrollment key..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setSearch(searchInput);
+              }
+            }}
+            className="pl-9"
+          />
+          {searchInput && (
+            <button
+              onClick={() => {
+                setSearchInput("");
+                setSearch("");
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Table */}
       <div className="rounded-xl border bg-card">
         <Table>
@@ -234,11 +270,11 @@ export default function CoursesPage() {
             ) : (
               courses.map((course) => (
                 <TableRow key={course.id}>
-                  <TableCell className="pl-6">
-                    <div>
-                      <p className="font-medium">{course.title}</p>
+                  <TableCell className="pl-6 max-w-[200px] sm:max-w-[300px]">
+                    <div className="flex flex-col min-w-0">
+                      <p className="font-medium truncate" title={course.title}>{course.title}</p>
                       {course.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-1">
+                        <p className="text-xs text-muted-foreground truncate" title={course.description}>
                           {course.description}
                         </p>
                       )}

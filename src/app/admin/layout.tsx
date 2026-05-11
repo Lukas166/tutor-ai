@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Users,
@@ -52,10 +53,8 @@ function AdminSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon">
-      {/* Header: h-14, tanpa garis pembatas, padding lebih lega */}
-      <SidebarHeader className="h-14 flex flex-row items-center justify-between px-6 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
-        {/* Logo — hanya "Tutor AI", hilang saat collapsed */}
+    <Sidebar variant="sidebar" collapsible="icon" className="border-r">
+      <SidebarHeader className="flex h-16 shrink-0 flex-row items-center justify-between px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
         <Link
           href="/admin"
           className="flex min-w-0 items-center gap-3 group-data-[collapsible=icon]:hidden"
@@ -63,7 +62,7 @@ function AdminSidebar() {
           <div className="flex size-8 shrink-0 items-center justify-center">
             <img src="/black_unpad.png" alt="Logo" className="size-16 object-contain" />
           </div>
-          <span className="truncate font-bold text-base">Admin</span>
+          <span className="truncate font-bold text-base">Admin Panel</span>
         </Link>
 
         {/* Trigger — satu-satunya, selalu visible */}
@@ -103,8 +102,10 @@ function AdminSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Footer kosong — profile sudah di header kanan */}
-      <SidebarFooter />
+      {/* Footer dengan Profile */}
+      <SidebarFooter className="p-4 group-data-[collapsible=icon]:p-2">
+        <ProfileDropdown />
+      </SidebarFooter>
     </Sidebar>
   );
 }
@@ -124,45 +125,36 @@ function ProfileDropdown() {
   const initials = name.charAt(0).toUpperCase();
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <Avatar className="size-7 shrink-0">
-            <AvatarFallback className="bg-brand text-black text-sm font-bold">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="hidden min-w-0 sm:grid">
-            <span className="truncate text-base font-semibold leading-none">{name}</span>
-          </div>
-        </button>
-      </DropdownMenuTrigger>
+    <div className="flex w-full items-center justify-between gap-3 p-2 group-data-[collapsible=icon]:justify-center">
+      <div className="flex min-w-0 flex-1 items-center gap-3 group-data-[collapsible=icon]:hidden">
+        <Avatar className="size-8 shrink-0">
+          <AvatarFallback className="bg-brand text-black text-sm font-bold">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex flex-col min-w-0">
+          <span className="truncate text-sm font-bold leading-none">{name}</span>
+          <span className="truncate text-xs text-muted-foreground mt-0.5">{email}</span>
+        </div>
+      </div>
+      
+      {/* Avatar for collapsed state */}
+      <Avatar className="hidden size-8 shrink-0 group-data-[collapsible=icon]:flex">
+        <AvatarFallback className="bg-brand text-black text-sm font-bold">
+          {initials}
+        </AvatarFallback>
+      </Avatar>
 
-      <DropdownMenuContent align="end" className="w-72">
-        {/* Card info: nama + email */}
-        <DropdownMenuLabel className="font-normal p-4">
-          <div className="flex items-center gap-3">
-            <Avatar className="size-10 shrink-0">
-              <AvatarFallback className="bg-brand text-black text-base font-bold">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col gap-0.5 min-w-0">
-              <p className="text-sm font-semibold leading-snug">{name}</p>
-              <p className="text-xs text-muted-foreground truncate">{email}</p>
-            </div>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={handleLogout}
-          className="mx-1 mb-1 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
-        >
-          <LogOut className="mr-2 size-4" />
-          Logout
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleLogout}
+        className="shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-data-[collapsible=icon]:hidden"
+        title="Logout"
+      >
+        <LogOut className="size-4" />
+      </Button>
+    </div>
   );
 }
 
@@ -185,17 +177,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <SidebarProvider>
       <AdminSidebar />
       <SidebarInset>
-        {/* Header kanan: h-14 simetris dengan sidebar header */}
-        <header className="flex h-14 shrink-0 items-center justify-between border-b px-6 md:px-10">
-          <div className="flex items-center gap-3">
-            <SidebarTrigger className="-ml-2 md:hidden" />
-            <span className="text-sm font-medium text-muted-foreground">Admin Panel</span>
-          </div>
-          <ProfileDropdown />
+        {/* Header atas hanya untuk mobile (menampilkan SidebarTrigger) */}
+        <header className="flex h-14 shrink-0 items-center border-b px-6 md:hidden">
+          <SidebarTrigger className="-ml-2" />
         </header>
 
         {/* Konten halaman */}
-        <main className="flex-1 px-6 md:px-10 pb-10 pt-6">
+        <main className="flex-1 px-6 md:px-10 pb-10 pt-6 md:pt-10">
           {children}
         </main>
       </SidebarInset>

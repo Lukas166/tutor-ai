@@ -106,7 +106,7 @@ function UserFormFields({
           type="email"
           value={form.email || ""}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
-          placeholder="email@example.com"
+          placeholder="email@mail.unpad.ac.id"
         />
       </div>
       {isCreate && (
@@ -203,6 +203,7 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [levelFilter, setLevelFilter] = useState<string>("all");
 
@@ -331,13 +332,21 @@ export default function UsersPage() {
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Cari nama atau email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setSearch(searchInput);
+              }
+            }}
             className="pl-9"
           />
-          {search && (
+          {searchInput && (
             <button
-              onClick={() => setSearch("")}
+              onClick={() => {
+                setSearchInput("");
+                setSearch("");
+              }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <X className="size-4" />
@@ -409,8 +418,12 @@ export default function UsersPage() {
                   <TableCell className="pl-6 font-mono text-xs">
                     {user.npm ?? "—"}
                   </TableCell>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                  <TableCell className="font-medium max-w-[150px] truncate" title={user.name}>
+                    {user.name}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground max-w-[150px] sm:max-w-[200px] truncate" title={user.email}>
+                    {user.email}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={ROLE_BADGE_VARIANT[user.role] || "outline"}>
                       {user.role}

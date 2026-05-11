@@ -7,7 +7,8 @@ export async function GET(request: NextRequest) {
   const { error } = await requireAdmin(request);
   if (error) return error;
 
-  const courses = await courseService.listCourses();
+  const search = request.nextUrl.searchParams.get("search") || undefined;
+  const courses = await courseService.listCourses(search);
   return NextResponse.json(courses);
 }
 
