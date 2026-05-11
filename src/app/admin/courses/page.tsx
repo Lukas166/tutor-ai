@@ -318,36 +318,38 @@ export default function CoursesPage() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{editingCourse ? "Edit Course" : "Tambah Course Baru"}</DialogTitle>
+        <DialogContent className="sm:max-w-[500px] flex flex-col gap-0 p-0 overflow-hidden">
+          <DialogHeader className="px-6 py-6 border-b bg-muted/30">
+            <DialogTitle className="text-xl">{editingCourse ? "Edit Course" : "Tambah Course Baru"}</DialogTitle>
             <DialogDescription>
               {editingCourse
                 ? "Perbarui informasi course ini."
-                : "Enrollment key akan otomatis di-generate."}
+                : "Isi data untuk membuat course baru. Enrollment key otomatis dibuat."}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title">Judul</Label>
-              <Input
-                id="title"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="Nama mata kuliah"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Deskripsi</Label>
-              <Input
-                id="description"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Opsional"
-              />
+          <div className="px-6 py-4 max-h-[60vh] overflow-y-auto pr-4">
+            <div className="grid gap-5 py-2">
+              <div className="grid gap-2">
+                <Label htmlFor="title">Judul</Label>
+                <Input
+                  id="title"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  placeholder="Nama mata kuliah"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Deskripsi</Label>
+                <Input
+                  id="description"
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Opsional"
+                />
+              </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="m-0 px-6 py-4 border-t bg-muted/10">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Batal
             </Button>

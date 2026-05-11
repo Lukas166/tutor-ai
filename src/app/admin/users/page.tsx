@@ -89,7 +89,7 @@ function UserFormFields({
   const isMahasiswa = form.role === "mahasiswa";
 
   return (
-    <div className="grid gap-4 py-4">
+    <div className="grid gap-5 py-2">
       <div className="grid gap-2">
         <Label htmlFor="name">Nama</Label>
         <Input
@@ -451,17 +451,17 @@ export default function UsersPage() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{editingUser ? "Edit User" : "Tambah User Baru"}</DialogTitle>
+        <DialogContent className="sm:max-w-[500px] flex flex-col gap-0 p-0 overflow-hidden">
+          <DialogHeader className="px-6 py-6 border-b bg-muted/30">
+            <DialogTitle className="text-xl">{editingUser ? "Edit User" : "Tambah User Baru"}</DialogTitle>
             <DialogDescription>
-              {editingUser
-                ? "Perbarui informasi pengguna ini."
-                : "Isi data untuk membuat pengguna baru."}
+              {editingUser ? "Ubah data pengguna di bawah ini." : "Isi data untuk membuat pengguna baru."}
             </DialogDescription>
           </DialogHeader>
-          <UserFormFields form={form} setForm={setForm} isCreate={!editingUser} />
-          <DialogFooter>
+          <div className="px-6 py-4 max-h-[60vh] overflow-y-auto pr-4">
+            <UserFormFields form={form} setForm={setForm} isCreate={!editingUser} />
+          </div>
+          <DialogFooter className="m-0 px-6 py-4 border-t bg-muted/10">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Batal
             </Button>
