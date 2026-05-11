@@ -9,24 +9,41 @@ export function LoginBrandPanel() {
       />
       <div className="absolute inset-0 bg-black/80 backdrop-blur-[4px]" />
 
-      <div className="relative z-10 flex h-full w-full flex-col px-10 py-8 xl:px-12">
-        <div className="flex items-center gap-2.5">
+      <div className="relative z-10 flex h-full w-full flex-col px-10 py-10 xl:px-14">
+        {/* Top Logo */}
+        <div className="flex items-center gap-3">
           <Image
-            src="/logo_unpad.png"
-            alt="Tutor AI logo"
-            width={100}
-            height={24}
-            className="h-8 w-auto object-contain"
+            src="/white_unpad.png"
+            alt="Unpad Logo"
+            width={120}
+            height={36}
+            className="h-12 w-auto object-contain"
             priority
           />
-          <span className="text-xl font-bold tracking-tight text-white">
-            Tutor AI
-          </span>
         </div>
 
-        <div className="my-auto max-w-xl space-y-5">
-          <p className="text-[34px] leading-[1.25] font-bold text-white">
-            Upload materials, access courses, and discuss with AI to understand your subjects better.
+        {/* Content Area */}
+        <div className="my-auto max-w-xl space-y-6">
+          <div className="space-y-2">
+            <h2 className="text-brand text-2xl font-black uppercase tracking-[0.1em] mb-5">
+              Tutor AI
+            </h2>
+            <p className="text-[40px] leading-[1.1] font-extrabold text-white">
+              Upload materials, access courses, discuss with AI.
+            </p>
+          </div>
+          <p className="text-base font-medium text-white/70 mt-[-5]">
+            Understand your subjects better with personalized AI assistance designed specifically for the Unpad academic community.
+          </p>
+        </div>
+
+      {/* Bottom Footer */}
+        <div className="flex flex-col">
+          <span className="text-xs font-bold uppercase tracking-widest text-brand/80">
+            Official Partner
+          </span>
+          <p className="text-sm font-medium text-white/60">
+            <span className="text-white font-semibold">Universitas Padjadjaran</span>
           </p>
         </div>
       </div>

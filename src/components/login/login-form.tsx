@@ -87,7 +87,7 @@ export function LoginForm() {
             form.formState.errors.email &&
               'border-destructive focus-visible:ring-destructive/20',
           )}
-          placeholder="name@email.com"
+          placeholder="name@mail.unpad.ac.id"
         />
         {form.formState.errors.email && (
           <p className="text-[11px] text-destructive">

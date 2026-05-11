@@ -5,9 +5,9 @@ async function main() {
   console.log("Seeding database...");
 
   const users = [
-    { email: "admin@example.com", password: "password", name: "Admin", role: "admin" },
-    { email: "dosen@example.com", password: "password", name: "Dosen", role: "lecturer" },
-    { email: "mahasiswa@example.com", password: "password", name: "Mahasiswa", role: "student" },
+    { email: "admin@mail.unpad.ac.id", password: "password", name: "Admin", role: "admin" },
+    { email: "dosen@mail.unpad.ac.id", password: "password", name: "Dosen", role: "lecturer" },
+    { email: "mahasiswa@mail.unpad.ac.id", password: "password", name: "Mahasiswa", role: "student" },
   ];
 
   for (const user of users) {
