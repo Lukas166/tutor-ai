@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -75,20 +75,23 @@ export function LoginForm() {
     >
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          autoFocus
-          {...form.register('email')}
-          aria-invalid={!!form.formState.errors.email}
-          className={cn(
-            'h-10 rounded-lg border-muted-foreground/20 px-3.5 transition-all focus:border-brand focus:ring-1 focus:ring-brand shadow-none',
-            form.formState.errors.email &&
-              'border-destructive focus-visible:ring-destructive/20',
-          )}
-          placeholder="name@mail.unpad.ac.id"
-        />
+        <div className="relative">
+          <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            autoFocus
+            {...form.register('email')}
+            aria-invalid={!!form.formState.errors.email}
+            className={cn(
+              'h-10 rounded-lg border-muted-foreground/20 pl-10 pr-3.5 text-sm placeholder:text-[13px] transition-all focus:border-brand focus:ring-1 focus:ring-brand shadow-none',
+              form.formState.errors.email &&
+                'border-destructive focus-visible:ring-destructive/20',
+            )}
+            placeholder="name@mail.unpad.ac.id"
+          />
+        </div>
         {form.formState.errors.email && (
           <p className="text-[11px] text-destructive">
             {form.formState.errors.email.message}
@@ -101,6 +104,7 @@ export function LoginForm() {
           <Label htmlFor="password" title="Password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Password</Label>
         </div>
         <div className="relative">
+          <Lock className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             id="password"
             type={showPassword ? 'text' : 'password'}
@@ -108,7 +112,7 @@ export function LoginForm() {
             {...form.register('password')}
             aria-invalid={!!form.formState.errors.password}
             className={cn(
-              'h-10 rounded-lg border-muted-foreground/20 pl-3.5 pr-10 transition-all focus:border-brand focus:ring-1 focus:ring-brand shadow-none',
+              'h-10 rounded-lg border-muted-foreground/20 pl-10 pr-10 text-sm placeholder:text-[13px] transition-all focus:border-brand focus:ring-1 focus:ring-brand shadow-none',
               form.formState.errors.password &&
                 'border-destructive focus-visible:ring-destructive/20',
             )}
@@ -135,6 +139,10 @@ export function LoginForm() {
           </p>
         )}
       </div>
+
+      <p className="text-left text-[11px] text-muted-foreground leading-relaxed">
+        Dengan login, Anda telah menyetujui seluruh kebijakan dan ketentuan layanan Tutor AI.
+      </p>
 
       {/* Server Error */}
       {formError && (
