@@ -290,16 +290,16 @@ export default function CoursesPage() {
                       <Copy className="size-3 text-muted-foreground" />
                     </button>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <Badge variant="outline">{course._count.instructors}</Badge>
+                  <TableCell className="text-center font-medium">
+                    {course._count.instructors}
                   </TableCell>
-                  <TableCell className="text-center">
-                    <Badge variant="outline">{course._count.enrollments}</Badge>
+                  <TableCell className="text-center font-medium">
+                    {course._count.enrollments}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={course.isActive ? "default" : "secondary"}>
+                    <span className={`font-medium ${course.isActive ? "text-emerald-600" : "text-muted-foreground"}`}>
                       {course.isActive ? "Aktif" : "Nonaktif"}
-                    </Badge>
+                    </span>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>

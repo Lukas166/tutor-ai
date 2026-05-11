@@ -424,10 +424,8 @@ export default function UsersPage() {
                   <TableCell className="text-muted-foreground max-w-[150px] sm:max-w-[200px] truncate" title={user.email}>
                     {user.email}
                   </TableCell>
-                  <TableCell>
-                    <Badge variant={ROLE_BADGE_VARIANT[user.role] || "outline"}>
-                      {user.role}
-                    </Badge>
+                  <TableCell className="capitalize font-medium">
+                    {user.role}
                   </TableCell>
                   <TableCell>{user.academicLevel ?? "—"}</TableCell>
                   <TableCell>{user.major ?? "—"}</TableCell>

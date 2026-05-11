@@ -227,13 +227,15 @@ export default function CourseDetailPage() {
       <div className="flex items-center gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight truncate">{course.title}</h1>
+            <h1 className="text-3xl font-bold tracking-tight truncate" title={course.title}>
+              {course.title}
+            </h1>
             <Badge variant={course.isActive ? "default" : "secondary"} className="shrink-0">
               {course.isActive ? "Aktif" : "Nonaktif"}
             </Badge>
           </div>
           {course.description && (
-            <p className="text-muted-foreground whitespace-pre-wrap break-all mt-2">
+            <p className="text-muted-foreground whitespace-pre-wrap break-all mt-2 text-sm leading-relaxed max-w-3xl">
               {course.description}
             </p>
           )}
@@ -242,71 +244,79 @@ export default function CourseDetailPage() {
 
       {/* Info Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
+        <Card className="overflow-hidden border-border/50">
           <CardHeader className="pb-2">
-            <CardDescription>Enrollment Key</CardDescription>
+            <CardDescription className="text-xs font-semibold uppercase tracking-wider">Enrollment Key</CardDescription>
           </CardHeader>
           <CardContent>
             <button
               onClick={() => copyKey(course.enrollmentKey)}
-              className="inline-flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-1.5 font-mono text-sm transition-colors hover:bg-muted"
+              className="inline-flex w-full items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2 font-mono text-sm transition-colors hover:bg-muted"
             >
-              <KeyRound className="size-3.5 text-brand" />
-              {course.enrollmentKey}
+              <div className="flex items-center gap-2">
+                <KeyRound className="size-4 text-brand" />
+                <span className="font-bold">{course.enrollmentKey}</span>
+              </div>
               <Copy className="size-3.5 text-muted-foreground" />
             </button>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="overflow-hidden border-border/50">
           <CardHeader className="pb-2">
-            <CardDescription>Dosen Pengampu</CardDescription>
+            <CardDescription className="text-xs font-semibold uppercase tracking-wider">Dosen Pengampu</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-2">
-              <Users className="size-4 text-blue-500" />
-              <span className="text-2xl font-bold">{course.instructors.length}</span>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-full bg-blue-500/10">
+                <Users className="size-5 text-blue-600" />
+              </div>
+              <span className="text-3xl font-bold">{course.instructors.length}</span>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="overflow-hidden border-border/50">
           <CardHeader className="pb-2">
-            <CardDescription>Mahasiswa Terdaftar</CardDescription>
+            <CardDescription className="text-xs font-semibold uppercase tracking-wider">Mahasiswa Terdaftar</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-2">
-              <GraduationCap className="size-4 text-emerald-500" />
-              <span className="text-2xl font-bold">{course._count.enrollments}</span>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-full bg-emerald-500/10">
+                <GraduationCap className="size-5 text-emerald-600" />
+              </div>
+              <span className="text-3xl font-bold">{course._count.enrollments}</span>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Separator />
+
 
       {/* Tabs */}
-      <Tabs defaultValue="instructors">
-        <TabsList>
-          <TabsTrigger value="instructors">Dosen Pengampu</TabsTrigger>
-          <TabsTrigger value="enrollments">Mahasiswa Terdaftar</TabsTrigger>
-        </TabsList>
-
-        {/* Instructors Tab */}
-        <TabsContent value="instructors" className="flex flex-col gap-4">
-          <div className="flex justify-end">
+      <Tabs defaultValue="instructors" className="w-full">
+        <div className="flex items-center justify-between mb-4 w-full">
+          <TabsList className="!h-10 p-1 flex items-center">
+            <TabsTrigger value="instructors" className="px-4 h-full">Dosen Pengampu</TabsTrigger>
+            <TabsTrigger value="enrollments" className="px-4 h-full">Mahasiswa Terdaftar</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="instructors" className="m-0 ml-auto flex justify-end">
             <Button
               onClick={openAssignDialog}
-              size="sm"
-              className="gap-2 bg-brand text-black hover:bg-brand/90"
+              className="gap-2 h-10 bg-brand text-black hover:bg-brand/90 px-5"
             >
               <UserPlus data-icon="inline-start" />
               Tambah Dosen
             </Button>
-          </div>
+          </TabsContent>
+        </div>
+
+        {/* Instructors Tab Table */}
+        <TabsContent value="instructors" className="mt-0">
           <div className="rounded-xl border bg-card">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Nama</TableHead>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="pl-6">Nama</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Ditugaskan</TableHead>
                   <TableHead className="w-[60px]" />
@@ -322,10 +332,18 @@ export default function CourseDetailPage() {
                 ) : (
                   course.instructors.map((inst) => (
                     <TableRow key={inst.id}>
-                      <TableCell className="font-medium">{inst.user.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{inst.user.email}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(inst.assignedAt).toLocaleDateString("id-ID")}
+                      <TableCell className="pl-6 font-medium max-w-[200px] truncate" title={inst.user.name}>
+                        {inst.user.name}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground max-w-[200px] truncate" title={inst.user.email}>
+                        {inst.user.email}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                        {new Date(inst.assignedAt).toLocaleDateString("id-ID", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -350,14 +368,14 @@ export default function CourseDetailPage() {
           <div className="rounded-xl border bg-card">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Nama</TableHead>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="pl-6">Nama Mahasiswa</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>NPM</TableHead>
                   <TableHead>Jenjang</TableHead>
                   <TableHead>Jurusan</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Terdaftar</TableHead>
+                  <TableHead className="pr-6">Terdaftar</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -380,18 +398,28 @@ export default function CourseDetailPage() {
                 ) : (
                   enrollments.map((enrollment) => (
                     <TableRow key={enrollment.id}>
-                      <TableCell className="font-medium">{enrollment.user.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{enrollment.user.email}</TableCell>
-                      <TableCell className="font-mono text-xs">{enrollment.user.npm ?? "—"}</TableCell>
-                      <TableCell>{enrollment.user.academicLevel ?? "—"}</TableCell>
-                      <TableCell>{enrollment.user.major ?? "—"}</TableCell>
-                      <TableCell>
-                        <Badge variant={enrollment.isActive ? "default" : "secondary"}>
-                          {enrollment.isActive ? "Aktif" : "Dicabut"}
-                        </Badge>
+                      <TableCell className="pl-6 font-medium max-w-[180px] truncate" title={enrollment.user.name}>
+                        {enrollment.user.name}
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(enrollment.enrolledAt).toLocaleDateString("id-ID")}
+                      <TableCell className="text-muted-foreground max-w-[180px] truncate" title={enrollment.user.email}>
+                        {enrollment.user.email}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">{enrollment.user.npm ?? "—"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{enrollment.user.academicLevel ?? "—"}</TableCell>
+                      <TableCell className="max-w-[150px] truncate" title={enrollment.user.major ?? "—"}>
+                        {enrollment.user.major ?? "—"}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`font-medium ${enrollment.isActive ? "text-emerald-600" : "text-muted-foreground"}`}>
+                          {enrollment.isActive ? "Aktif" : "Dicabut"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="pr-6 text-sm text-muted-foreground whitespace-nowrap">
+                        {new Date(enrollment.enrolledAt).toLocaleDateString("id-ID", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
                       </TableCell>
                     </TableRow>
                   ))
@@ -404,44 +432,48 @@ export default function CourseDetailPage() {
 
       {/* Assign Instructor Dialog */}
       <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden flex flex-col max-h-[85vh]">
+          <DialogHeader className="px-6 py-5">
             <DialogTitle>Tambah Dosen Pengampu</DialogTitle>
             <DialogDescription>
               Pilih dosen yang akan ditugaskan ke course ini.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="dosen">Dosen</Label>
-            <Select value={selectedDosen} onValueChange={setSelectedDosen}>
-              <SelectTrigger id="dosen" className="mt-2">
-                <SelectValue placeholder="Pilih dosen..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {availableDosen.length === 0 ? (
-                    <SelectItem value="none" disabled>
-                      Semua dosen sudah ditugaskan
-                    </SelectItem>
-                  ) : (
-                    availableDosen.map((d) => (
-                      <SelectItem key={d.id} value={d.id}>
-                        {d.name} — {d.email}
+
+          <div className="flex-1 overflow-y-auto px-6 py-2 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="dosen">Dosen</Label>
+              <Select value={selectedDosen} onValueChange={setSelectedDosen}>
+                <SelectTrigger id="dosen" className="h-10">
+                  <SelectValue placeholder="Pilih dosen..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {availableDosen.length === 0 ? (
+                      <SelectItem value="none" disabled>
+                        Semua dosen sudah ditugaskan
                       </SelectItem>
-                    ))
-                  )}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+                    ) : (
+                      availableDosen.map((d) => (
+                        <SelectItem key={d.id} value={d.id}>
+                          {d.name} — {d.email}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAssignOpen(false)}>
+
+          <DialogFooter className="px-6 py-6 m-0">
+            <Button variant="outline" onClick={() => setAssignOpen(false)} className="h-10">
               Batal
             </Button>
             <Button
               onClick={handleAssign}
               disabled={assigning || !selectedDosen}
-              className="bg-brand text-black hover:bg-brand/90"
+              className="h-10 bg-brand text-black hover:bg-brand/90"
             >
               {assigning && <Loader2 className="animate-spin" data-icon="inline-start" />}
               Tugaskan
