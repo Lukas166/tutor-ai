@@ -53,17 +53,17 @@ function AdminSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      {/* Header: h-14, tanpa garis pembatas */}
-      <SidebarHeader className="h-14 flex flex-row items-center justify-between px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
+      {/* Header: h-14, tanpa garis pembatas, padding lebih lega */}
+      <SidebarHeader className="h-14 flex flex-row items-center justify-between px-6 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
         {/* Logo — hanya "Tutor AI", hilang saat collapsed */}
         <Link
           href="/admin"
-          className="flex min-w-0 items-center gap-2 group-data-[collapsible=icon]:hidden"
+          className="flex min-w-0 items-center gap-3 group-data-[collapsible=icon]:hidden"
         >
           <div className="flex size-8 shrink-0 items-center justify-center">
-            <img src="/black_unpad.png" alt="Logo" className="size-8 object-contain" />
+            <img src="/black_unpad.png" alt="Logo" className="size-16 object-contain" />
           </div>
-          <span className="truncate font-bold text-lg">Tutor AI</span>
+          <span className="truncate font-bold text-base">Admin</span>
         </Link>
 
         {/* Trigger — satu-satunya, selalu visible */}
@@ -71,24 +71,29 @@ function AdminSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Management Panel</SidebarGroupLabel>
+        {/* Padding lega saat terbuka, padding normal (p-2) saat icon-only agar tidak kepotong */}
+        <SidebarGroup className="px-4 py-6 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:py-2">
+          <SidebarGroupLabel className="text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wider">
+            Management Panel
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-1">
               {NAV_ITEMS.map((item) => (
-                <SidebarMenuItem key={item.href} className="py-0.5">
+                <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild
                     isActive={isActive(item.href)}
                     tooltip={item.title}
                     className={cn(
-                      "transition-colors hover:bg-brand/10 hover:text-brand gap-3 px-4 h-10",
+                      "transition-colors hover:bg-brand/10 hover:text-brand gap-4 px-4 h-11 rounded-lg",
                       isActive(item.href) && "bg-brand text-black hover:text-white data-[active=true]:bg-brand data-[active=true]:text-black shadow-sm"
                     )}
                   >
-                    <Link href={item.href} className="flex items-center gap-3">
+                    <Link href={item.href} className="flex items-center gap-4">
                       <item.icon className="size-[18px] shrink-0" />
-                      <span className="text-sm font-medium">{item.title}</span>
+                      <span className={cn("text-sm font-medium", isActive(item.href) && "font-bold")}>
+                        {item.title}
+                      </span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -181,16 +186,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <AdminSidebar />
       <SidebarInset>
         {/* Header kanan: h-14 simetris dengan sidebar header */}
-        <header className="flex h-14 shrink-0 items-center justify-between border-b px-10">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b px-6 md:px-10">
           <div className="flex items-center gap-3">
-            <SidebarTrigger className="md:hidden" />
+            <SidebarTrigger className="-ml-2 md:hidden" />
             <span className="text-sm font-medium text-muted-foreground">Admin Panel</span>
           </div>
           <ProfileDropdown />
         </header>
 
         {/* Konten halaman */}
-        <main className="flex-1 px-10 pb-10 pt-6">
+        <main className="flex-1 px-6 md:px-10 pb-10 pt-6">
           {children}
         </main>
       </SidebarInset>
