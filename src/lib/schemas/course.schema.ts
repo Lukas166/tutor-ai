@@ -15,6 +15,11 @@ export const assignInstructorSchema = z.object({
   userId: z.string().min(1, "User ID wajib diisi"),
 });
 
+export const enrollStudentSchema = z.object({
+  userId: z.string().min(1, "User ID wajib diisi"),
+});
+
 export type CreateCourseInput = z.infer<typeof createCourseSchema>;
 export type UpdateCourseInput = z.infer<typeof updateCourseSchema>;
 export type AssignInstructorInput = z.infer<typeof assignInstructorSchema>;
+export type EnrollStudentInput = z.infer<typeof enrollStudentSchema>;

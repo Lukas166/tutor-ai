@@ -180,3 +180,69 @@ export async function getDosenList() {
     orderBy: { name: "asc" },
   });
 }
+
+export async function getMahasiswaList() {
+  return prisma.user.findMany({
+    where: { role: "mahasiswa" },
+    select: { id: true, name: true, email: true, npm: true },
+    orderBy: { name: "asc" },
+  });
+}
+
+export async function enrollStudent(courseId: string, userId: string) {
+  // Verify course exists
+  const course = await prisma.course.findUnique({ where: { id: courseId } });
+  if (!course) {
+    throw new Error("Course tidak ditemukan");
+  }
+
+  // Verify user is a mahasiswa
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new Error("User tidak ditemukan");
+  }
+  if (user.role !== "mahasiswa") {
+    throw new Error("Hanya user dengan role mahasiswa yang dapat didaftarkan");
+  }
+
+  // Check not already enrolled
+  const existing = await prisma.enrollment.findFirst({
+    where: { courseId, userId },
+  });
+  if (existing) {
+    throw new Error("Mahasiswa sudah terdaftar di course ini");
+  }
+
+  return prisma.enrollment.create({
+    data: {
+      id: crypto.randomUUID(),
+      courseId,
+      userId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          npm: true,
+          academicLevel: true,
+          major: true,
+          faculty: true,
+        },
+      },
+    },
+  });
+}
+
+export async function removeEnrollment(courseId: string, userId: string) {
+  const existing = await prisma.enrollment.findFirst({
+    where: { courseId, userId },
+  });
+  if (!existing) {
+    throw new Error("Enrollment tidak ditemukan");
+  }
+
+  await prisma.enrollment.delete({ where: { id: existing.id } });
+  return { success: true };
+}

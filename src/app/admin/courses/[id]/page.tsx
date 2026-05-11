@@ -94,6 +94,13 @@ interface Dosen {
   email: string;
 }
 
+interface Mahasiswa {
+  id: string;
+  name: string;
+  email: string;
+  npm: string | null;
+}
+
 export default function CourseDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -113,6 +120,16 @@ export default function CourseDetailPage() {
   // Remove instructor
   const [removeInstructor, setRemoveInstructor] = useState<Instructor | null>(null);
   const [removing, setRemoving] = useState(false);
+
+  // Enroll student
+  const [enrollOpen, setEnrollOpen] = useState(false);
+  const [mahasiswaList, setMahasiswaList] = useState<Mahasiswa[]>([]);
+  const [selectedMahasiswa, setSelectedMahasiswa] = useState("");
+  const [enrolling, setEnrolling] = useState(false);
+
+  // Remove enrollment
+  const [removeEnrollment, setRemoveEnrollment] = useState<Enrollment | null>(null);
+  const [removingEnrollment, setRemovingEnrollment] = useState(false);
 
   const fetchCourse = useCallback(() => {
     setLoading(true);
@@ -188,6 +205,64 @@ export default function CourseDetailPage() {
       toast.error(err instanceof Error ? err.message : "Gagal menghapus dosen");
     } finally {
       setRemoving(false);
+    }
+  }
+
+  async function openEnrollDialog() {
+    setEnrollOpen(true);
+    setSelectedMahasiswa("");
+    try {
+      const res = await fetch("/api/admin/mahasiswa");
+      const data = await res.json();
+      if (Array.isArray(data)) setMahasiswaList(data);
+    } catch {
+      toast.error("Gagal memuat daftar mahasiswa");
+    }
+  }
+
+  const availableMahasiswa = mahasiswaList.filter(
+    (m) => !enrollments.some((e) => e.user.id === m.id)
+  );
+
+  async function handleEnroll() {
+    if (!selectedMahasiswa) return;
+    setEnrolling(true);
+    try {
+      const res = await fetch(`/api/admin/courses/${courseId}/enrollments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: selectedMahasiswa }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.toString() || "Gagal mendaftarkan mahasiswa");
+      toast.success("Mahasiswa berhasil didaftarkan");
+      setEnrollOpen(false);
+      fetchEnrollments();
+      fetchCourse();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal mendaftarkan mahasiswa");
+    } finally {
+      setEnrolling(false);
+    }
+  }
+
+  async function handleRemoveEnrollment() {
+    if (!removeEnrollment) return;
+    setRemovingEnrollment(true);
+    try {
+      const res = await fetch(
+        `/api/admin/courses/${courseId}/enrollments?userId=${removeEnrollment.user.id}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) throw new Error("Gagal menghapus enrollment");
+      toast.success("Mahasiswa berhasil dihapus dari course");
+      setRemoveEnrollment(null);
+      fetchEnrollments();
+      fetchCourse();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menghapus enrollment");
+    } finally {
+      setRemovingEnrollment(false);
     }
   }
 
@@ -299,13 +374,22 @@ export default function CourseDetailPage() {
             <TabsTrigger value="enrollments" className="flex-1 px-4 h-full sm:flex-none">Mahasiswa Terdaftar</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="instructors" className="m-0 sm:ml-auto">
+          <TabsContent value="instructors" className="m-0 sm:flex-none flex sm:justify-end">
             <Button
               onClick={openAssignDialog}
               className="w-full sm:w-auto gap-2 h-10 bg-brand text-black hover:bg-brand/90 px-5"
             >
               <UserPlus data-icon="inline-start" />
               Tambah Dosen
+            </Button>
+          </TabsContent>
+          <TabsContent value="enrollments" className="m-0 sm:flex-none flex sm:justify-end">
+            <Button
+              onClick={openEnrollDialog}
+              className="w-full sm:w-auto gap-2 h-10 bg-brand text-black hover:bg-brand/90 px-5"
+            >
+              <GraduationCap data-icon="inline-start" />
+              Tambah Mahasiswa
             </Button>
           </TabsContent>
         </div>
@@ -375,14 +459,15 @@ export default function CourseDetailPage() {
                   <TableHead>Jenjang</TableHead>
                   <TableHead>Jurusan</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="pr-6">Terdaftar</TableHead>
+                  <TableHead>Terdaftar</TableHead>
+                  <TableHead className="w-[60px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loadingEnrollments ? (
                   Array.from({ length: 3 }).map((_, i) => (
                     <TableRow key={i}>
-                      {Array.from({ length: 7 }).map((_, j) => (
+                      {Array.from({ length: 8 }).map((_, j) => (
                         <TableCell key={j}>
                           <Skeleton className="h-5 w-full" />
                         </TableCell>
@@ -391,7 +476,7 @@ export default function CourseDetailPage() {
                   ))
                 ) : enrollments.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-20 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="h-20 text-center text-muted-foreground">
                       Belum ada mahasiswa yang terdaftar
                     </TableCell>
                   </TableRow>
@@ -414,12 +499,22 @@ export default function CourseDetailPage() {
                           {enrollment.isActive ? "Aktif" : "Dicabut"}
                         </span>
                       </TableCell>
-                      <TableCell className="pr-6 text-sm text-muted-foreground whitespace-nowrap">
+                      <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                         {new Date(enrollment.enrolledAt).toLocaleDateString("id-ID", {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
                         })}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 text-destructive hover:text-destructive"
+                          onClick={() => setRemoveEnrollment(enrollment)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -500,6 +595,82 @@ export default function CourseDetailPage() {
               className="bg-destructive text-white hover:bg-destructive/90"
             >
               {removing && <Loader2 className="animate-spin" data-icon="inline-start" />}
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Enroll Student Dialog */}
+      <Dialog open={enrollOpen} onOpenChange={setEnrollOpen}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden flex flex-col max-h-[85vh]">
+          <DialogHeader className="px-6 py-5">
+            <DialogTitle>Tambah Mahasiswa</DialogTitle>
+            <DialogDescription>
+              Pilih mahasiswa yang akan didaftarkan ke course ini.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto px-6 py-2 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="mahasiswa">Mahasiswa</Label>
+              <Select value={selectedMahasiswa} onValueChange={setSelectedMahasiswa}>
+                <SelectTrigger id="mahasiswa" className="h-10">
+                  <SelectValue placeholder="Pilih mahasiswa..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {availableMahasiswa.length === 0 ? (
+                      <SelectItem value="none" disabled>
+                        Semua mahasiswa sudah terdaftar
+                      </SelectItem>
+                    ) : (
+                      availableMahasiswa.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>
+                          {m.name} {m.npm ? `(${m.npm})` : ""} — {m.email}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter className="px-6 py-6 m-0">
+            <Button variant="outline" onClick={() => setEnrollOpen(false)} className="h-10">
+              Batal
+            </Button>
+            <Button
+              onClick={handleEnroll}
+              disabled={enrolling || !selectedMahasiswa}
+              className="h-10 bg-brand text-black hover:bg-brand/90"
+            >
+              {enrolling && <Loader2 className="animate-spin" data-icon="inline-start" />}
+              Daftarkan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Remove Enrollment Confirmation */}
+      <AlertDialog open={!!removeEnrollment} onOpenChange={(open) => !open && setRemoveEnrollment(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Mahasiswa dari Course</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus <strong>{removeEnrollment?.user.name}</strong> dari
+              course ini? Data enrollment akan dihapus permanen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removingEnrollment}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRemoveEnrollment}
+              disabled={removingEnrollment}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              {removingEnrollment && <Loader2 className="animate-spin" data-icon="inline-start" />}
               Hapus
             </AlertDialogAction>
           </AlertDialogFooter>
