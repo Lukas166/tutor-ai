@@ -59,7 +59,7 @@ export async function createUser(data: CreateUserInput) {
   // Use Better Auth to create user with hashed password
   const response = await auth.api.signUpEmail({
     body: {
-      email: data.email,
+      email: data.email.toLowerCase(),
       password: data.password,
       name: data.name,
     },
@@ -95,7 +95,7 @@ export async function updateUser(id: string, data: UpdateUserInput) {
     where: { id },
     data: {
       ...(data.name && { name: data.name }),
-      ...(data.email && { email: data.email }),
+      ...(data.email && { email: data.email.toLowerCase() }),
       ...(data.role && { role: data.role }),
       academicLevel: data.academicLevel !== undefined ? data.academicLevel : undefined,
       npm: data.npm !== undefined ? data.npm : undefined,
