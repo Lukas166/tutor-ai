@@ -373,7 +373,7 @@ export default function CourseDetailPage() {
             <TabsTrigger value="instructors" className="flex-1 px-4 h-full sm:flex-none">Dosen Pengampu</TabsTrigger>
             <TabsTrigger value="enrollments" className="flex-1 px-4 h-full sm:flex-none">Mahasiswa Terdaftar</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="instructors" className="m-0 sm:flex-none flex sm:justify-end">
             <Button
               onClick={openAssignDialog}
@@ -403,7 +403,7 @@ export default function CourseDetailPage() {
                   <TableHead className="pl-6">Nama</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Ditugaskan</TableHead>
-                  <TableHead className="w-[60px]" />
+                  <TableHead className="w-[80px] text-right pr-6">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -429,7 +429,7 @@ export default function CourseDetailPage() {
                           year: "numeric",
                         })}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right pr-6">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -460,7 +460,7 @@ export default function CourseDetailPage() {
                   <TableHead>Jurusan</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Terdaftar</TableHead>
-                  <TableHead className="w-[60px]" />
+                  <TableHead className="w-[80px] text-right pr-6">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -506,7 +506,7 @@ export default function CourseDetailPage() {
                           year: "numeric",
                         })}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right pr-6">
                         <Button
                           variant="ghost"
                           size="icon"

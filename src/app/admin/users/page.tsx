@@ -391,14 +391,14 @@ export default function UsersPage() {
       <div className="rounded-xl border bg-card">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="hover:bg-transparent">
               <TableHead className="pl-6">NPM</TableHead>
               <TableHead>Nama</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Jenjang</TableHead>
               <TableHead>Jurusan</TableHead>
-              <TableHead className="w-[60px]" />
+              <TableHead className="w-[80px] text-right pr-6">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -420,7 +420,7 @@ export default function UsersPage() {
               </TableRow>
             ) : (
               users.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow key={user.id} className="hover:bg-muted/30 transition-colors">
                   <TableCell className="pl-6 font-mono text-xs">
                     {user.npm ?? "—"}
                   </TableCell>
@@ -435,7 +435,7 @@ export default function UsersPage() {
                   </TableCell>
                   <TableCell>{user.academicLevel ?? "—"}</TableCell>
                   <TableCell>{user.major ?? "—"}</TableCell>
-                  <TableCell>
+                  <TableCell className="text-right pr-6">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="size-8">

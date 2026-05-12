@@ -86,6 +86,10 @@ export default function CoursesPage() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
 
+  // Custom Cursor-Following Tooltip State
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
   const fetchCourses = useCallback(() => {
     setLoading(true);
     const params = new URLSearchParams();
@@ -241,13 +245,13 @@ export default function CoursesPage() {
       <div className="rounded-xl border bg-card">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="hover:bg-transparent">
               <TableHead className="pl-6">Judul</TableHead>
               <TableHead>Enrollment Key</TableHead>
               <TableHead className="text-center">Dosen</TableHead>
               <TableHead className="text-center">Mahasiswa</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-[60px]" />
+              <TableHead className="w-[80px] text-right pr-6">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -269,7 +273,18 @@ export default function CoursesPage() {
               </TableRow>
             ) : (
               courses.map((course) => (
-                <TableRow key={course.id}>
+                <TableRow 
+                  key={course.id}
+                  className="cursor-pointer transition-colors hover:bg-muted/50"
+                  onClick={() => router.push(`/admin/courses/${course.id}`)}
+                  onMouseEnter={() => setShowTooltip(true)}
+                  onMouseLeave={() => setShowTooltip(false)}
+                  onMouseMove={(e) => {
+                    setMousePos({ x: e.clientX, y: e.clientY });
+                    const isInteractive = (e.target as HTMLElement).closest('.no-tooltip');
+                    setShowTooltip(!isInteractive);
+                  }}
+                >
                   <TableCell className="pl-6 max-w-[200px] sm:max-w-[300px]">
                     <div className="flex flex-col min-w-0">
                       <p className="font-medium truncate" title={course.title}>{course.title}</p>
@@ -280,9 +295,13 @@ export default function CoursesPage() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="no-tooltip">
                     <button
-                      onClick={() => copyKey(course.enrollmentKey)}
+
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyKey(course.enrollmentKey);
+                      }}
                       className="inline-flex items-center gap-1.5 rounded-md border bg-muted/50 px-2 py-1 font-mono text-xs transition-colors hover:bg-muted"
                     >
                       <KeyRound className="size-3 text-brand" />
@@ -301,7 +320,11 @@ export default function CoursesPage() {
                       {course.isActive ? "Aktif" : "Nonaktif"}
                     </span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell 
+                    className="text-right pr-6 no-tooltip"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="size-8">
@@ -351,6 +374,20 @@ export default function CoursesPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Floating Cursor Tooltip (Mimics Shadcn) */}
+      {showTooltip && (
+        <div
+          className="fixed z-50 pointer-events-none flex items-center gap-2 bg-white text-brand px-3 py-1.5 font-medium border border-border/50 shadow-md rounded-md animate-in fade-in zoom-in-95 duration-100 text-xs"
+          style={{
+            left: mousePos.x + 15,
+            top: mousePos.y + 15,
+          }}
+        >
+          <Eye className="size-4" />
+          Lihat Detail
+        </div>
+      )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
