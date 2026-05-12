@@ -27,6 +27,7 @@ export function SessionCard({
   onContentAdded: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [contentType, setContentType] = useState<ContentType>("file");
   const [uploading, setUploading] = useState(false);
@@ -111,7 +112,21 @@ export function SessionCard({
 
       {expanded && (
         <div className="border-t px-5 pb-5">
-          {session.description && <p className="text-sm text-muted-foreground py-4 border-b leading-relaxed">{session.description}</p>}
+          {session.description && (
+            <div className="py-4 border-b">
+              <p className={`text-sm text-muted-foreground leading-relaxed ${!descExpanded ? "line-clamp-1" : ""}`}>
+                {session.description}
+              </p>
+              {session.description.length > 100 && (
+                <button 
+                  onClick={() => setDescExpanded(!descExpanded)} 
+                  className="text-xs text-brand hover:underline mt-1 font-medium"
+                >
+                  {descExpanded ? "Sembunyikan" : "Lihat selengkapnya..."}
+                </button>
+              )}
+            </div>
+          )}
           <div className="pt-4">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Konten</h4>
@@ -125,16 +140,38 @@ export function SessionCard({
                 <p className="text-sm text-muted-foreground">Belum ada konten</p>
               </div>
             ) : (
-              <div className="grid gap-2">
-                {session.materials.map((mat) => (
-                  <a key={mat.id} href={mat.filePath.startsWith("link:") ? mat.filePath.replace("link:", "") : mat.filePath.startsWith("text:") ? undefined : mat.filePath} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/30">
-                    <div className={`flex size-9 shrink-0 items-center justify-center rounded-md ${getIconBg(mat)}`}>{getIcon(mat)}</div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{mat.title}</p>
-                      <p className="text-xs text-muted-foreground truncate">{mat.fileName} {mat.fileSize && mat.fileSize !== "0" ? `• ${formatFileSize(mat.fileSize)}` : ""}</p>
-                    </div>
-                  </a>
-                ))}
+              <div className="grid gap-3">
+                {session.materials.map((mat) => {
+                  const isText = mat.filePath.startsWith("text:");
+                  const isLink = mat.filePath.startsWith("link:") || mat.filePath.startsWith("http");
+                  
+                  if (isText) {
+                    return (
+                      <div key={mat.id} className="flex flex-col gap-2 rounded-lg border p-4 bg-muted/5 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className={`flex size-9 shrink-0 items-center justify-center rounded-md ${getIconBg(mat)}`}>{getIcon(mat)}</div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-bold text-foreground">{mat.title}</p>
+                            <p className="text-xs text-muted-foreground">Teks</p>
+                          </div>
+                        </div>
+                        <div className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed mt-1 border-t pt-3">
+                          {mat.filePath.replace("text:", "")}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <a key={mat.id} href={isLink ? mat.filePath.replace("link:", "") : mat.filePath} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/30">
+                      <div className={`flex size-9 shrink-0 items-center justify-center rounded-md ${getIconBg(mat)}`}>{getIcon(mat)}</div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{mat.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">{mat.fileName} {mat.fileSize && mat.fileSize !== "0" ? `• ${formatFileSize(mat.fileSize)}` : ""}</p>
+                      </div>
+                    </a>
+                  );
+                })}
               </div>
             )}
           </div>

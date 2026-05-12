@@ -259,7 +259,7 @@ export async function removeStudentFromCourse(courseId: string, studentId: strin
 
 /* ─── Recent Activities ────────────────────────────── */
 
-export async function getDosenRecentActivities(dosenId: string, limit = 10) {
+export async function getDosenRecentActivities(dosenId: string, days = 7) {
   const courses = await prisma.course.findMany({
     where: { instructors: { some: { userId: dosenId } } },
     select: { id: true },
@@ -267,10 +267,14 @@ export async function getDosenRecentActivities(dosenId: string, limit = 10) {
   const courseIds = courses.map((c) => c.id);
   if (courseIds.length === 0) return [];
 
-  // Get latest materials across all dosen courses
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+
+  // Get latest materials across all dosen courses within the date range
   const materials = await prisma.material.findMany({
     where: {
       courseSession: { courseId: { in: courseIds } },
+      createdAt: { gte: cutoffDate },
     },
     select: {
       id: true,
@@ -286,12 +290,14 @@ export async function getDosenRecentActivities(dosenId: string, limit = 10) {
       },
     },
     orderBy: { createdAt: "desc" },
-    take: limit,
   });
 
-  // Get latest sessions created
+  // Get latest sessions created within the date range
   const sessions = await prisma.courseSession.findMany({
-    where: { courseId: { in: courseIds } },
+    where: { 
+      courseId: { in: courseIds },
+      createdAt: { gte: cutoffDate },
+    },
     select: {
       id: true,
       title: true,
@@ -299,7 +305,6 @@ export async function getDosenRecentActivities(dosenId: string, limit = 10) {
       course: { select: { id: true, title: true } },
     },
     orderBy: { createdAt: "desc" },
-    take: limit,
   });
 
   // Merge and sort by createdAt
@@ -345,5 +350,5 @@ export async function getDosenRecentActivities(dosenId: string, limit = 10) {
 
   return Array.from(seen.values())
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, limit);
+    .slice(0, 50); // Hard cap at 50 activities to avoid huge payloads
 }

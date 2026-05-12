@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   BookOpen,
   GraduationCap,
   CalendarDays,
@@ -183,6 +186,7 @@ export default function DosenDashboardPage() {
   const [courses, setCourses] = useState<DosenCourse[]>([]);
   const [stats, setStats] = useState<DosenStats | null>(null);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [activityDays, setActivityDays] = useState("7");
   const [loading, setLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -207,11 +211,11 @@ export default function DosenDashboardPage() {
   }, []);
 
   const fetchActivities = useCallback(() => {
-    fetch("/api/dosen/activities")
+    fetch(`/api/dosen/activities?days=${activityDays}`)
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data)) setActivities(data); })
       .catch(console.error);
-  }, []);
+  }, [activityDays]);
 
   useEffect(() => {
     fetchCourses();
@@ -340,7 +344,19 @@ export default function DosenDashboardPage() {
 
       {/* Recent Activity */}
       <div className="flex flex-col gap-5">
-        <h2 className="text-xl font-bold tracking-tight">Aktivitas Terbaru</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold tracking-tight">Aktivitas Terbaru</h2>
+          <Select value={activityDays} onValueChange={setActivityDays}>
+            <SelectTrigger className="w-[140px] h-9 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">7 hari terakhir</SelectItem>
+              <SelectItem value="14">14 hari terakhir</SelectItem>
+              <SelectItem value="30">30 hari terakhir</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         {activities.length === 0 ? (
           <Card className="border-border/50">
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -355,7 +371,7 @@ export default function DosenDashboardPage() {
           </Card>
         ) : (
           <div className="flex flex-col gap-3">
-            {activities.map((activity) => (
+            {activities.slice(0, 5).map((activity) => (
               <Card
                 key={`${activity.type}-${activity.id}`}
                 className="border-border/50 hover:shadow-sm transition-shadow cursor-pointer"
@@ -374,10 +390,16 @@ export default function DosenDashboardPage() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold truncate">{activity.title}</p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {activity.type === "material" ? "Materi ditambahkan" : "Sesi dibuat"} — {activity.courseName}
+                      <span className="font-medium text-foreground/70">{activity.courseName}</span>
+                      {" · "}
+                      {activity.detail}
+                      {" · "}
+                      <span className="italic">
+                        {activity.type === "material" ? "Materi ditambahkan" : "Sesi dibuat"}
+                      </span>
                     </p>
                   </div>
-                  <span className="shrink-0 text-xs text-muted-foreground">
+                  <span className="shrink-0 text-xs text-muted-foreground whitespace-nowrap">
                     {timeAgo(activity.createdAt)}
                   </span>
                 </CardContent>

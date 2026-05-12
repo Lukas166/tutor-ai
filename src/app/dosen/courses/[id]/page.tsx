@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Plus, GraduationCap, Users, KeyRound, Copy, CalendarDays,
-  FileText, Upload, Loader2, Link2, Type,
+  FileText, Upload, Loader2, Link2, Type, Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 import { SessionCard } from "./session-card";
@@ -25,6 +25,16 @@ import type { CourseDetail, SessionItem } from "./types";
 import { formatFileSize } from "./types";
 
 type ContentType = "file" | "link" | "text";
+
+type NewMaterial = {
+  id: string;
+  type: ContentType;
+  title: string;
+  description: string;
+  url: string;
+  content: string;
+  file: File | null;
+};
 
 export default function DosenCourseDetailPage() {
   const params = useParams();
@@ -40,15 +50,10 @@ export default function DosenCourseDetailPage() {
   // Create session dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sessionForm, setSessionForm] = useState({ title: "", description: "" });
-  const [contentType, setContentType] = useState<ContentType>("file");
-  const [matTitle, setMatTitle] = useState("");
-  const [matDesc, setMatDesc] = useState("");
-  const [linkUrl, setLinkUrl] = useState("");
-  const [textContent, setTextContent] = useState("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [addContent, setAddContent] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [newMaterials, setNewMaterials] = useState<NewMaterial[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  
+  const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const fetchCourse = useCallback(() => {
     setLoading(true);
@@ -72,13 +77,34 @@ export default function DosenCourseDetailPage() {
 
   function resetDialog() {
     setSessionForm({ title: "", description: "" });
-    setContentType("file"); setMatTitle(""); setMatDesc("");
-    setLinkUrl(""); setTextContent(""); setSelectedFile(null);
-    setAddContent(false);
+    setNewMaterials([]);
+  }
+
+  function addMaterialField() {
+    setNewMaterials([
+      ...newMaterials, 
+      { id: crypto.randomUUID(), type: "file", title: "", description: "", url: "", content: "", file: null }
+    ]);
+  }
+
+  function updateMaterial(id: string, updates: Partial<NewMaterial>) {
+    setNewMaterials(newMaterials.map((m) => m.id === id ? { ...m, ...updates } : m));
+  }
+
+  function removeMaterial(id: string) {
+    setNewMaterials(newMaterials.filter((m) => m.id !== id));
   }
 
   async function handleCreateSession() {
     if (!sessionForm.title.trim()) { toast.error("Judul sesi wajib diisi"); return; }
+
+    // Validate materials
+    for (const mat of newMaterials) {
+      if (!mat.title.trim()) { toast.error("Semua materi harus memiliki judul"); return; }
+      if (mat.type === "file" && !mat.file) { toast.error(`Pilih file untuk materi: ${mat.title}`); return; }
+      if (mat.type === "link" && !mat.url.trim()) { toast.error(`Masukkan URL untuk materi: ${mat.title}`); return; }
+      if (mat.type === "text" && !mat.content.trim()) { toast.error(`Masukkan teks untuk materi: ${mat.title}`); return; }
+    }
 
     setSubmitting(true);
     try {
@@ -88,33 +114,36 @@ export default function DosenCourseDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: sessionForm.title.trim(), description: sessionForm.description.trim() || null }),
       });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error?.toString() || "Gagal"); }
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error?.toString() || "Gagal membuat sesi"); }
       const newSession = await res.json();
 
-      // 2. Upload content if added
-      if (addContent && matTitle.trim()) {
-        if (contentType === "file" && selectedFile) {
+      // 2. Upload materials sequentially to prevent race conditions
+      for (const mat of newMaterials) {
+        if (mat.type === "file" && mat.file) {
           const fd = new FormData();
-          fd.append("file", selectedFile);
-          fd.append("title", matTitle.trim());
-          if (matDesc.trim()) fd.append("description", matDesc.trim());
-          await fetch(`/api/dosen/courses/${courseId}/sessions/${newSession.id}/materials`, { method: "POST", body: fd });
-        } else if (contentType === "link" && linkUrl.trim()) {
-          await fetch(`/api/dosen/courses/${courseId}/sessions/${newSession.id}/materials`, {
+          fd.append("file", mat.file);
+          fd.append("title", mat.title.trim());
+          if (mat.description.trim()) fd.append("description", mat.description.trim());
+          const upRes = await fetch(`/api/dosen/courses/${courseId}/sessions/${newSession.id}/materials`, { method: "POST", body: fd });
+          if(!upRes.ok) throw new Error(`Gagal upload file ${mat.title}`);
+        } else if (mat.type === "link" && mat.url.trim()) {
+          const upRes = await fetch(`/api/dosen/courses/${courseId}/sessions/${newSession.id}/materials`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title: matTitle.trim(), type: "link", url: linkUrl.trim(), description: matDesc.trim() || undefined }),
+            body: JSON.stringify({ title: mat.title.trim(), type: "link", url: mat.url.trim(), description: mat.description.trim() || undefined }),
           });
-        } else if (contentType === "text" && textContent.trim()) {
-          await fetch(`/api/dosen/courses/${courseId}/sessions/${newSession.id}/materials`, {
+          if(!upRes.ok) throw new Error(`Gagal membuat link ${mat.title}`);
+        } else if (mat.type === "text" && mat.content.trim()) {
+          const upRes = await fetch(`/api/dosen/courses/${courseId}/sessions/${newSession.id}/materials`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title: matTitle.trim(), type: "text", content: textContent.trim() }),
+            body: JSON.stringify({ title: mat.title.trim(), type: "text", content: mat.content.trim() }),
           });
+          if(!upRes.ok) throw new Error(`Gagal membuat teks ${mat.title}`);
         }
       }
 
-      toast.success("Sesi berhasil dibuat!");
+      toast.success("Sesi beserta materi berhasil dibuat!");
       setDialogOpen(false);
       resetDialog();
       fetchSessions();
@@ -226,70 +255,110 @@ export default function DosenCourseDetailPage() {
 
       {/* Create Session Dialog */}
       <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) resetDialog(); }}>
-        <DialogContent className="sm:max-w-[540px] p-0 gap-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[600px] p-0 gap-0 overflow-hidden">
           <DialogHeader className="px-6 py-4 border-b bg-muted/30">
             <DialogTitle>Tambah Sesi Baru</DialogTitle>
-            <DialogDescription>Buat sesi dan langsung tambahkan konten.</DialogDescription>
+            <DialogDescription>Buat sesi dan tambahkan materi.</DialogDescription>
           </DialogHeader>
-          <div className="px-6 py-4 flex flex-col gap-4 max-h-[60vh] overflow-y-auto">
-            <div className="grid gap-1.5">
-              <Label>Judul Sesi <span className="text-destructive">*</span></Label>
-              <Input value={sessionForm.title} onChange={(e) => setSessionForm({ ...sessionForm, title: e.target.value })} placeholder="Contoh: Minggu 1 — Pengenalan AI" disabled={submitting} />
-            </div>
-            <div className="grid gap-1.5">
-              <Label>Deskripsi <span className="text-muted-foreground text-xs font-normal">(opsional)</span></Label>
-              <textarea value={sessionForm.description} onChange={(e) => setSessionForm({ ...sessionForm, description: e.target.value })} placeholder="Topik yang dibahas" disabled={submitting} rows={2} className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none" />
-            </div>
-
-            {/* Optional content toggle */}
-            <div className="border-t pt-4">
-              <label className="flex items-center gap-2 cursor-pointer text-sm">
-                <input type="checkbox" checked={addContent} onChange={(e) => setAddContent(e.target.checked)} className="rounded" />
-                Langsung tambahkan konten
-              </label>
-            </div>
-
-            {addContent && (
-              <div className="flex flex-col gap-4 pl-2 border-l-2 border-brand/20">
-                <div className="grid gap-1.5">
-                  <Label>Jenis Konten</Label>
-                  <Select value={contentType} onValueChange={(v) => setContentType(v as ContentType)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="file">📄 File PDF</SelectItem>
-                      <SelectItem value="link">🔗 Link URL</SelectItem>
-                      <SelectItem value="text">📝 Teks</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-1.5">
-                  <Label>Judul Konten <span className="text-destructive">*</span></Label>
-                  <Input value={matTitle} onChange={(e) => setMatTitle(e.target.value)} placeholder="Judul materi" disabled={submitting} />
-                </div>
-                {contentType === "file" && (
-                  <div className="grid gap-1.5">
-                    <Label>File PDF</Label>
-                    <div onClick={() => fileRef.current?.click()} className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed py-5 cursor-pointer hover:bg-muted/20 hover:border-brand/30 transition-colors">
-                      <Upload className="size-5 text-muted-foreground/50 mb-1" />
-                      <p className="text-sm font-medium">{selectedFile ? selectedFile.name : "Klik untuk memilih"}</p>
-                      {selectedFile && <p className="text-xs text-muted-foreground">{formatFileSize(String(selectedFile.size))}</p>}
-                    </div>
-                    <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)} />
-                  </div>
-                )}
-                {contentType === "link" && (
-                  <div className="grid gap-1.5"><Label>URL</Label><Input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://..." disabled={submitting} /></div>
-                )}
-                {contentType === "text" && (
-                  <div className="grid gap-1.5"><Label>Konten</Label><textarea value={textContent} onChange={(e) => setTextContent(e.target.value)} placeholder="Tulis teks di sini..." disabled={submitting} rows={3} className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none" /></div>
-                )}
-                {(contentType === "file" || contentType === "link") && (
-                  <div className="grid gap-1.5"><Label>Keterangan <span className="text-xs text-muted-foreground font-normal">(opsional)</span></Label><Input value={matDesc} onChange={(e) => setMatDesc(e.target.value)} placeholder="Keterangan singkat" disabled={submitting} /></div>
-                )}
+          <div className="px-6 py-4 flex flex-col gap-6 max-h-[65vh] overflow-y-auto">
+            <div className="grid gap-4">
+              <div className="grid gap-1.5">
+                <Label>Judul Sesi <span className="text-destructive">*</span></Label>
+                <Input value={sessionForm.title} onChange={(e) => setSessionForm({ ...sessionForm, title: e.target.value })} placeholder="Contoh: Minggu 1 — Pengenalan AI" disabled={submitting} />
               </div>
-            )}
+              <div className="grid gap-1.5">
+                <Label>Deskripsi <span className="text-muted-foreground text-xs font-normal">(opsional)</span></Label>
+                <textarea value={sessionForm.description} onChange={(e) => setSessionForm({ ...sessionForm, description: e.target.value })} placeholder="Topik yang dibahas" disabled={submitting} rows={2} className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none" />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 pt-4 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold">Materi Sesi</Label>
+                <Button type="button" variant="outline" size="sm" onClick={addMaterialField} disabled={submitting} className="gap-1.5 h-8">
+                  <Plus className="size-3.5" /> Tambah Materi
+                </Button>
+              </div>
+
+              {newMaterials.length === 0 ? (
+                <div className="text-sm text-center py-4 bg-muted/20 border border-dashed rounded-lg text-muted-foreground">
+                  Belum ada materi ditambahkan. Anda bisa menambahkan materi nanti.
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {newMaterials.map((mat, index) => (
+                    <Card key={mat.id} className="border-border/50 relative overflow-visible">
+                      <Button 
+                        type="button" 
+                        variant="destructive" 
+                        size="icon" 
+                        className="absolute -right-2.5 -top-2.5 size-7 rounded-full shadow-sm z-10"
+                        onClick={() => removeMaterial(mat.id)}
+                        disabled={submitting}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                      <CardContent className="p-4 flex flex-col gap-4">
+                        <div className="flex items-start gap-4">
+                          <div className="flex items-center justify-center size-6 rounded bg-muted text-xs font-bold shrink-0 mt-1">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1 grid gap-3">
+                            <div className="grid gap-1.5">
+                              <Label className="text-xs">Jenis Konten</Label>
+                              <Select value={mat.type} onValueChange={(v) => updateMaterial(mat.id, { type: v as ContentType })} disabled={submitting}>
+                                <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="file">📄 File PDF</SelectItem>
+                                  <SelectItem value="link">🔗 Link URL</SelectItem>
+                                  <SelectItem value="text">📝 Teks</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            <div className="grid gap-1.5">
+                              <Label className="text-xs">Judul <span className="text-destructive">*</span></Label>
+                              <Input className="h-8" value={mat.title} onChange={(e) => updateMaterial(mat.id, { title: e.target.value })} placeholder="Judul materi" disabled={submitting} />
+                            </div>
+
+                            {mat.type === "file" && (
+                              <div className="grid gap-1.5">
+                                <Label className="text-xs">File PDF <span className="text-destructive">*</span></Label>
+                                <div onClick={() => fileRefs.current[mat.id]?.click()} className="flex flex-col items-center justify-center rounded-lg border border-dashed p-3 cursor-pointer hover:bg-muted/20 transition-colors">
+                                  {mat.file ? (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <FileText className="size-4 text-red-500" />
+                                      <span className="font-medium">{mat.file.name}</span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground flex items-center gap-1"><Upload className="size-3.5" /> Pilih File PDF</span>
+                                  )}
+                                </div>
+                                <input ref={(el) => { fileRefs.current[mat.id] = el; }} type="file" accept=".pdf" className="hidden" onChange={(e) => updateMaterial(mat.id, { file: e.target.files?.[0] || null })} />
+                              </div>
+                            )}
+
+                            {mat.type === "link" && (
+                              <div className="grid gap-1.5"><Label className="text-xs">URL <span className="text-destructive">*</span></Label><Input className="h-8" value={mat.url} onChange={(e) => updateMaterial(mat.id, { url: e.target.value })} placeholder="https://..." disabled={submitting} /></div>
+                            )}
+
+                            {mat.type === "text" && (
+                              <div className="grid gap-1.5"><Label className="text-xs">Konten Teks <span className="text-destructive">*</span></Label><textarea value={mat.content} onChange={(e) => updateMaterial(mat.id, { content: e.target.value })} placeholder="Isi materi teks..." disabled={submitting} rows={3} className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none" /></div>
+                            )}
+
+                            {(mat.type === "file" || mat.type === "link") && (
+                              <div className="grid gap-1.5"><Label className="text-xs">Keterangan <span className="font-normal text-muted-foreground">(opsional)</span></Label><Input className="h-8 text-xs" value={mat.description} onChange={(e) => updateMaterial(mat.id, { description: e.target.value })} placeholder="Keterangan singkat" disabled={submitting} /></div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-          <DialogFooter className="px-6 py-3 border-t">
+          <DialogFooter className="px-6 py-3 border-t bg-muted/10">
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={submitting}>Batal</Button>
             <Button onClick={handleCreateSession} disabled={submitting || !sessionForm.title.trim()} className="bg-brand text-black hover:bg-brand/90">
               {submitting && <Loader2 className="animate-spin mr-1.5 size-4" />}Buat Sesi

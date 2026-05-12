@@ -118,7 +118,8 @@ export function StudentListDialog({
           <DialogHeader>
             <DialogTitle className="text-red-600">Keluarkan Mahasiswa</DialogTitle>
             <DialogDescription>
-              Anda akan mengeluarkan <strong>{removeTarget?.user.name}</strong> dari course ini. Masukkan enrollment key untuk konfirmasi.
+              Anda akan mengeluarkan <strong>{removeTarget?.user.name}</strong> dari course ini. 
+              Ketik enrollment key <strong className="font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">{enrollmentKey}</strong> untuk konfirmasi.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-2 py-2">
