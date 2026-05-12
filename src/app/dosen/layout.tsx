@@ -24,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   BookOpen,
-  PlusCircle,
   LogOut,
   Loader2,
 } from "lucide-react";
@@ -33,7 +32,6 @@ import Link from "next/link";
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/dosen", icon: LayoutDashboard },
   { title: "My Courses", href: "/dosen/courses", icon: BookOpen },
-  { title: "Add Course", href: "/dosen/courses/create", icon: PlusCircle },
 ];
 
 function DosenSidebar() {

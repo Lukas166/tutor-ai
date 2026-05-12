@@ -54,15 +54,15 @@ export default function DosenCreateCoursePage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
+    <div className="flex flex-col gap-8 items-center">
+      <div className="w-full max-w-2xl">
         <h1 className="text-3xl font-bold tracking-tight">Buat Course Baru</h1>
         <p className="text-muted-foreground">
           Buat mata kuliah baru untuk mahasiswa Anda
         </p>
       </div>
 
-      <Card className="max-w-2xl border-border/50">
+      <Card className="w-full max-w-2xl border-border/50">
         <CardHeader className="border-b bg-muted/30">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-full bg-brand/10">

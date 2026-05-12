@@ -96,3 +96,110 @@ export async function getDosenStats(dosenId: string) {
 
   return { totalCourses, totalStudents, totalSessions };
 }
+
+export async function getDosenCourseById(courseId: string, dosenId: string) {
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+    include: {
+      creator: { select: { id: true, name: true } },
+      instructors: {
+        include: { user: { select: { id: true, name: true, email: true } } },
+      },
+      _count: { select: { enrollments: true, sessions: true } },
+    },
+  });
+
+  if (!course) return null;
+
+  const isInstructor = course.instructors.some((i) => i.user.id === dosenId);
+  if (!isInstructor) return null;
+
+  return course;
+}
+
+export async function listCourseSessions(courseId: string) {
+  return prisma.courseSession.findMany({
+    where: { courseId },
+    include: {
+      creator: { select: { id: true, name: true } },
+      materials: {
+        select: {
+          id: true,
+          title: true,
+          fileName: true,
+          fileSize: true,
+          isActive: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "asc" },
+      },
+      _count: { select: { materials: true } },
+    },
+    orderBy: { orderNumber: "asc" },
+  });
+}
+
+export async function createCourseSession(
+  courseId: string,
+  dosenId: string,
+  data: { title: string; description?: string | null }
+) {
+  const lastSession = await prisma.courseSession.findFirst({
+    where: { courseId },
+    orderBy: { orderNumber: "desc" },
+    select: { orderNumber: true },
+  });
+
+  const nextOrder = (lastSession?.orderNumber ?? 0) + 1;
+
+  return prisma.courseSession.create({
+    data: {
+      id: crypto.randomUUID(),
+      courseId,
+      createdBy: dosenId,
+      title: data.title,
+      description: data.description ?? null,
+      orderNumber: nextOrder,
+    },
+    include: {
+      creator: { select: { id: true, name: true } },
+      materials: {
+        select: {
+          id: true,
+          title: true,
+          fileName: true,
+          fileSize: true,
+          isActive: true,
+          createdAt: true,
+        },
+      },
+      _count: { select: { materials: true } },
+    },
+  });
+}
+
+export async function createMaterial(
+  sessionId: string,
+  dosenId: string,
+  data: { title: string; fileName: string; filePath: string; fileSize: number }
+) {
+  return prisma.material.create({
+    data: {
+      id: crypto.randomUUID(),
+      courseSessionId: sessionId,
+      uploadedBy: dosenId,
+      title: data.title,
+      fileName: data.fileName,
+      filePath: data.filePath,
+      fileSize: BigInt(data.fileSize),
+    },
+    select: {
+      id: true,
+      title: true,
+      fileName: true,
+      fileSize: true,
+      isActive: true,
+      createdAt: true,
+    },
+  });
+}
