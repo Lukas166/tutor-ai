@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,10 @@ import {
   ArrowRight,
   X,
   Users,
-  Clock,
+  FileText,
 } from "lucide-react";
+
+/* ─── Types ────────────────────────────────────────── */
 
 interface DosenCourse {
   id: string;
@@ -34,7 +36,19 @@ interface DosenStats {
   totalSessions: number;
 }
 
+interface ActivityItem {
+  id: string;
+  type: "material" | "session";
+  title: string;
+  detail: string;
+  courseId: string;
+  courseName: string;
+  createdAt: string;
+}
+
 const PREVIEW_LIMIT = 4;
+
+/* ─── Sub-Components ───────────────────────────────── */
 
 function StatCard({
   title,
@@ -149,12 +163,26 @@ function SearchDropdown({
   );
 }
 
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "Baru saja";
+  if (minutes < 60) return `${minutes} menit lalu`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} jam lalu`;
+  const days = Math.floor(hours / 24);
+  return `${days} hari lalu`;
+}
+
+/* ─── Main Component ───────────────────────────────── */
+
 export default function DosenDashboardPage() {
   const { data: session } = authClient.useSession();
   const router = useRouter();
 
   const [courses, setCourses] = useState<DosenCourse[]>([]);
   const [stats, setStats] = useState<DosenStats | null>(null);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -166,9 +194,7 @@ export default function DosenDashboardPage() {
     setLoading(true);
     fetch("/api/dosen/courses")
       .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) setCourses(data);
-      })
+      .then((data) => { if (Array.isArray(data)) setCourses(data); })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -176,35 +202,39 @@ export default function DosenDashboardPage() {
   const fetchStats = useCallback(() => {
     fetch("/api/dosen/stats")
       .then((r) => r.json())
-      .then((data) => {
-        if (data && typeof data.totalCourses === "number") setStats(data);
-      })
+      .then((data) => { if (data && typeof data.totalCourses === "number") setStats(data); })
+      .catch(console.error);
+  }, []);
+
+  const fetchActivities = useCallback(() => {
+    fetch("/api/dosen/activities")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setActivities(data); })
       .catch(console.error);
   }, []);
 
   useEffect(() => {
     fetchCourses();
     fetchStats();
-  }, [fetchCourses, fetchStats]);
+    fetchActivities();
+  }, [fetchCourses, fetchStats, fetchActivities]);
 
-  // Live search filtering
+  // Live search
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
       setShowDropdown(false);
       return;
     }
-    const query = searchQuery.toLowerCase();
-    const filtered = courses.filter(
-      (c) =>
-        c.title.toLowerCase().includes(query) ||
-        c.description?.toLowerCase().includes(query)
+    const q = searchQuery.toLowerCase();
+    setSearchResults(
+      courses.filter(
+        (c) => c.title.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)
+      )
     );
-    setSearchResults(filtered);
     setShowDropdown(true);
   }, [searchQuery, courses]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -214,12 +244,6 @@ export default function DosenDashboardPage() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  function handleSelectCourse(courseId: string) {
-    setShowDropdown(false);
-    setSearchQuery("");
-    router.push(`/dosen/courses/${courseId}`);
-  }
 
   const previewCourses = courses.slice(0, PREVIEW_LIMIT);
   const hasMoreCourses = courses.length > PREVIEW_LIMIT;
@@ -261,20 +285,13 @@ export default function DosenDashboardPage() {
         />
         {searchQuery && (
           <button
-            onClick={() => {
-              setSearchQuery("");
-              setShowDropdown(false);
-            }}
+            onClick={() => { setSearchQuery(""); setShowDropdown(false); }}
             className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="size-4" />
           </button>
         )}
-        <SearchDropdown
-          results={searchResults}
-          visible={showDropdown}
-          onSelect={handleSelectCourse}
-        />
+        <SearchDropdown results={searchResults} visible={showDropdown} onSelect={(id) => { setShowDropdown(false); setSearchQuery(""); router.push(`/dosen/courses/${id}`); }} />
       </div>
 
       {/* Course Cards */}
@@ -282,12 +299,7 @@ export default function DosenDashboardPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold tracking-tight">Course Saya</h2>
           {hasMoreCourses && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/dosen/courses")}
-              className="gap-1.5 text-brand hover:text-brand/80 hover:bg-brand/5"
-            >
+            <Button variant="ghost" size="sm" onClick={() => router.push("/dosen/courses")} className="gap-1.5 text-brand hover:text-brand/80 hover:bg-brand/5">
               Lihat Semua
               <ArrowRight className="size-4" />
             </Button>
@@ -303,10 +315,6 @@ export default function DosenDashboardPage() {
                   <Skeleton className="h-5 w-3/4" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-1/2" />
-                  <div className="flex gap-4 pt-1">
-                    <Skeleton className="h-3 w-20" />
-                    <Skeleton className="h-3 w-16" />
-                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -333,17 +341,50 @@ export default function DosenDashboardPage() {
       {/* Recent Activity */}
       <div className="flex flex-col gap-5">
         <h2 className="text-xl font-bold tracking-tight">Aktivitas Terbaru</h2>
-        <Card className="border-border/50">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="flex size-14 items-center justify-center rounded-full bg-muted/80 mb-4">
-              <Clock className="size-6 text-muted-foreground/60" />
-            </div>
-            <p className="text-muted-foreground font-medium">Belum ada aktivitas</p>
-            <p className="text-sm text-muted-foreground/70 mt-1 max-w-sm">
-              Aktivitas terbaru seperti mahasiswa baru terdaftar, materi diupload, dan sesi dibuat akan muncul di sini.
-            </p>
-          </CardContent>
-        </Card>
+        {activities.length === 0 ? (
+          <Card className="border-border/50">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex size-14 items-center justify-center rounded-full bg-muted/80 mb-4">
+                <CalendarDays className="size-6 text-muted-foreground/60" />
+              </div>
+              <p className="text-muted-foreground font-medium">Belum ada aktivitas</p>
+              <p className="text-sm text-muted-foreground/70 mt-1 max-w-sm">
+                Aktivitas akan muncul saat Anda membuat sesi atau menambah materi.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {activities.map((activity) => (
+              <Card
+                key={`${activity.type}-${activity.id}`}
+                className="border-border/50 hover:shadow-sm transition-shadow cursor-pointer"
+                onClick={() => router.push(`/dosen/courses/${activity.courseId}`)}
+              >
+                <CardContent className="flex items-center gap-4 p-4">
+                  <div className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${
+                    activity.type === "material" ? "bg-red-500/10" : "bg-brand/10"
+                  }`}>
+                    {activity.type === "material" ? (
+                      <FileText className="size-5 text-red-600" />
+                    ) : (
+                      <CalendarDays className="size-5 text-brand" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold truncate">{activity.title}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {activity.type === "material" ? "Materi ditambahkan" : "Sesi dibuat"} — {activity.courseName}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {timeAgo(activity.createdAt)}
+                  </span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

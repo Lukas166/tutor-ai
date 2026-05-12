@@ -2,26 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, BookOpen, KeyRound, Info } from "lucide-react";
+import { Loader2, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 
 export default function DosenCreateCoursePage() {
   const router = useRouter();
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    isActive: true,
-  });
+  const [form, setForm] = useState({ title: "", description: "", isActive: true });
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
     if (form.title.trim().length < 3) {
       toast.error("Judul minimal 3 karakter");
       return;
@@ -54,34 +49,21 @@ export default function DosenCreateCoursePage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 items-center">
-      <div className="w-full max-w-2xl">
-        <h1 className="text-3xl font-bold tracking-tight">Buat Course Baru</h1>
-        <p className="text-muted-foreground">
-          Buat mata kuliah baru untuk mahasiswa Anda
-        </p>
-      </div>
-
-      <Card className="w-full max-w-2xl border-border/50">
-        <CardHeader className="border-b bg-muted/30">
+    <div className="flex flex-col items-center py-4">
+      <Card className="w-full max-w-lg border-border/50">
+        <CardHeader className="border-b bg-muted/30 pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-full bg-brand/10">
-              <BookOpen className="size-5 text-brand" />
+            <div className="flex size-9 items-center justify-center rounded-full bg-brand/10">
+              <BookOpen className="size-4.5 text-brand" />
             </div>
-            <div>
-              <CardTitle className="text-lg">Informasi Course</CardTitle>
-              <CardDescription>
-                Lengkapi data di bawah. Enrollment key akan digenerate otomatis.
-              </CardDescription>
-            </div>
+            <CardTitle className="text-lg">Buat Course Baru</CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-            {/* Title */}
-            <div className="grid gap-2">
+        <CardContent className="pt-5">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <div className="grid gap-1.5">
               <Label htmlFor="course-title">
-                Judul Course <span className="text-destructive">*</span>
+                Judul <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="course-title"
@@ -90,87 +72,43 @@ export default function DosenCreateCoursePage() {
                 placeholder="Contoh: Kecerdasan Buatan"
                 disabled={submitting}
               />
-              <p className="text-xs text-muted-foreground">
-                Nama mata kuliah yang akan ditampilkan kepada mahasiswa.
-              </p>
             </div>
 
-            {/* Description */}
-            <div className="grid gap-2">
+            <div className="grid gap-1.5">
               <Label htmlFor="course-description">
-                Deskripsi{" "}
-                <span className="text-muted-foreground font-normal text-xs">(opsional)</span>
+                Deskripsi <span className="text-muted-foreground font-normal text-xs">(opsional)</span>
               </Label>
               <textarea
                 id="course-description"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Deskripsi singkat tentang mata kuliah, topik yang dibahas, dan tujuan pembelajaran."
+                placeholder="Deskripsi singkat mata kuliah"
                 disabled={submitting}
-                rows={4}
+                rows={3}
                 className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
               />
             </div>
 
-            {/* isActive */}
-            <div className="flex items-start gap-3 rounded-lg border bg-muted/20 p-4">
+            <label htmlFor="course-active" className="flex items-center gap-2.5 cursor-pointer">
               <Checkbox
                 id="course-active"
                 checked={form.isActive}
-                onCheckedChange={(checked) =>
-                  setForm({ ...form, isActive: checked === true })
-                }
+                onCheckedChange={(v) => setForm({ ...form, isActive: v === true })}
                 disabled={submitting}
-                className="mt-0.5"
               />
-              <div className="grid gap-1">
-                <Label htmlFor="course-active" className="font-medium cursor-pointer">
-                  Aktifkan Course
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Jika diaktifkan, mahasiswa dapat melihat dan mengakses course ini. Nonaktifkan jika belum siap dipublikasikan.
-                </p>
-              </div>
-            </div>
+              <span className="text-sm">Langsung aktifkan course ini</span>
+            </label>
 
-            {/* Auto-generated info */}
-            <div className="flex items-start gap-3 rounded-lg border border-brand/20 bg-brand/5 p-4">
-              <KeyRound className="size-5 text-brand shrink-0 mt-0.5" />
-              <div className="grid gap-1">
-                <p className="text-sm font-medium">Enrollment Key</p>
-                <p className="text-xs text-muted-foreground">
-                  Enrollment key (8 karakter unik) akan digenerate otomatis saat course dibuat. Mahasiswa menggunakan key ini untuk mendaftar ke course Anda.
-                </p>
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground -mt-2">
+              Enrollment key akan digenerate otomatis. Anda otomatis menjadi dosen pengampu.
+            </p>
 
-            {/* Info about auto-assignment */}
-            <div className="flex items-start gap-3 rounded-lg border border-blue-500/20 bg-blue-500/5 p-4">
-              <Info className="size-5 text-blue-500 shrink-0 mt-0.5" />
-              <div className="grid gap-1">
-                <p className="text-sm font-medium">Penugasan Otomatis</p>
-                <p className="text-xs text-muted-foreground">
-                  Anda akan otomatis ditugaskan sebagai dosen pengampu dari course ini setelah dibuat.
-                </p>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex justify-end gap-3 pt-2 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.push("/dosen/courses")}
-                disabled={submitting}
-              >
+            <div className="flex justify-end gap-3 pt-1 border-t">
+              <Button type="button" variant="outline" onClick={() => router.push("/dosen/courses")} disabled={submitting}>
                 Batal
               </Button>
-              <Button
-                type="submit"
-                disabled={submitting || form.title.trim().length < 3}
-                className="bg-brand text-black hover:bg-brand/90"
-              >
-                {submitting && <Loader2 className="animate-spin" data-icon="inline-start" />}
+              <Button type="submit" disabled={submitting || form.title.trim().length < 3} className="bg-brand text-black hover:bg-brand/90">
+                {submitting && <Loader2 className="animate-spin mr-1.5 size-4" />}
                 Buat Course
               </Button>
             </div>
