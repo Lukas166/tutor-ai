@@ -12,16 +12,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { UserSelectionDialog } from "@/components/admin/user-selection-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,17 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  SelectGroup,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Label } from "@/components/ui/label";
 import {
   ArrowLeft,
   UserPlus,
@@ -52,6 +35,7 @@ import {
   KeyRound,
   Users,
   GraduationCap,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -99,6 +83,7 @@ interface Mahasiswa {
   name: string;
   email: string;
   npm: string | null;
+  major: string | null;
 }
 
 export default function CourseDetailPage() {
@@ -114,7 +99,9 @@ export default function CourseDetailPage() {
   // Assign instructor
   const [assignOpen, setAssignOpen] = useState(false);
   const [dosenList, setDosenList] = useState<Dosen[]>([]);
-  const [selectedDosen, setSelectedDosen] = useState("");
+  const [selectedDosenIds, setSelectedDosenIds] = useState<string[]>([]);
+  const [dosenSearchInput, setDosenSearchInput] = useState("");
+  const [dosenSearchQuery, setDosenSearchQuery] = useState("");
   const [assigning, setAssigning] = useState(false);
 
   // Remove instructor
@@ -124,7 +111,9 @@ export default function CourseDetailPage() {
   // Enroll student
   const [enrollOpen, setEnrollOpen] = useState(false);
   const [mahasiswaList, setMahasiswaList] = useState<Mahasiswa[]>([]);
-  const [selectedMahasiswa, setSelectedMahasiswa] = useState("");
+  const [selectedMahasiswaIds, setSelectedMahasiswaIds] = useState<string[]>([]);
+  const [mahasiswaSearchInput, setMahasiswaSearchInput] = useState("");
+  const [mahasiswaSearchQuery, setMahasiswaSearchQuery] = useState("");
   const [enrolling, setEnrolling] = useState(false);
 
   // Remove enrollment
@@ -158,7 +147,9 @@ export default function CourseDetailPage() {
 
   async function openAssignDialog() {
     setAssignOpen(true);
-    setSelectedDosen("");
+    setSelectedDosenIds([]);
+    setDosenSearchInput("");
+    setDosenSearchQuery("");
     try {
       const res = await fetch("/api/admin/dosen");
       const data = await res.json();
@@ -169,21 +160,29 @@ export default function CourseDetailPage() {
   }
 
   async function handleAssign() {
-    if (!selectedDosen) return;
+    if (selectedDosenIds.length === 0) return;
     setAssigning(true);
     try {
-      const res = await fetch(`/api/admin/courses/${courseId}/instructors`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: selectedDosen }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.toString() || "Gagal menambahkan dosen");
-      toast.success("Dosen berhasil ditambahkan");
+      const promises = selectedDosenIds.map(id => 
+        fetch(`/api/admin/courses/${courseId}/instructors`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: id }),
+        }).then(res => {
+            if (!res.ok) throw new Error("Gagal");
+            return res.json();
+        })
+      );
+      const results = await Promise.allSettled(promises);
+      const successCount = results.filter(r => r.status === "fulfilled").length;
+      
+      if (successCount > 0) toast.success(`${successCount} Dosen berhasil ditambahkan`);
+      if (successCount < selectedDosenIds.length) toast.error("Beberapa dosen gagal ditambahkan");
+      
       setAssignOpen(false);
       fetchCourse();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Gagal menambahkan dosen");
+      toast.error("Terjadi kesalahan saat menambahkan dosen");
     } finally {
       setAssigning(false);
     }
@@ -210,7 +209,9 @@ export default function CourseDetailPage() {
 
   async function openEnrollDialog() {
     setEnrollOpen(true);
-    setSelectedMahasiswa("");
+    setSelectedMahasiswaIds([]);
+    setMahasiswaSearchInput("");
+    setMahasiswaSearchQuery("");
     try {
       const res = await fetch("/api/admin/mahasiswa");
       const data = await res.json();
@@ -221,26 +222,43 @@ export default function CourseDetailPage() {
   }
 
   const availableMahasiswa = mahasiswaList.filter(
-    (m) => !enrollments.some((e) => e.user.id === m.id)
+    (m) => !enrollments.some((e) => e.user.id === m.id) &&
+           (m.name.toLowerCase().includes(mahasiswaSearchQuery.toLowerCase()) || 
+            m.email.toLowerCase().includes(mahasiswaSearchQuery.toLowerCase()) ||
+            (m.npm && m.npm.includes(mahasiswaSearchQuery)))
+  );
+
+  const availableDosen = dosenList.filter(
+    (d) => !course?.instructors.some((i) => i.user.id === d.id) &&
+           (d.name.toLowerCase().includes(dosenSearchQuery.toLowerCase()) || 
+            d.email.toLowerCase().includes(dosenSearchQuery.toLowerCase()))
   );
 
   async function handleEnroll() {
-    if (!selectedMahasiswa) return;
+    if (selectedMahasiswaIds.length === 0) return;
     setEnrolling(true);
     try {
-      const res = await fetch(`/api/admin/courses/${courseId}/enrollments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: selectedMahasiswa }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.toString() || "Gagal mendaftarkan mahasiswa");
-      toast.success("Mahasiswa berhasil didaftarkan");
+      const promises = selectedMahasiswaIds.map(id => 
+        fetch(`/api/admin/courses/${courseId}/enrollments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: id }),
+        }).then(res => {
+            if (!res.ok) throw new Error("Gagal");
+            return res.json();
+        })
+      );
+      const results = await Promise.allSettled(promises);
+      const successCount = results.filter(r => r.status === "fulfilled").length;
+      
+      if (successCount > 0) toast.success(`${successCount} Mahasiswa berhasil didaftarkan`);
+      if (successCount < selectedMahasiswaIds.length) toast.error("Beberapa mahasiswa gagal didaftarkan");
+      
       setEnrollOpen(false);
       fetchEnrollments();
       fetchCourse();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Gagal mendaftarkan mahasiswa");
+      toast.error("Terjadi kesalahan saat mendaftarkan mahasiswa");
     } finally {
       setEnrolling(false);
     }
@@ -292,9 +310,6 @@ export default function CourseDetailPage() {
     );
   }
 
-  // Filter out already-assigned dosen
-  const assignedIds = new Set(course.instructors.map((i) => i.user.id));
-  const availableDosen = dosenList.filter((d) => !assignedIds.has(d.id));
 
   return (
     <div className="flex flex-col gap-6">
@@ -526,56 +541,25 @@ export default function CourseDetailPage() {
       </Tabs>
 
       {/* Assign Instructor Dialog */}
-      <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden flex flex-col max-h-[85vh]">
-          <DialogHeader className="px-6 py-5">
-            <DialogTitle>Tambah Dosen Pengampu</DialogTitle>
-            <DialogDescription>
-              Pilih dosen yang akan ditugaskan ke course ini.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex-1 overflow-y-auto px-6 py-2 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="dosen">Dosen</Label>
-              <Select value={selectedDosen} onValueChange={setSelectedDosen}>
-                <SelectTrigger id="dosen" className="h-10">
-                  <SelectValue placeholder="Pilih dosen..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {availableDosen.length === 0 ? (
-                      <SelectItem value="none" disabled>
-                        Semua dosen sudah ditugaskan
-                      </SelectItem>
-                    ) : (
-                      availableDosen.map((d) => (
-                        <SelectItem key={d.id} value={d.id}>
-                          {d.name} — {d.email}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <DialogFooter className="px-6 py-6 m-0">
-            <Button variant="outline" onClick={() => setAssignOpen(false)} className="h-10">
-              Batal
-            </Button>
-            <Button
-              onClick={handleAssign}
-              disabled={assigning || !selectedDosen}
-              className="h-10 bg-brand text-black hover:bg-brand/90"
-            >
-              {assigning && <Loader2 className="animate-spin" data-icon="inline-start" />}
-              Tugaskan
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <UserSelectionDialog
+        open={assignOpen}
+        onOpenChange={setAssignOpen}
+        title="Tambah Dosen Pengampu"
+        description="Pilih dosen yang akan ditugaskan ke course ini."
+        searchPlaceholder="Cari nama atau email dosen..."
+        searchInput={dosenSearchInput}
+        onSearchInputChange={setDosenSearchInput}
+        onSearch={setDosenSearchQuery}
+        availableItems={availableDosen.map(d => ({ id: d.id, name: d.name, email: d.email }))}
+        selectedIds={selectedDosenIds}
+        onSelectedIdsChange={setSelectedDosenIds}
+        emptyStateIcon={<Users className="size-12" />}
+        emptyStateText="Semua dosen sudah ditugaskan atau tidak ditemukan"
+        itemNoun="dosen"
+        submitLabel="Tugaskan"
+        onSubmit={handleAssign}
+        isSubmitting={assigning}
+      />
 
       {/* Remove Instructor Confirmation */}
       <AlertDialog open={!!removeInstructor} onOpenChange={(open) => !open && setRemoveInstructor(null)}>
@@ -602,56 +586,31 @@ export default function CourseDetailPage() {
       </AlertDialog>
 
       {/* Enroll Student Dialog */}
-      <Dialog open={enrollOpen} onOpenChange={setEnrollOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden flex flex-col max-h-[85vh]">
-          <DialogHeader className="px-6 py-5">
-            <DialogTitle>Tambah Mahasiswa</DialogTitle>
-            <DialogDescription>
-              Pilih mahasiswa yang akan didaftarkan ke course ini.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex-1 overflow-y-auto px-6 py-2 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="mahasiswa">Mahasiswa</Label>
-              <Select value={selectedMahasiswa} onValueChange={setSelectedMahasiswa}>
-                <SelectTrigger id="mahasiswa" className="h-10">
-                  <SelectValue placeholder="Pilih mahasiswa..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {availableMahasiswa.length === 0 ? (
-                      <SelectItem value="none" disabled>
-                        Semua mahasiswa sudah terdaftar
-                      </SelectItem>
-                    ) : (
-                      availableMahasiswa.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>
-                          {m.name} {m.npm ? `(${m.npm})` : ""} — {m.email}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <DialogFooter className="px-6 py-6 m-0">
-            <Button variant="outline" onClick={() => setEnrollOpen(false)} className="h-10">
-              Batal
-            </Button>
-            <Button
-              onClick={handleEnroll}
-              disabled={enrolling || !selectedMahasiswa}
-              className="h-10 bg-brand text-black hover:bg-brand/90"
-            >
-              {enrolling && <Loader2 className="animate-spin" data-icon="inline-start" />}
-              Daftarkan
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <UserSelectionDialog
+        open={enrollOpen}
+        onOpenChange={setEnrollOpen}
+        title="Tambah Mahasiswa"
+        description="Pilih mahasiswa yang akan didaftarkan ke course ini."
+        searchPlaceholder="Cari NPM, nama, atau email..."
+        searchInput={mahasiswaSearchInput}
+        onSearchInputChange={setMahasiswaSearchInput}
+        onSearch={setMahasiswaSearchQuery}
+        availableItems={availableMahasiswa.map(m => ({ 
+          id: m.id, 
+          name: m.name, 
+          email: m.email,
+          badge: m.npm,
+          subText: m.major
+        }))}
+        selectedIds={selectedMahasiswaIds}
+        onSelectedIdsChange={setSelectedMahasiswaIds}
+        emptyStateIcon={<GraduationCap className="size-12" />}
+        emptyStateText="Semua mahasiswa sudah terdaftar atau tidak ditemukan"
+        itemNoun="mahasiswa"
+        submitLabel="Daftarkan"
+        onSubmit={handleEnroll}
+        isSubmitting={enrolling}
+      />
 
       {/* Remove Enrollment Confirmation */}
       <AlertDialog open={!!removeEnrollment} onOpenChange={(open) => !open && setRemoveEnrollment(null)}>

@@ -184,7 +184,7 @@ export async function getDosenList() {
 export async function getMahasiswaList() {
   return prisma.user.findMany({
     where: { role: "mahasiswa" },
-    select: { id: true, name: true, email: true, npm: true },
+    select: { id: true, name: true, email: true, npm: true, major: true },
     orderBy: { name: "asc" },
   });
 }
