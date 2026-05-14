@@ -34,12 +34,12 @@ model User {
   accounts Account[]
 
   // App relations
-  coursesCreated      Course[]           @relation("CourseCreator")
-  courseInstructor    CourseInstructor[]
-  enrollments         Enrollment[]
-  courseSessionsMade  CourseSession[]    @relation("CourseSessionCreator")
-  materialsUploaded   Material[]
-  aiChatSessions      AiChatSession[]
+  coursesCreated     Course[]           @relation("CourseCreator")
+  courseInstructor   CourseInstructor[]
+  enrollments        Enrollment[]
+  courseSessionsMade CourseSession[]    @relation("CourseSessionCreator")
+  materialsUploaded  Material[]
+  aiChatSessions     AiChatSession[]
 
   @@map("user")
 }
@@ -55,8 +55,8 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("session")
   @@index([userId])
+  @@map("session")
 }
 
 model Account {
@@ -75,8 +75,8 @@ model Account {
   createdAt             DateTime
   updatedAt             DateTime
 
-  @@map("account")
   @@index([userId])
+  @@map("account")
 }
 
 model Verification {
@@ -87,8 +87,8 @@ model Verification {
   createdAt  DateTime?
   updatedAt  DateTime?
 
-  @@map("verification")
   @@index([identifier])
+  @@map("verification")
 }
 
 // ==========================================
@@ -111,8 +111,8 @@ model Course {
   sessions       CourseSession[]
   aiChatSessions AiChatSession[]
 
-  @@map("course")
   @@index([enrollmentKey])
+  @@map("course")
 }
 
 // Satu course bisa diampu banyak dosen
@@ -195,15 +195,21 @@ model Material {
   courseSessionId String
   uploadedBy      String
   title           String
+  materialType    String   @default("file") // file | link | text
+  description     String?
   fileName        String
-  filePath        String   // path di object storage (S3 / local)
-  fileSize        BigInt?  // ukuran dalam bytes
+  filePath        String // legacy path/url agar data lama tetap kompatibel
+  storagePath     String? // path object di Supabase Storage
+  publicUrl       String? // URL publik file dari Supabase Storage
+  externalUrl     String? // URL untuk materi bertipe link
+  textContent     String? // konten untuk materi bertipe text
+  fileSize        BigInt? // ukuran dalam bytes
   isActive        Boolean  @default(true)
   isProcessed     Boolean  @default(false) // true = embedding selesai, siap dipakai RAG
   createdAt       DateTime @default(now())
 
   courseSession CourseSession @relation(fields: [courseSessionId], references: [id], onDelete: Cascade)
-  uploader      User         @relation(fields: [uploadedBy], references: [id])
+  uploader      User          @relation(fields: [uploadedBy], references: [id])
   chunks        VectorChunk[]
 
   @@index([courseSessionId])
@@ -219,9 +225,9 @@ model Material {
 model VectorChunk {
   id         String   @id
   materialId String
-  chunkIndex Int      // urutan chunk dalam 1 PDF, mulai dari 0
-  content    String   // teks mentah potongan PDF
-  tokenCount Int?     // jumlah token chunk
+  chunkIndex Int // urutan chunk dalam 1 PDF, mulai dari 0
+  content    String // teks mentah potongan PDF
+  tokenCount Int? // jumlah token chunk
   createdAt  DateTime @default(now())
 
   material Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
@@ -239,13 +245,13 @@ model AiChatSession {
   id              String   @id
   userId          String
   courseId        String
-  courseSessionId String   // RAG hanya query chunk dari sesi ini
+  courseSessionId String // RAG hanya query chunk dari sesi ini
   startedAt       DateTime @default(now())
   lastActiveAt    DateTime @default(now())
 
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course        Course        @relation(fields: [courseId], references: [id])
-  courseSession CourseSession @relation(fields: [courseSessionId], references: [id])
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course        Course          @relation(fields: [courseId], references: [id])
+  courseSession CourseSession   @relation(fields: [courseSessionId], references: [id])
   messages      AiChatMessage[]
 
   @@index([userId, courseSessionId])
@@ -256,11 +262,11 @@ model AiChatSession {
 model AiChatMessage {
   id              String   @id
   aiChatSessionId String
-  senderType      String   // user | ai
-  content         String   // teks pesan
-  audioUrl        String?  // URL file TTS
-  ragSources      Json?    // chunk IDs + similarity score
-  responseTimeMs  Int?     // latensi AI dalam ms
+  senderType      String // user | ai
+  content         String // teks pesan
+  audioUrl        String? // URL file TTS
+  ragSources      Json? // chunk IDs + similarity score
+  responseTimeMs  Int? // latensi AI dalam ms
   createdAt       DateTime @default(now())
 
   aiChatSession AiChatSession @relation(fields: [aiChatSessionId], references: [id], onDelete: Cascade)
