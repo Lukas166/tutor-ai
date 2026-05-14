@@ -101,7 +101,7 @@ function CourseCard({ course }: { course: DosenCourse }) {
             <span
               className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                 course.isActive
-                  ? "bg-emerald-500/10 text-emerald-600"
+                  ? "bg-brand text-black"
                   : "bg-muted text-muted-foreground"
               }`}
             >
@@ -349,7 +349,7 @@ export default function DosenDashboardPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold tracking-tight">Aktivitas Terbaru</h2>
           <Select value={activityDays} onValueChange={setActivityDays}>
-            <SelectTrigger className="h-9 w-[150px] border-primary bg-primary text-xs text-primary-foreground shadow-sm [&_svg]:text-primary-foreground">
+            <SelectTrigger className="h-9 w-[150px] border-brand bg-brand text-xs text-black shadow-sm [&_svg]:text-black">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

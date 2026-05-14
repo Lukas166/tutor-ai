@@ -57,7 +57,7 @@ function CourseCard({ course }: { course: DosenCourse }) {
             <span
               className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                 course.isActive
-                  ? "bg-emerald-500/10 text-emerald-600"
+                  ? "bg-brand text-black"
                   : "bg-muted text-muted-foreground"
               }`}
             >

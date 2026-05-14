@@ -219,7 +219,7 @@ export default function DosenCourseDetailPage() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-3xl font-bold tracking-tight">{course.title}</h1>
-              <Badge variant={course.isActive ? "default" : "secondary"}>{course.isActive ? "Aktif" : "Nonaktif"}</Badge>
+              <Badge className={course.isActive ? "bg-brand text-black hover:bg-brand/80 border-transparent" : "bg-muted text-muted-foreground border-transparent"}>{course.isActive ? "Aktif" : "Nonaktif"}</Badge>
             </div>
             {course.description && (
               <p className="mt-2 max-w-3xl text-muted-foreground leading-relaxed">{course.description}</p>

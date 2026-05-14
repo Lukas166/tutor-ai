@@ -159,7 +159,7 @@ export function SessionCard({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Badge variant={session.isActive ? "default" : "secondary"} className="text-[10px]">
+          <Badge className={`text-[10px] border-transparent ${session.isActive ? "bg-brand text-black hover:bg-brand/80" : "bg-muted text-muted-foreground"}`}>
             {session.isActive ? "Aktif" : "Draft"}
           </Badge>
           {expanded ? (
