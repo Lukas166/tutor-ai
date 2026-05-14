@@ -13,8 +13,14 @@ export interface CourseDetail {
 export interface MaterialItem {
   id: string;
   title: string;
+  materialType: "file" | "link" | "text";
+  description: string | null;
   fileName: string;
   filePath: string;
+  storagePath: string | null;
+  publicUrl: string | null;
+  externalUrl: string | null;
+  textContent: string | null;
   fileSize: string | null;
   isActive: boolean;
   createdAt: string;
