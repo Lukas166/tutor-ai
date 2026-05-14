@@ -144,7 +144,7 @@ export function SessionCard({
         className="flex w-full items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-muted/30"
       >
         <div className="flex min-w-0 items-center gap-4">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand text-sm font-bold text-black">
             {session.orderNumber}
           </div>
           <div className="min-w-0">
@@ -193,7 +193,7 @@ export function SessionCard({
               <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                 Konten
               </h4>
-              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setShowDialog(true)}>
+              <Button size="sm" className="bg-brand text-black hover:bg-brand/90" onClick={() => setShowDialog(true)}>
                 <Upload data-icon="inline-start" />
                 Tambah Konten
               </Button>
@@ -336,7 +336,7 @@ export function SessionCard({
               Batal
             </Button>
             <Button
-              className="min-w-28 bg-primary text-primary-foreground hover:bg-primary/90"
+              className="min-w-28 bg-brand text-black hover:bg-brand/90"
               onClick={handleSubmit}
               disabled={
                 uploading ||

@@ -227,7 +227,7 @@ export default function DosenCourseDetailPage() {
           </div>
           <Button
             size="sm"
-            className="self-start bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+            className="self-start bg-brand text-black shadow-sm hover:bg-brand/90"
             onClick={() => setShowStudents(true)}
           >
             <Users data-icon="inline-start" />
@@ -246,7 +246,7 @@ export default function DosenCourseDetailPage() {
                 className="inline-flex w-full items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2 font-mono text-sm transition-colors hover:bg-muted"
               >
                 <span className="flex items-center gap-2 font-bold">
-                  <KeyRound className="size-4 text-primary" />
+                  <KeyRound className="size-4 text-brand" />
                   {course.enrollmentKey}
                 </span>
                 <Copy className="size-3.5 text-muted-foreground" />
@@ -290,7 +290,7 @@ export default function DosenCourseDetailPage() {
           </div>
           <Button
             onClick={() => { resetDialog(); setDialogOpen(true); }}
-            className="bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+            className="bg-brand text-black shadow-sm hover:bg-brand/90"
           >
             <Plus data-icon="inline-start" />
             Tambah Sesi
@@ -355,7 +355,7 @@ export default function DosenCourseDetailPage() {
                   size="sm"
                   onClick={() => setNewMaterials((materials) => [...materials, emptyMaterial()])}
                   disabled={submitting}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="bg-brand text-black hover:bg-brand/90"
                 >
                   <Plus data-icon="inline-start" />
                   Tambah Materi
@@ -373,7 +373,7 @@ export default function DosenCourseDetailPage() {
                       <CardContent className="flex flex-col gap-4 p-4">
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
+                            <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-brand text-xs font-bold text-black">
                               {index + 1}
                             </div>
                             <p className="text-sm font-semibold">Materi {index + 1}</p>
@@ -475,7 +475,7 @@ export default function DosenCourseDetailPage() {
               Batal
             </Button>
             <Button
-              className="min-w-28 bg-primary text-primary-foreground hover:bg-primary/90"
+              className="min-w-28 bg-brand text-black hover:bg-brand/90"
               onClick={handleCreateSession}
               disabled={submitting || !sessionForm.title.trim()}
             >
