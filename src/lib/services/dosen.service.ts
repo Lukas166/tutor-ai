@@ -132,8 +132,14 @@ export async function listCourseSessions(courseId: string) {
         select: {
           id: true,
           title: true,
+          materialType: true,
+          description: true,
           fileName: true,
           filePath: true,
+          storagePath: true,
+          publicUrl: true,
+          externalUrl: true,
+          textContent: true,
           fileSize: true,
           isActive: true,
           createdAt: true,
@@ -176,8 +182,14 @@ export async function createCourseSession(
         select: {
           id: true,
           title: true,
+          materialType: true,
+          description: true,
           fileName: true,
           filePath: true,
+          storagePath: true,
+          publicUrl: true,
+          externalUrl: true,
+          textContent: true,
           fileSize: true,
           isActive: true,
           createdAt: true,
@@ -190,12 +202,30 @@ export async function createCourseSession(
   return serializeBigInt(session);
 }
 
+export async function getCourseSessionInCourse(courseId: string, sessionId: string) {
+  return prisma.courseSession.findFirst({
+    where: { id: sessionId, courseId },
+    select: { id: true },
+  });
+}
+
 /* ─── Materials ────────────────────────────────────── */
 
 export async function createMaterial(
   sessionId: string,
   dosenId: string,
-  data: { title: string; fileName: string; filePath: string; fileSize: number }
+  data: {
+    title: string;
+    materialType: "file" | "link" | "text";
+    description?: string | null;
+    fileName: string;
+    filePath: string;
+    storagePath?: string | null;
+    publicUrl?: string | null;
+    externalUrl?: string | null;
+    textContent?: string | null;
+    fileSize: number;
+  }
 ) {
   const material = await prisma.material.create({
     data: {
@@ -203,15 +233,27 @@ export async function createMaterial(
       courseSessionId: sessionId,
       uploadedBy: dosenId,
       title: data.title,
+      materialType: data.materialType,
+      description: data.description ?? null,
       fileName: data.fileName,
       filePath: data.filePath,
+      storagePath: data.storagePath ?? null,
+      publicUrl: data.publicUrl ?? null,
+      externalUrl: data.externalUrl ?? null,
+      textContent: data.textContent ?? null,
       fileSize: BigInt(data.fileSize),
     },
     select: {
       id: true,
       title: true,
+      materialType: true,
+      description: true,
       fileName: true,
       filePath: true,
+      storagePath: true,
+      publicUrl: true,
+      externalUrl: true,
+      textContent: true,
       fileSize: true,
       isActive: true,
       createdAt: true,

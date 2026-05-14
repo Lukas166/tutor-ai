@@ -16,13 +16,12 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Plus, GraduationCap, Users, KeyRound, Copy, CalendarDays,
-  FileText, Upload, Loader2, Link2, Type, Trash2
+  FileText, Upload, Loader2, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SessionCard } from "./session-card";
 import { StudentListDialog } from "./student-list-dialog";
 import type { CourseDetail, SessionItem } from "./types";
-import { formatFileSize } from "./types";
 
 type ContentType = "file" | "link" | "text";
 
@@ -36,6 +35,16 @@ type NewMaterial = {
   file: File | null;
 };
 
+const emptyMaterial = (): NewMaterial => ({
+  id: crypto.randomUUID(),
+  type: "file",
+  title: "",
+  description: "",
+  url: "",
+  content: "",
+  file: null,
+});
+
 export default function DosenCourseDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -46,19 +55,19 @@ export default function DosenCourseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [showStudents, setShowStudents] = useState(false);
-
-  // Create session dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sessionForm, setSessionForm] = useState({ title: "", description: "" });
   const [newMaterials, setNewMaterials] = useState<NewMaterial[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const fetchCourse = useCallback(() => {
     setLoading(true);
     fetch(`/api/dosen/courses/${courseId}`)
-      .then((r) => { if (!r.ok) throw new Error("Not found"); return r.json(); })
+      .then((response) => {
+        if (!response.ok) throw new Error("Not found");
+        return response.json();
+      })
       .then(setCourse)
       .catch(() => setCourse(null))
       .finally(() => setLoading(false));
@@ -67,83 +76,108 @@ export default function DosenCourseDetailPage() {
   const fetchSessions = useCallback(() => {
     setLoadingSessions(true);
     fetch(`/api/dosen/courses/${courseId}/sessions`)
-      .then((r) => r.json())
+      .then((response) => response.json())
       .then((data) => { if (Array.isArray(data)) setSessions(data); })
       .catch(console.error)
       .finally(() => setLoadingSessions(false));
   }, [courseId]);
 
-  useEffect(() => { fetchCourse(); fetchSessions(); }, [fetchCourse, fetchSessions]);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      fetchCourse();
+      fetchSessions();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchCourse, fetchSessions]);
 
   function resetDialog() {
     setSessionForm({ title: "", description: "" });
     setNewMaterials([]);
   }
 
-  function addMaterialField() {
-    setNewMaterials([
-      ...newMaterials, 
-      { id: crypto.randomUUID(), type: "file", title: "", description: "", url: "", content: "", file: null }
-    ]);
-  }
-
   function updateMaterial(id: string, updates: Partial<NewMaterial>) {
-    setNewMaterials(newMaterials.map((m) => m.id === id ? { ...m, ...updates } : m));
+    setNewMaterials((materials) =>
+      materials.map((material) => material.id === id ? { ...material, ...updates } : material)
+    );
   }
 
-  function removeMaterial(id: string) {
-    setNewMaterials(newMaterials.filter((m) => m.id !== id));
+  async function uploadMaterial(sessionId: string, material: NewMaterial) {
+    if (material.type === "file" && material.file) {
+      const formData = new FormData();
+      formData.append("file", material.file);
+      formData.append("title", material.title.trim());
+      if (material.description.trim()) formData.append("description", material.description.trim());
+
+      return fetch(`/api/dosen/courses/${courseId}/sessions/${sessionId}/materials`, {
+        method: "POST",
+        body: formData,
+      });
+    }
+
+    const body: Record<string, string> = {
+      title: material.title.trim(),
+      type: material.type,
+    };
+
+    if (material.type === "link") body.url = material.url.trim();
+    if (material.type === "text") body.content = material.content.trim();
+    if (material.description.trim()) body.description = material.description.trim();
+
+    return fetch(`/api/dosen/courses/${courseId}/sessions/${sessionId}/materials`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
   }
 
   async function handleCreateSession() {
-    if (!sessionForm.title.trim()) { toast.error("Judul sesi wajib diisi"); return; }
+    if (!sessionForm.title.trim()) {
+      toast.error("Judul sesi wajib diisi");
+      return;
+    }
 
-    // Validate materials
-    for (const mat of newMaterials) {
-      if (!mat.title.trim()) { toast.error("Semua materi harus memiliki judul"); return; }
-      if (mat.type === "file" && !mat.file) { toast.error(`Pilih file untuk materi: ${mat.title}`); return; }
-      if (mat.type === "link" && !mat.url.trim()) { toast.error(`Masukkan URL untuk materi: ${mat.title}`); return; }
-      if (mat.type === "text" && !mat.content.trim()) { toast.error(`Masukkan teks untuk materi: ${mat.title}`); return; }
+    for (const material of newMaterials) {
+      if (!material.title.trim()) {
+        toast.error("Semua materi harus memiliki judul");
+        return;
+      }
+      if (material.type === "file" && !material.file) {
+        toast.error(`Pilih file untuk materi: ${material.title}`);
+        return;
+      }
+      if (material.type === "link" && !material.url.trim()) {
+        toast.error(`Masukkan URL untuk materi: ${material.title}`);
+        return;
+      }
+      if (material.type === "text" && !material.content.trim()) {
+        toast.error(`Masukkan teks untuk materi: ${material.title}`);
+        return;
+      }
     }
 
     setSubmitting(true);
     try {
-      // 1. Create session
-      const res = await fetch(`/api/dosen/courses/${courseId}/sessions`, {
+      const response = await fetch(`/api/dosen/courses/${courseId}/sessions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: sessionForm.title.trim(), description: sessionForm.description.trim() || null }),
+        body: JSON.stringify({
+          title: sessionForm.title.trim(),
+          description: sessionForm.description.trim() || null,
+        }),
       });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error?.toString() || "Gagal membuat sesi"); }
-      const newSession = await res.json();
+      const sessionData = await response.json();
+      if (!response.ok) throw new Error(sessionData.error?.toString() || "Gagal membuat sesi");
 
-      // 2. Upload materials sequentially to prevent race conditions
-      for (const mat of newMaterials) {
-        if (mat.type === "file" && mat.file) {
-          const fd = new FormData();
-          fd.append("file", mat.file);
-          fd.append("title", mat.title.trim());
-          if (mat.description.trim()) fd.append("description", mat.description.trim());
-          const upRes = await fetch(`/api/dosen/courses/${courseId}/sessions/${newSession.id}/materials`, { method: "POST", body: fd });
-          if(!upRes.ok) throw new Error(`Gagal upload file ${mat.title}`);
-        } else if (mat.type === "link" && mat.url.trim()) {
-          const upRes = await fetch(`/api/dosen/courses/${courseId}/sessions/${newSession.id}/materials`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title: mat.title.trim(), type: "link", url: mat.url.trim(), description: mat.description.trim() || undefined }),
-          });
-          if(!upRes.ok) throw new Error(`Gagal membuat link ${mat.title}`);
-        } else if (mat.type === "text" && mat.content.trim()) {
-          const upRes = await fetch(`/api/dosen/courses/${courseId}/sessions/${newSession.id}/materials`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title: mat.title.trim(), type: "text", content: mat.content.trim() }),
-          });
-          if(!upRes.ok) throw new Error(`Gagal membuat teks ${mat.title}`);
+      for (const material of newMaterials) {
+        const uploadResponse = await uploadMaterial(sessionData.id, material);
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json();
+          throw new Error(errorData.error ?? `Gagal menyimpan materi ${material.title}`);
         }
       }
 
-      toast.success("Sesi beserta materi berhasil dibuat!");
+      toast.success("Sesi beserta materi berhasil dibuat");
       setDialogOpen(false);
       resetDialog();
       fetchSessions();
@@ -175,49 +209,72 @@ export default function DosenCourseDetailPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <Button variant="ghost" size="sm" onClick={() => router.push("/dosen/courses")} className="self-start gap-1.5 -ml-2 text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="size-4" />Kembali ke Courses
+      <Button variant="ghost" size="sm" onClick={() => router.push("/dosen/courses")} className="self-start -ml-2 text-muted-foreground hover:text-foreground">
+        <ArrowLeft data-icon="inline-start" />
+        Kembali ke Courses
       </Button>
 
-      {/* Course Info Header */}
       <div className="flex flex-col gap-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-3xl font-bold tracking-tight">{course.title}</h1>
               <Badge variant={course.isActive ? "default" : "secondary"}>{course.isActive ? "Aktif" : "Nonaktif"}</Badge>
             </div>
-            {course.description && <p className="text-muted-foreground mt-2 leading-relaxed max-w-3xl">{course.description}</p>}
+            {course.description && (
+              <p className="mt-2 max-w-3xl text-muted-foreground leading-relaxed">{course.description}</p>
+            )}
           </div>
-          <Button variant="outline" size="sm" className="gap-1.5 shrink-0" onClick={() => setShowStudents(true)}>
-            <Users className="size-4" />Daftar Mahasiswa
+          <Button
+            size="sm"
+            className="self-start bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+            onClick={() => setShowStudents(true)}
+          >
+            <Users data-icon="inline-start" />
+            Daftar Mahasiswa
           </Button>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <Card className="border-border/50">
-            <CardHeader className="pb-2"><CardDescription className="text-xs font-semibold uppercase tracking-wider">Enrollment Key</CardDescription></CardHeader>
+          <Card className="border-border/70 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-xs font-semibold uppercase tracking-wider">Enrollment Key</CardDescription>
+            </CardHeader>
             <CardContent>
-              <button onClick={() => { navigator.clipboard.writeText(course.enrollmentKey); toast.success("Disalin"); }} className="inline-flex w-full items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2 font-mono text-sm hover:bg-muted transition-colors">
-                <div className="flex items-center gap-2"><KeyRound className="size-4 text-brand" /><span className="font-bold">{course.enrollmentKey}</span></div>
+              <button
+                onClick={() => { navigator.clipboard.writeText(course.enrollmentKey); toast.success("Disalin"); }}
+                className="inline-flex w-full items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2 font-mono text-sm transition-colors hover:bg-muted"
+              >
+                <span className="flex items-center gap-2 font-bold">
+                  <KeyRound className="size-4 text-primary" />
+                  {course.enrollmentKey}
+                </span>
                 <Copy className="size-3.5 text-muted-foreground" />
               </button>
             </CardContent>
           </Card>
-          <Card className="border-border/50">
-            <CardHeader className="pb-2"><CardDescription className="text-xs font-semibold uppercase tracking-wider">Mahasiswa Terdaftar</CardDescription></CardHeader>
+          <Card className="border-border/70 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-xs font-semibold uppercase tracking-wider">Mahasiswa Terdaftar</CardDescription>
+            </CardHeader>
             <CardContent>
               <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-full bg-emerald-500/10"><GraduationCap className="size-5 text-emerald-600" /></div>
+                <div className="flex size-10 items-center justify-center rounded-full bg-emerald-500/10">
+                  <GraduationCap className="size-5 text-emerald-600" />
+                </div>
                 <span className="text-3xl font-bold">{course._count.enrollments}</span>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50">
-            <CardHeader className="pb-2"><CardDescription className="text-xs font-semibold uppercase tracking-wider">Dosen Pengampu</CardDescription></CardHeader>
+          <Card className="border-border/70 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-xs font-semibold uppercase tracking-wider">Dosen Pengampu</CardDescription>
+            </CardHeader>
             <CardContent>
               <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-full bg-blue-500/10"><Users className="size-5 text-blue-600" /></div>
+                <div className="flex size-10 items-center justify-center rounded-full bg-blue-500/10">
+                  <Users className="size-5 text-blue-600" />
+                </div>
                 <span className="text-3xl font-bold">{course.instructors.length}</span>
               </div>
             </CardContent>
@@ -225,130 +282,185 @@ export default function DosenCourseDetailPage() {
         </div>
       </div>
 
-      {/* Sessions */}
       <div className="flex flex-col gap-5">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold tracking-tight">Sesi Perkuliahan</h2>
             <p className="text-sm text-muted-foreground">Kelola sesi dan materi course ini</p>
           </div>
-          <Button onClick={() => { resetDialog(); setDialogOpen(true); }} className="gap-2 bg-brand text-black hover:bg-brand/90">
-            <Plus className="size-4" />Tambah Sesi
+          <Button
+            onClick={() => { resetDialog(); setDialogOpen(true); }}
+            className="bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+          >
+            <Plus data-icon="inline-start" />
+            Tambah Sesi
           </Button>
         </div>
 
         {loadingSessions ? (
-          <div className="flex flex-col gap-4">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}</div>
+          <div className="flex flex-col gap-4">
+            {Array.from({ length: 3 }).map((_, index) => <Skeleton key={index} className="h-20 w-full rounded-xl" />)}
+          </div>
         ) : sessions.length === 0 ? (
-          <Card className="border-dashed border-2">
+          <Card className="border-2 border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <CalendarDays className="size-12 text-muted-foreground/50 mb-4" strokeWidth={1.5} />
-              <p className="text-muted-foreground font-medium">Belum ada sesi</p>
+              <CalendarDays className="mb-4 size-12 text-muted-foreground/50" strokeWidth={1.5} />
+              <p className="font-medium text-muted-foreground">Belum ada sesi</p>
             </CardContent>
           </Card>
         ) : (
           <div className="flex flex-col gap-4">
-            {sessions.map((s) => <SessionCard key={s.id} session={s} courseId={courseId} onContentAdded={fetchSessions} />)}
+            {sessions.map((session) => (
+              <SessionCard key={session.id} session={session} courseId={courseId} onContentAdded={fetchSessions} />
+            ))}
           </div>
         )}
       </div>
 
-      {/* Create Session Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) resetDialog(); }}>
-        <DialogContent className="sm:max-w-[600px] p-0 gap-0 overflow-hidden">
-          <DialogHeader className="px-6 py-4 border-b bg-muted/30">
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetDialog(); }}>
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[680px]">
+          <DialogHeader className="border-b bg-muted/30 px-6 py-4">
             <DialogTitle>Tambah Sesi Baru</DialogTitle>
             <DialogDescription>Buat sesi dan tambahkan materi.</DialogDescription>
           </DialogHeader>
-          <div className="px-6 py-4 flex flex-col gap-6 max-h-[65vh] overflow-y-auto">
+          <div className="flex max-h-[68vh] flex-col gap-6 overflow-y-auto px-6 py-5">
             <div className="grid gap-4">
               <div className="grid gap-1.5">
                 <Label>Judul Sesi <span className="text-destructive">*</span></Label>
-                <Input value={sessionForm.title} onChange={(e) => setSessionForm({ ...sessionForm, title: e.target.value })} placeholder="Contoh: Minggu 1 — Pengenalan AI" disabled={submitting} />
+                <Input
+                  value={sessionForm.title}
+                  onChange={(event) => setSessionForm({ ...sessionForm, title: event.target.value })}
+                  placeholder="Contoh: Minggu 1 - Pengenalan AI"
+                  disabled={submitting}
+                />
               </div>
               <div className="grid gap-1.5">
-                <Label>Deskripsi <span className="text-muted-foreground text-xs font-normal">(opsional)</span></Label>
-                <textarea value={sessionForm.description} onChange={(e) => setSessionForm({ ...sessionForm, description: e.target.value })} placeholder="Topik yang dibahas" disabled={submitting} rows={2} className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none" />
+                <Label>Deskripsi <span className="text-xs font-normal text-muted-foreground">(opsional)</span></Label>
+                <textarea
+                  value={sessionForm.description}
+                  onChange={(event) => setSessionForm({ ...sessionForm, description: event.target.value })}
+                  placeholder="Topik yang dibahas"
+                  disabled={submitting}
+                  rows={2}
+                  className="flex w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 pt-4 border-t">
-              <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 border-t pt-4">
+              <div className="flex items-center justify-between gap-3">
                 <Label className="text-base font-semibold">Materi Sesi</Label>
-                <Button type="button" variant="outline" size="sm" onClick={addMaterialField} disabled={submitting} className="gap-1.5 h-8">
-                  <Plus className="size-3.5" /> Tambah Materi
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setNewMaterials((materials) => [...materials, emptyMaterial()])}
+                  disabled={submitting}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  <Plus data-icon="inline-start" />
+                  Tambah Materi
                 </Button>
               </div>
 
               {newMaterials.length === 0 ? (
-                <div className="text-sm text-center py-4 bg-muted/20 border border-dashed rounded-lg text-muted-foreground">
+                <div className="rounded-lg border border-dashed bg-muted/20 px-4 py-5 text-center text-sm text-muted-foreground">
                   Belum ada materi ditambahkan. Anda bisa menambahkan materi nanti.
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
-                  {newMaterials.map((mat, index) => (
-                    <Card key={mat.id} className="border-border/50 relative overflow-visible">
-                      <Button 
-                        type="button" 
-                        variant="destructive" 
-                        size="icon" 
-                        className="absolute -right-2.5 -top-2.5 size-7 rounded-full shadow-sm z-10"
-                        onClick={() => removeMaterial(mat.id)}
-                        disabled={submitting}
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                      <CardContent className="p-4 flex flex-col gap-4">
-                        <div className="flex items-start gap-4">
-                          <div className="flex items-center justify-center size-6 rounded bg-muted text-xs font-bold shrink-0 mt-1">
-                            {index + 1}
+                  {newMaterials.map((material, index) => (
+                    <Card key={material.id} className="border-border/60 shadow-sm">
+                      <CardContent className="flex flex-col gap-4 p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
+                              {index + 1}
+                            </div>
+                            <p className="text-sm font-semibold">Materi {index + 1}</p>
                           </div>
-                          <div className="flex-1 grid gap-3">
-                            <div className="grid gap-1.5">
-                              <Label className="text-xs">Jenis Konten</Label>
-                              <Select value={mat.type} onValueChange={(v) => updateMaterial(mat.id, { type: v as ContentType })} disabled={submitting}>
-                                <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="file">📄 File PDF</SelectItem>
-                                  <SelectItem value="link">🔗 Link URL</SelectItem>
-                                  <SelectItem value="text">📝 Teks</SelectItem>
-                                </SelectContent>
-                              </Select>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon-sm"
+                            onClick={() => setNewMaterials((materials) => materials.filter((item) => item.id !== material.id))}
+                            disabled={submitting}
+                            aria-label="Hapus materi"
+                          >
+                            <Trash2 />
+                          </Button>
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="grid gap-1.5">
+                            <Label className="text-xs">Jenis Konten</Label>
+                            <Select value={material.type} onValueChange={(value) => updateMaterial(material.id, { type: value as ContentType })} disabled={submitting}>
+                              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="file">File PDF</SelectItem>
+                                <SelectItem value="link">Link URL</SelectItem>
+                                <SelectItem value="text">Teks</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="grid gap-1.5">
+                            <Label className="text-xs">Judul <span className="text-destructive">*</span></Label>
+                            <Input className="h-8" value={material.title} onChange={(event) => updateMaterial(material.id, { title: event.target.value })} placeholder="Judul materi" disabled={submitting} />
+                          </div>
+
+                          {material.type === "file" && (
+                            <div className="grid gap-1.5 sm:col-span-2">
+                              <Label className="text-xs">File PDF <span className="text-destructive">*</span></Label>
+                              <button
+                                type="button"
+                                onClick={() => fileRefs.current[material.id]?.click()}
+                                className="flex min-h-16 flex-col items-center justify-center rounded-lg border border-dashed p-3 text-center transition-colors hover:bg-muted/20"
+                              >
+                                {material.file ? (
+                                  <span className="flex max-w-full items-center gap-2 text-sm">
+                                    <FileText className="size-4 text-red-500" />
+                                    <span className="truncate font-medium">{material.file.name}</span>
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                    <Upload className="size-3.5" />
+                                    Pilih File PDF
+                                  </span>
+                                )}
+                              </button>
+                              <input
+                                ref={(element) => { fileRefs.current[material.id] = element; }}
+                                type="file"
+                                accept=".pdf"
+                                className="hidden"
+                                onChange={(event) => updateMaterial(material.id, { file: event.target.files?.[0] || null })}
+                              />
                             </div>
-                            
-                            <div className="grid gap-1.5">
-                              <Label className="text-xs">Judul <span className="text-destructive">*</span></Label>
-                              <Input className="h-8" value={mat.title} onChange={(e) => updateMaterial(mat.id, { title: e.target.value })} placeholder="Judul materi" disabled={submitting} />
+                          )}
+
+                          {material.type === "link" && (
+                            <div className="grid gap-1.5 sm:col-span-2">
+                              <Label className="text-xs">URL <span className="text-destructive">*</span></Label>
+                              <Input className="h-8" value={material.url} onChange={(event) => updateMaterial(material.id, { url: event.target.value })} placeholder="https://..." disabled={submitting} />
                             </div>
+                          )}
 
-                            {mat.type === "file" && (
-                              <div className="grid gap-1.5">
-                                <Label className="text-xs">File PDF <span className="text-destructive">*</span></Label>
-                                <div onClick={() => fileRefs.current[mat.id]?.click()} className="flex flex-col items-center justify-center rounded-lg border border-dashed p-3 cursor-pointer hover:bg-muted/20 transition-colors">
-                                  {mat.file ? (
-                                    <div className="flex items-center gap-2 text-sm">
-                                      <FileText className="size-4 text-red-500" />
-                                      <span className="font-medium">{mat.file.name}</span>
-                                    </div>
-                                  ) : (
-                                    <span className="text-xs text-muted-foreground flex items-center gap-1"><Upload className="size-3.5" /> Pilih File PDF</span>
-                                  )}
-                                </div>
-                                <input ref={(el) => { fileRefs.current[mat.id] = el; }} type="file" accept=".pdf" className="hidden" onChange={(e) => updateMaterial(mat.id, { file: e.target.files?.[0] || null })} />
-                              </div>
-                            )}
+                          {material.type === "text" && (
+                            <div className="grid gap-1.5 sm:col-span-2">
+                              <Label className="text-xs">Konten Teks <span className="text-destructive">*</span></Label>
+                              <textarea
+                                value={material.content}
+                                onChange={(event) => updateMaterial(material.id, { content: event.target.value })}
+                                placeholder="Isi materi teks..."
+                                disabled={submitting}
+                                rows={3}
+                                className="flex w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              />
+                            </div>
+                          )}
 
-                            {mat.type === "link" && (
-                              <div className="grid gap-1.5"><Label className="text-xs">URL <span className="text-destructive">*</span></Label><Input className="h-8" value={mat.url} onChange={(e) => updateMaterial(mat.id, { url: e.target.value })} placeholder="https://..." disabled={submitting} /></div>
-                            )}
-
-                            {mat.type === "text" && (
-                              <div className="grid gap-1.5"><Label className="text-xs">Konten Teks <span className="text-destructive">*</span></Label><textarea value={mat.content} onChange={(e) => updateMaterial(mat.id, { content: e.target.value })} placeholder="Isi materi teks..." disabled={submitting} rows={3} className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none" /></div>
-                            )}
-
-                            {(mat.type === "file" || mat.type === "link") && (
-                              <div className="grid gap-1.5"><Label className="text-xs">Keterangan <span className="font-normal text-muted-foreground">(opsional)</span></Label><Input className="h-8 text-xs" value={mat.description} onChange={(e) => updateMaterial(mat.id, { description: e.target.value })} placeholder="Keterangan singkat" disabled={submitting} /></div>
-                            )}
+                          <div className="grid gap-1.5 sm:col-span-2">
+                            <Label className="text-xs">Keterangan <span className="font-normal text-muted-foreground">(opsional)</span></Label>
+                            <Input className="h-8 text-xs" value={material.description} onChange={(event) => updateMaterial(material.id, { description: event.target.value })} placeholder="Keterangan singkat" disabled={submitting} />
                           </div>
                         </div>
                       </CardContent>
@@ -358,16 +470,22 @@ export default function DosenCourseDetailPage() {
               )}
             </div>
           </div>
-          <DialogFooter className="px-6 py-3 border-t bg-muted/10">
-            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={submitting}>Batal</Button>
-            <Button onClick={handleCreateSession} disabled={submitting || !sessionForm.title.trim()} className="bg-brand text-black hover:bg-brand/90">
-              {submitting && <Loader2 className="animate-spin mr-1.5 size-4" />}Buat Sesi
+          <DialogFooter className="mx-0 mb-0 flex-row justify-end gap-2 rounded-none border-t bg-background px-6 py-4">
+            <Button className="min-w-24" variant="outline" onClick={() => setDialogOpen(false)} disabled={submitting}>
+              Batal
+            </Button>
+            <Button
+              className="min-w-28 bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={handleCreateSession}
+              disabled={submitting || !sessionForm.title.trim()}
+            >
+              {submitting && <Loader2 className="animate-spin" data-icon="inline-start" />}
+              Buat Sesi
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Student List Dialog */}
       <StudentListDialog courseId={courseId} enrollmentKey={course.enrollmentKey} open={showStudents} onOpenChange={setShowStudents} />
     </div>
   );

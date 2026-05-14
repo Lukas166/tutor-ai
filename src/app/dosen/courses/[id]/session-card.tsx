@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,12 +12,43 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { FileText, Upload, Loader2, ChevronDown, ChevronUp, Link2, Type } from "lucide-react";
+import { FileText, Upload, Loader2, ChevronDown, ChevronUp, Link2, Type, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
-import type { SessionItem } from "./types";
+import type { MaterialItem, SessionItem } from "./types";
 import { formatDate, formatFileSize } from "./types";
 
 type ContentType = "file" | "link" | "text";
+
+function resolveMaterialType(material: MaterialItem): ContentType {
+  if (material.materialType) return material.materialType;
+  if (material.filePath.startsWith("link:") || material.filePath.startsWith("http")) return "link";
+  if (material.filePath.startsWith("text:")) return "text";
+  return "file";
+}
+
+function resolveMaterialHref(material: MaterialItem) {
+  if (resolveMaterialType(material) === "link") {
+    return material.externalUrl || material.filePath.replace("link:", "");
+  }
+
+  return material.publicUrl || material.filePath;
+}
+
+function resolveTextContent(material: MaterialItem) {
+  return material.textContent || material.filePath.replace("text:", "");
+}
+
+function getMaterialIcon(type: ContentType) {
+  if (type === "link") return <Link2 className="text-blue-600" />;
+  if (type === "text") return <Type className="text-emerald-600" />;
+  return <FileText className="text-red-600" />;
+}
+
+function getMaterialIconBg(type: ContentType) {
+  if (type === "link") return "bg-blue-500/10";
+  if (type === "text") return "bg-emerald-500/10";
+  return "bg-red-500/10";
+}
 
 export function SessionCard({
   session, courseId, onContentAdded,
@@ -39,35 +70,62 @@ export function SessionCard({
   const fileRef = useRef<HTMLInputElement>(null);
 
   function resetForm() {
-    setTitle(""); setDescription(""); setLinkUrl("");
-    setTextContent(""); setSelectedFile(null); setContentType("file");
+    setTitle("");
+    setDescription("");
+    setLinkUrl("");
+    setTextContent("");
+    setSelectedFile(null);
+    setContentType("file");
   }
 
   async function handleSubmit() {
-    if (!title.trim()) { toast.error("Judul wajib diisi"); return; }
+    if (!title.trim()) {
+      toast.error("Judul wajib diisi");
+      return;
+    }
 
     setUploading(true);
     try {
       if (contentType === "file") {
-        if (!selectedFile) { toast.error("Pilih file PDF"); setUploading(false); return; }
-        const fd = new FormData();
-        fd.append("file", selectedFile);
-        fd.append("title", title.trim());
-        if (description.trim()) fd.append("description", description.trim());
-        const res = await fetch(`/api/dosen/courses/${courseId}/sessions/${session.id}/materials`, { method: "POST", body: fd });
-        if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Gagal upload"); }
+        if (!selectedFile) {
+          toast.error("Pilih file PDF");
+          setUploading(false);
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        formData.append("title", title.trim());
+        if (description.trim()) formData.append("description", description.trim());
+
+        const response = await fetch(
+          `/api/dosen/courses/${courseId}/sessions/${session.id}/materials`,
+          { method: "POST", body: formData }
+        );
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error ?? "Gagal upload");
+        }
       } else {
         const body: Record<string, string> = { title: title.trim(), type: contentType };
         if (contentType === "link") body.url = linkUrl.trim();
         if (contentType === "text") body.content = textContent.trim();
         if (description.trim()) body.description = description.trim();
-        const res = await fetch(`/api/dosen/courses/${courseId}/sessions/${session.id}/materials`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-        if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Gagal menambah"); }
+
+        const response = await fetch(
+          `/api/dosen/courses/${courseId}/sessions/${session.id}/materials`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          }
+        );
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error ?? "Gagal menambah");
+        }
       }
+
       toast.success("Konten berhasil ditambahkan");
       setShowDialog(false);
       resetForm();
@@ -79,96 +137,120 @@ export function SessionCard({
     }
   }
 
-  function getIcon(mat: SessionItem["materials"][0]) {
-    if (mat.filePath.startsWith("http") || mat.filePath.startsWith("link:")) return <Link2 className="size-4 text-blue-600" />;
-    if (mat.filePath.startsWith("text:")) return <Type className="size-4 text-emerald-600" />;
-    return <FileText className="size-4 text-red-600" />;
-  }
-
-  function getIconBg(mat: SessionItem["materials"][0]) {
-    if (mat.filePath.startsWith("http") || mat.filePath.startsWith("link:")) return "bg-blue-500/10";
-    if (mat.filePath.startsWith("text:")) return "bg-emerald-500/10";
-    return "bg-red-500/10";
-  }
-
   return (
-    <Card className="border-border/50 overflow-hidden">
-      <button onClick={() => setExpanded(!expanded)} className="flex w-full items-center justify-between p-5 text-left transition-colors hover:bg-muted/30">
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand/10 font-bold text-brand text-sm">{session.orderNumber}</div>
+    <Card className="overflow-hidden border-border/70 shadow-sm transition-shadow hover:shadow-md">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex w-full items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-muted/30"
+      >
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+            {session.orderNumber}
+          </div>
           <div className="min-w-0">
-            <h3 className="font-bold text-base truncate">{session.title}</h3>
-            <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
+            <h3 className="truncate text-base font-bold">{session.title}</h3>
+            <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <span>{formatDate(session.createdAt)}</span>
-              <span className="flex items-center gap-1"><FileText className="size-3" />{session._count.materials} materi</span>
+              <span className="flex items-center gap-1">
+                <FileText className="size-3" />
+                {session._count.materials} materi
+              </span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Badge variant={session.isActive ? "default" : "secondary"} className="text-[10px]">{session.isActive ? "Aktif" : "Draft"}</Badge>
-          {expanded ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
+        <div className="flex shrink-0 items-center gap-2">
+          <Badge variant={session.isActive ? "default" : "secondary"} className="text-[10px]">
+            {session.isActive ? "Aktif" : "Draft"}
+          </Badge>
+          {expanded ? (
+            <ChevronUp className="size-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="size-4 text-muted-foreground" />
+          )}
         </div>
       </button>
 
       {expanded && (
         <div className="border-t px-5 pb-5">
           {session.description && (
-            <div className="py-4 border-b">
-              <p className={`text-sm text-muted-foreground leading-relaxed ${!descExpanded ? "line-clamp-1" : ""}`}>
+            <div className="border-b py-4">
+              <p className={`text-sm leading-relaxed text-muted-foreground ${!descExpanded ? "line-clamp-1" : ""}`}>
                 {session.description}
               </p>
               {session.description.length > 100 && (
-                <button 
-                  onClick={() => setDescExpanded(!descExpanded)} 
-                  className="text-xs text-brand hover:underline mt-1 font-medium"
+                <button
+                  onClick={() => setDescExpanded(!descExpanded)}
+                  className="mt-1 text-xs font-medium text-primary hover:underline"
                 >
-                  {descExpanded ? "Sembunyikan" : "Lihat selengkapnya..."}
+                  {descExpanded ? "Sembunyikan" : "Lihat selengkapnya"}
                 </button>
               )}
             </div>
           )}
+
           <div className="pt-4">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Konten</h4>
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setShowDialog(true)}>
-                <Upload className="size-3.5" />Tambah Konten
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Konten
+              </h4>
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => setShowDialog(true)}>
+                <Upload data-icon="inline-start" />
+                Tambah Konten
               </Button>
             </div>
+
             {session.materials.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center rounded-lg border border-dashed">
-                <FileText className="size-8 text-muted-foreground/40 mb-2" />
+              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed bg-muted/10 py-8 text-center">
+                <FileText className="mb-2 size-8 text-muted-foreground/40" />
                 <p className="text-sm text-muted-foreground">Belum ada konten</p>
               </div>
             ) : (
               <div className="grid gap-3">
-                {session.materials.map((mat) => {
-                  const isText = mat.filePath.startsWith("text:");
-                  const isLink = mat.filePath.startsWith("link:") || mat.filePath.startsWith("http");
-                  
-                  if (isText) {
+                {session.materials.map((material) => {
+                  const type = resolveMaterialType(material);
+
+                  if (type === "text") {
                     return (
-                      <div key={mat.id} className="flex flex-col gap-2 rounded-lg border p-4 bg-muted/5 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className={`flex size-9 shrink-0 items-center justify-center rounded-md ${getIconBg(mat)}`}>{getIcon(mat)}</div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-bold text-foreground">{mat.title}</p>
-                            <p className="text-xs text-muted-foreground">Teks</p>
+                      <Card key={material.id} className="border-border/60 bg-muted/5">
+                        <CardContent className="flex flex-col gap-3 p-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`flex size-9 shrink-0 items-center justify-center rounded-md ${getMaterialIconBg(type)}`}>
+                              {getMaterialIcon(type)}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-bold">{material.title}</p>
+                              <p className="text-xs text-muted-foreground">{material.description || "Materi teks"}</p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed mt-1 border-t pt-3">
-                          {mat.filePath.replace("text:", "")}
-                        </div>
-                      </div>
+                          <p className="border-t pt-3 text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                            {resolveTextContent(material)}
+                          </p>
+                        </CardContent>
+                      </Card>
                     );
                   }
 
                   return (
-                    <a key={mat.id} href={isLink ? mat.filePath.replace("link:", "") : mat.filePath} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/30">
-                      <div className={`flex size-9 shrink-0 items-center justify-center rounded-md ${getIconBg(mat)}`}>{getIcon(mat)}</div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{mat.title}</p>
-                        <p className="text-xs text-muted-foreground truncate">{mat.fileName} {mat.fileSize && mat.fileSize !== "0" ? `• ${formatFileSize(mat.fileSize)}` : ""}</p>
+                    <a
+                      key={material.id}
+                      href={resolveMaterialHref(material)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/30"
+                    >
+                      <div className={`flex size-9 shrink-0 items-center justify-center rounded-md ${getMaterialIconBg(type)}`}>
+                        {getMaterialIcon(type)}
                       </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{material.title}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {material.description || material.fileName}
+                          {type === "file" && material.fileSize && material.fileSize !== "0"
+                            ? ` - ${formatFileSize(material.fileSize)}`
+                            : ""}
+                        </p>
+                      </div>
+                      <ExternalLink className="size-4 shrink-0 text-muted-foreground" />
                     </a>
                   );
                 })}
@@ -178,67 +260,94 @@ export function SessionCard({
         </div>
       )}
 
-      {/* Add Content Dialog */}
-      <Dialog open={showDialog} onOpenChange={(o) => { setShowDialog(o); if (!o) resetForm(); }}>
-        <DialogContent className="sm:max-w-[500px] p-0 gap-0 overflow-hidden">
-          <DialogHeader className="px-6 py-4 border-b bg-muted/30">
-            <DialogTitle>Tambah Konten — {session.title}</DialogTitle>
-            <DialogDescription>Pilih jenis konten yang ingin ditambahkan.</DialogDescription>
+      <Dialog open={showDialog} onOpenChange={(open) => { setShowDialog(open); if (!open) resetForm(); }}>
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[520px]">
+          <DialogHeader className="border-b bg-muted/30 px-6 py-4">
+            <DialogTitle>Tambah Konten</DialogTitle>
+            <DialogDescription>{session.title}</DialogDescription>
           </DialogHeader>
-          <div className="px-6 py-4 flex flex-col gap-4 max-h-[60vh] overflow-y-auto">
+          <div className="flex max-h-[62vh] flex-col gap-4 overflow-y-auto px-6 py-5">
             <div className="grid gap-1.5">
               <Label>Jenis Konten</Label>
-              <Select value={contentType} onValueChange={(v) => setContentType(v as ContentType)}>
+              <Select value={contentType} onValueChange={(value) => setContentType(value as ContentType)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="file">📄 File PDF</SelectItem>
-                  <SelectItem value="link">🔗 Link URL</SelectItem>
-                  <SelectItem value="text">📝 Teks</SelectItem>
+                  <SelectItem value="file">File PDF</SelectItem>
+                  <SelectItem value="link">Link URL</SelectItem>
+                  <SelectItem value="text">Teks</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-1.5">
               <Label>Judul <span className="text-destructive">*</span></Label>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul materi" disabled={uploading} />
+              <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Judul materi" disabled={uploading} />
             </div>
 
             {contentType === "file" && (
               <div className="grid gap-1.5">
                 <Label>File PDF <span className="text-destructive">*</span></Label>
-                <div onClick={() => fileRef.current?.click()} className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed py-6 cursor-pointer transition-colors hover:bg-muted/20 hover:border-brand/30">
-                  <Upload className="size-6 text-muted-foreground/50 mb-1.5" />
-                  <p className="text-sm font-medium">{selectedFile ? selectedFile.name : "Klik untuk memilih file"}</p>
-                  <p className="text-xs text-muted-foreground">{selectedFile ? formatFileSize(String(selectedFile.size)) : "Maks 50MB"}</p>
-                </div>
-                <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)} />
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="flex min-h-28 flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-6 text-center transition-colors hover:border-primary/40 hover:bg-muted/30"
+                >
+                  <Upload className="mb-2 size-6 text-muted-foreground/60" />
+                  <span className="max-w-full truncate text-sm font-medium">
+                    {selectedFile ? selectedFile.name : "Klik untuk memilih file"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {selectedFile ? formatFileSize(String(selectedFile.size)) : "PDF"}
+                  </span>
+                </button>
+                <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} />
               </div>
             )}
 
             {contentType === "link" && (
               <div className="grid gap-1.5">
                 <Label>URL <span className="text-destructive">*</span></Label>
-                <Input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://..." disabled={uploading} />
+                <Input value={linkUrl} onChange={(event) => setLinkUrl(event.target.value)} placeholder="https://..." disabled={uploading} />
               </div>
             )}
 
             {contentType === "text" && (
               <div className="grid gap-1.5">
                 <Label>Konten Teks <span className="text-destructive">*</span></Label>
-                <textarea value={textContent} onChange={(e) => setTextContent(e.target.value)} placeholder="Tulis konten teks di sini..." disabled={uploading} rows={4} className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none" />
+                <textarea
+                  value={textContent}
+                  onChange={(event) => setTextContent(event.target.value)}
+                  placeholder="Tulis konten teks di sini..."
+                  disabled={uploading}
+                  rows={4}
+                  className="flex w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
               </div>
             )}
 
             {(contentType === "file" || contentType === "link") && (
               <div className="grid gap-1.5">
-                <Label>Keterangan <span className="text-muted-foreground text-xs font-normal">(opsional)</span></Label>
-                <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Keterangan singkat" disabled={uploading} />
+                <Label>Keterangan <span className="text-xs font-normal text-muted-foreground">(opsional)</span></Label>
+                <Input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Keterangan singkat" disabled={uploading} />
               </div>
             )}
           </div>
-          <DialogFooter className="px-6 py-3 border-t">
-            <Button variant="outline" onClick={() => setShowDialog(false)} disabled={uploading}>Batal</Button>
-            <Button onClick={handleSubmit} disabled={uploading || !title.trim() || (contentType === "file" && !selectedFile) || (contentType === "link" && !linkUrl.trim()) || (contentType === "text" && !textContent.trim())} className="bg-brand text-black hover:bg-brand/90">
-              {uploading && <Loader2 className="animate-spin mr-1.5 size-4" />}Tambah
+          <DialogFooter className="mx-0 mb-0 flex-row justify-end gap-2 rounded-none border-t bg-background px-6 py-4">
+            <Button className="min-w-24" variant="outline" onClick={() => setShowDialog(false)} disabled={uploading}>
+              Batal
+            </Button>
+            <Button
+              className="min-w-28 bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={handleSubmit}
+              disabled={
+                uploading ||
+                !title.trim() ||
+                (contentType === "file" && !selectedFile) ||
+                (contentType === "link" && !linkUrl.trim()) ||
+                (contentType === "text" && !textContent.trim())
+              }
+            >
+              {uploading && <Loader2 className="animate-spin" data-icon="inline-start" />}
+              Tambah
             </Button>
           </DialogFooter>
         </DialogContent>

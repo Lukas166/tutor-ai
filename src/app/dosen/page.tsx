@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -190,8 +190,7 @@ export default function DosenDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<DosenCourse[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const fetchCourses = useCallback(() => {
@@ -218,31 +217,31 @@ export default function DosenDashboardPage() {
   }, [activityDays]);
 
   useEffect(() => {
-    fetchCourses();
-    fetchStats();
-    fetchActivities();
+    const timeoutId = window.setTimeout(() => {
+      fetchCourses();
+      fetchStats();
+      fetchActivities();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [fetchCourses, fetchStats, fetchActivities]);
 
-  // Live search
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      setShowDropdown(false);
-      return;
-    }
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
-    setSearchResults(
-      courses.filter(
-        (c) => c.title.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)
-      )
+    return courses.filter(
+      (course) =>
+        course.title.toLowerCase().includes(q) ||
+        course.description?.toLowerCase().includes(q)
     );
-    setShowDropdown(true);
   }, [searchQuery, courses]);
+
+  const showDropdown = dropdownOpen && searchQuery.trim().length > 0;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
+        setDropdownOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -283,19 +282,22 @@ export default function DosenDashboardPage() {
           id="dosen-search-course"
           placeholder="Cari course Anda..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onFocus={() => searchQuery.trim() && setShowDropdown(true)}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setDropdownOpen(true);
+          }}
+          onFocus={() => searchQuery.trim() && setDropdownOpen(true)}
           className="pl-10 h-11"
         />
         {searchQuery && (
           <button
-            onClick={() => { setSearchQuery(""); setShowDropdown(false); }}
+            onClick={() => { setSearchQuery(""); setDropdownOpen(false); }}
             className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="size-4" />
           </button>
         )}
-        <SearchDropdown results={searchResults} visible={showDropdown} onSelect={(id) => { setShowDropdown(false); setSearchQuery(""); router.push(`/dosen/courses/${id}`); }} />
+        <SearchDropdown results={searchResults} visible={showDropdown} onSelect={(id) => { setDropdownOpen(false); setSearchQuery(""); router.push(`/dosen/courses/${id}`); }} />
       </div>
 
       {/* Course Cards */}
@@ -347,7 +349,7 @@ export default function DosenDashboardPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold tracking-tight">Aktivitas Terbaru</h2>
           <Select value={activityDays} onValueChange={setActivityDays}>
-            <SelectTrigger className="w-[140px] h-9 text-xs">
+            <SelectTrigger className="h-9 w-[150px] border-primary bg-primary text-xs text-primary-foreground shadow-sm [&_svg]:text-primary-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

@@ -7,7 +7,10 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2, X, Users } from "lucide-react";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { Loader2, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import type { EnrolledStudent } from "./types";
 
@@ -29,13 +32,16 @@ export function StudentListDialog({
     if (!open) return;
     setLoading(true);
     fetch(`/api/dosen/courses/${courseId}/students`)
-      .then((r) => r.json())
+      .then((response) => response.json())
       .then((data) => { if (Array.isArray(data)) setStudents(data); })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [courseId, open]);
 
-  useEffect(() => { fetchStudents(); }, [fetchStudents]);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(fetchStudents, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchStudents]);
 
   async function handleRemove() {
     if (!removeTarget) return;
@@ -43,14 +49,19 @@ export function StudentListDialog({
       toast.error("Enrollment key tidak sesuai");
       return;
     }
+
     setRemoving(true);
     try {
-      const res = await fetch(`/api/dosen/courses/${courseId}/students`, {
+      const response = await fetch(`/api/dosen/courses/${courseId}/students`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ studentId: removeTarget.user.id, enrollmentKey: confirmKey }),
       });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? "Gagal"); }
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error ?? "Gagal mengeluarkan mahasiswa");
+      }
+
       toast.success(`${removeTarget.user.name} berhasil dikeluarkan`);
       setRemoveTarget(null);
       setConfirmKey("");
@@ -65,71 +76,81 @@ export function StudentListDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[600px] p-0 gap-0 overflow-hidden">
-          <DialogHeader className="px-6 py-4 border-b bg-muted/30">
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[660px]">
+          <DialogHeader className="border-b bg-muted/30 px-6 py-4">
             <DialogTitle className="flex items-center gap-2">
-              <Users className="size-5" /> Daftar Mahasiswa
+              <Users className="size-5" />
+              Daftar Mahasiswa
             </DialogTitle>
             <DialogDescription>{students.length} mahasiswa terdaftar</DialogDescription>
           </DialogHeader>
-          <div className="max-h-[50vh] overflow-y-auto">
+          <div className="max-h-[55vh] overflow-auto">
             {loading ? (
-              <div className="flex items-center justify-center py-12"><Loader2 className="size-6 animate-spin text-muted-foreground" /></div>
+              <div className="flex items-center justify-center py-14">
+                <Loader2 className="size-6 animate-spin text-muted-foreground" />
+              </div>
             ) : students.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Users className="size-10 text-muted-foreground/40 mb-2" />
+              <div className="flex flex-col items-center justify-center py-14 text-center">
+                <Users className="mb-2 size-10 text-muted-foreground/40" />
                 <p className="text-sm text-muted-foreground">Belum ada mahasiswa terdaftar</p>
               </div>
             ) : (
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 sticky top-0">
-                  <tr className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    <th className="px-6 py-3 w-10">No</th>
-                    <th className="px-2 py-3">NPM</th>
-                    <th className="px-2 py-3">Nama</th>
-                    <th className="px-2 py-3">Jurusan</th>
-                    <th className="px-4 py-3 w-10"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {students.map((s, i) => (
-                    <tr key={s.id} className="hover:bg-muted/20 transition-colors">
-                      <td className="px-6 py-3 text-muted-foreground">{i + 1}</td>
-                      <td className="px-2 py-3 font-mono text-xs">{s.user.npm ?? "—"}</td>
-                      <td className="px-2 py-3 font-medium">{s.user.name}</td>
-                      <td className="px-2 py-3 text-muted-foreground">{s.user.major ?? "—"}</td>
-                      <td className="px-4 py-3">
-                        <button onClick={() => setRemoveTarget(s)} className="text-red-500 hover:text-red-700 transition-colors" title="Keluarkan mahasiswa">
-                          <X className="size-4" />
-                        </button>
-                      </td>
-                    </tr>
+              <Table>
+                <TableHeader className="sticky top-0 bg-muted/70 backdrop-blur">
+                  <TableRow>
+                    <TableHead className="w-12 pl-6">No</TableHead>
+                    <TableHead>NPM</TableHead>
+                    <TableHead>Nama</TableHead>
+                    <TableHead>Jurusan</TableHead>
+                    <TableHead className="w-12 pr-6" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {students.map((student, index) => (
+                    <TableRow key={student.id}>
+                      <TableCell className="pl-6 text-muted-foreground">{index + 1}</TableCell>
+                      <TableCell className="font-mono text-xs">{student.user.npm ?? "-"}</TableCell>
+                      <TableCell className="max-w-44 truncate font-medium">{student.user.name}</TableCell>
+                      <TableCell className="max-w-40 truncate text-muted-foreground">{student.user.major ?? "-"}</TableCell>
+                      <TableCell className="pr-6">
+                        <Button
+                          variant="destructive"
+                          size="icon-sm"
+                          onClick={() => setRemoveTarget(student)}
+                          aria-label="Keluarkan mahasiswa"
+                        >
+                          <Trash2 />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             )}
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Remove Confirmation Dialog */}
-      <Dialog open={!!removeTarget} onOpenChange={(o) => { if (!o) { setRemoveTarget(null); setConfirmKey(""); } }}>
-        <DialogContent className="sm:max-w-[420px]">
+      <Dialog open={!!removeTarget} onOpenChange={(openConfirm) => { if (!openConfirm) { setRemoveTarget(null); setConfirmKey(""); } }}>
+        <DialogContent className="sm:max-w-[430px]">
           <DialogHeader>
-            <DialogTitle className="text-red-600">Keluarkan Mahasiswa</DialogTitle>
+            <DialogTitle className="text-destructive">Keluarkan Mahasiswa</DialogTitle>
             <DialogDescription>
-              Anda akan mengeluarkan <strong>{removeTarget?.user.name}</strong> dari course ini. 
-              Ketik enrollment key <strong className="font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">{enrollmentKey}</strong> untuk konfirmasi.
+              Anda akan mengeluarkan <strong>{removeTarget?.user.name}</strong> dari course ini.
+              Ketik enrollment key <strong className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">{enrollmentKey}</strong> untuk konfirmasi.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-2 py-2">
             <Label>Enrollment Key</Label>
-            <Input value={confirmKey} onChange={(e) => setConfirmKey(e.target.value)} placeholder="Masukkan enrollment key" className="font-mono" />
+            <Input value={confirmKey} onChange={(event) => setConfirmKey(event.target.value)} placeholder="Masukkan enrollment key" className="font-mono" />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setRemoveTarget(null); setConfirmKey(""); }} disabled={removing}>Batal</Button>
+            <Button variant="outline" onClick={() => { setRemoveTarget(null); setConfirmKey(""); }} disabled={removing}>
+              Batal
+            </Button>
             <Button variant="destructive" onClick={handleRemove} disabled={removing || !confirmKey.trim()}>
-              {removing && <Loader2 className="animate-spin mr-1.5 size-4" />}Keluarkan
+              {removing && <Loader2 className="animate-spin" data-icon="inline-start" />}
+              Keluarkan
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -108,7 +108,8 @@ export default function DosenCoursesPage() {
   }, [search]);
 
   useEffect(() => {
-    fetchCourses();
+    const timeoutId = window.setTimeout(fetchCourses, 0);
+    return () => window.clearTimeout(timeoutId);
   }, [fetchCourses]);
 
   const selectedGrid = GRID_OPTIONS.find((g) => g.value === gridColumns) ?? GRID_OPTIONS[1];
@@ -125,7 +126,7 @@ export default function DosenCoursesPage() {
         </div>
         <Button
           onClick={() => router.push("/dosen/courses/create")}
-          className="gap-2 bg-brand text-black hover:bg-brand/90"
+          className="bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
         >
           <Plus data-icon="inline-start" />
           Tambah Course
@@ -162,8 +163,8 @@ export default function DosenCoursesPage() {
         {/* Layout toggle dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2 shrink-0">
-              <LayoutGrid className="size-4" />
+            <Button size="sm" className="shrink-0 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90">
+              <LayoutGrid data-icon="inline-start" />
               {selectedGrid.label}
             </Button>
           </DropdownMenuTrigger>
@@ -172,7 +173,7 @@ export default function DosenCoursesPage() {
               <DropdownMenuItem
                 key={option.value}
                 onClick={() => setGridColumns(option.value)}
-                className={gridColumns === option.value ? "bg-brand/10 text-brand font-semibold" : ""}
+                className={gridColumns === option.value ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground" : ""}
               >
                 {option.label}
               </DropdownMenuItem>
