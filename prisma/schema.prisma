@@ -110,6 +110,7 @@ model Course {
   instructors    CourseInstructor[]
   enrollments    Enrollment[]
   sessions       CourseSession[]
+  materialChunks MaterialChunk[]
   aiChatSessions AiChatSession[]
 
   @@index([enrollmentKey])
@@ -166,6 +167,7 @@ model CourseSession {
   course         Course               @relation(fields: [courseId], references: [id], onDelete: Cascade)
   creator        User                 @relation("CourseSessionCreator", fields: [createdBy], references: [id])
   materials      Material[]
+  materialChunks MaterialChunk[]
   progress       EnrollmentProgress[]
   aiChatSessions AiChatSession[]
 
@@ -207,14 +209,28 @@ model Material {
   fileSize        BigInt? // ukuran dalam bytes
   isActive        Boolean  @default(true)
   isProcessed     Boolean  @default(false) // true = embedding selesai, siap dipakai RAG
+  processingStatus String   @default("uploaded") // uploaded | queued | processing | extracting | ocr | chunking | embedding | indexing | ready | failed
+  processingProgress Int    @default(0)
+  processingError String?
+  processingJobId String?
+  processingStartedAt DateTime?
+  processingCompletedAt DateTime?
+  pageCount       Int      @default(0)
+  chunkCount      Int      @default(0)
+  embeddingModel  String?
+  embeddingDimensions Int?
   createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt @default(now())
 
   courseSession CourseSession @relation(fields: [courseSessionId], references: [id], onDelete: Cascade)
   uploader      User          @relation(fields: [uploadedBy], references: [id])
-  chunks        VectorChunk[]
+  pages         MaterialPage[]
+  chunks        MaterialChunk[]
+  processingLogs MaterialProcessingLog[]
 
   @@index([courseSessionId])
   @@index([isProcessed])
+  @@index([processingStatus])
   @@map("material")
 }
 
@@ -222,20 +238,66 @@ model Material {
 // RAG — VECTOR KNOWLEDGE BASE
 // ==========================================
 
-// Hasil chunking & embedding per PDF
-model VectorChunk {
+model MaterialPage {
+  id                String   @id
+  materialId        String
+  pageNumber        Int
+  embeddedText      String?
+  ocrText           String?
+  finalText         String
+  textCharCount     Int      @default(0)
+  imageOcrAttempted Boolean  @default(false)
+  metadata          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt @default(now())
+
+  material Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@unique([materialId, pageNumber])
+  @@index([materialId])
+  @@map("material_page")
+}
+
+model MaterialChunk {
   id         String   @id
   materialId String
-  chunkIndex Int // urutan chunk dalam 1 PDF, mulai dari 0
-  content    String // teks mentah potongan PDF
-  tokenCount Int? // jumlah token chunk
+  courseId   String
+  sessionId  String
+  pageNumber Int
+  chunkIndex Int
+  content    String
+  tokenCount Int
+  embedding  Unsupported("vector(768)")?
+  chunkType  String   @default("page_text")
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  material      Material      @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  course        Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseSession CourseSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([materialId, chunkIndex])
+  @@index([materialId])
+  @@index([courseId])
+  @@index([sessionId])
+  @@index([courseId, sessionId])
+  @@index([materialId, pageNumber])
+  @@map("material_chunk")
+}
+
+model MaterialProcessingLog {
+  id         String   @id
+  materialId String
+  status     String
+  message    String
+  error      String?
+  metadata   Json?
   createdAt  DateTime @default(now())
 
   material Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
 
-  @@unique([materialId, chunkIndex])
-  @@index([materialId])
-  @@map("vector_chunk")
+  @@index([materialId, createdAt])
+  @@map("material_processing_log")
 }
 
 // ==========================================
