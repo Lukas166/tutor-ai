@@ -8,9 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
   BookOpen,
   GraduationCap,
   CalendarDays,
@@ -190,7 +187,6 @@ export default function DosenDashboardPage() {
   const [courses, setCourses] = useState<DosenCourse[]>([]);
   const [stats, setStats] = useState<DosenStats | null>(null);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [activityDays, setActivityDays] = useState("7");
   const [loading, setLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -214,11 +210,11 @@ export default function DosenDashboardPage() {
   }, []);
 
   const fetchActivities = useCallback(() => {
-    fetch(`/api/dosen/activities?days=${activityDays}`)
+    fetch("/api/dosen/activities")
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data)) setActivities(data); })
       .catch(console.error);
-  }, [activityDays]);
+  }, []);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -353,18 +349,9 @@ export default function DosenDashboardPage() {
 
       {/* Recent Activity */}
       <div className="flex flex-col gap-5">
-        <div className="flex items-center justify-between">
+        <div>
           <h2 className="text-xl font-bold tracking-tight">Aktivitas Terbaru</h2>
-          <Select value={activityDays} onValueChange={setActivityDays}>
-            <SelectTrigger className="h-9 w-[150px] border-brand bg-brand text-xs text-black shadow-sm [&_svg]:text-black">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">7 hari terakhir</SelectItem>
-              <SelectItem value="14">14 hari terakhir</SelectItem>
-              <SelectItem value="30">30 hari terakhir</SelectItem>
-            </SelectContent>
-          </Select>
+          <p className="text-sm text-muted-foreground">5 aktivitas terakhir dari course Anda</p>
         </div>
         {activities.length === 0 ? (
           <Card className="border-border/50">
