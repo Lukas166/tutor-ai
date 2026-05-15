@@ -114,8 +114,9 @@ export function StudentListDialog({
                       <TableCell className="max-w-40 truncate text-muted-foreground">{student.user.major ?? "-"}</TableCell>
                       <TableCell className="pr-6">
                         <Button
-                          variant="destructive"
-                          size="icon-sm"
+                          variant="ghost"
+                          size="icon"
+                          className="bg-transparent text-destructive shadow-none hover:bg-transparent hover:text-destructive hover:[&_svg]:stroke-[2.5]"
                           onClick={() => setRemoveTarget(student)}
                           aria-label="Keluarkan mahasiswa"
                         >

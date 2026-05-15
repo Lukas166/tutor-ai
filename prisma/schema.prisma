@@ -100,6 +100,7 @@ model Course {
   createdBy     String
   title         String
   description   String?
+  coverImage    String?
   enrollmentKey String   @unique // auto-generated 8 karakter, dipakai mahasiswa untuk join
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())

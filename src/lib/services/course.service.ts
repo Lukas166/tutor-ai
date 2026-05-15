@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import type { CreateCourseInput, UpdateCourseInput } from "@/lib/schemas/course.schema";
+import { generateCourseCover, isCurrentCourseCover } from "@/lib/course-cover";
 
 function generateEnrollmentKey(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -10,8 +11,31 @@ function generateEnrollmentKey(): string {
   return key;
 }
 
+type CourseWithCover = {
+  id: string;
+  title: string;
+  enrollmentKey: string;
+  coverImage: string | null;
+};
+
+async function ensureCourseCover<T extends CourseWithCover>(course: T): Promise<T> {
+  if (isCurrentCourseCover(course.coverImage)) return course;
+
+  const coverImage = generateCourseCover(course);
+  await prisma.course.update({
+    where: { id: course.id },
+    data: { coverImage },
+  });
+
+  return { ...course, coverImage };
+}
+
+async function ensureCourseCovers<T extends CourseWithCover>(courses: T[]) {
+  return Promise.all(courses.map(ensureCourseCover));
+}
+
 export async function listCourses(search?: string) {
-  return prisma.course.findMany({
+  const courses = await prisma.course.findMany({
     where: search ? {
       OR: [
         { title: { contains: search, mode: 'insensitive' } },
@@ -30,10 +54,12 @@ export async function listCourses(search?: string) {
     },
     orderBy: { createdAt: "desc" },
   });
+
+  return ensureCourseCovers(courses);
 }
 
 export async function getCourseById(id: string) {
-  return prisma.course.findUnique({
+  const course = await prisma.course.findUnique({
     where: { id },
     include: {
       creator: { select: { id: true, name: true } },
@@ -47,6 +73,9 @@ export async function getCourseById(id: string) {
       },
     },
   });
+
+  if (!course) return null;
+  return ensureCourseCover(course);
 }
 
 export async function createCourse(data: CreateCourseInput, adminId: string) {
@@ -60,13 +89,20 @@ export async function createCourse(data: CreateCourseInput, adminId: string) {
     attempts++;
   }
 
+  const courseId = crypto.randomUUID();
+
   return prisma.course.create({
     data: {
-      id: crypto.randomUUID(),
+      id: courseId,
       createdBy: adminId,
       title: data.title,
       description: data.description ?? null,
       enrollmentKey,
+      coverImage: generateCourseCover({
+        id: courseId,
+        title: data.title,
+        enrollmentKey,
+      }),
     },
     include: {
       creator: { select: { id: true, name: true } },

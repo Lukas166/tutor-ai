@@ -2,6 +2,7 @@ export interface CourseDetail {
   id: string;
   title: string;
   description: string | null;
+  coverImage: string | null;
   enrollmentKey: string;
   isActive: boolean;
   createdAt: string;

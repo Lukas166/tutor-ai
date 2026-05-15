@@ -26,6 +26,8 @@ interface DosenCourse {
   id: string;
   title: string;
   description: string | null;
+  coverImage: string | null;
+  enrollmentKey: string;
   isActive: boolean;
   createdAt: string;
   creator: { id: string; name: string };
@@ -36,7 +38,6 @@ const GRID_OPTIONS = [
   { label: "2 Kolom", value: 2, class: "sm:grid-cols-2" },
   { label: "4 Kolom", value: 4, class: "sm:grid-cols-2 lg:grid-cols-4" },
   { label: "6 Kolom", value: 6, class: "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6" },
-  { label: "8 Kolom", value: 8, class: "sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8" },
 ] as const;
 
 function CourseCard({ course }: { course: DosenCourse }) {
@@ -44,41 +45,43 @@ function CourseCard({ course }: { course: DosenCourse }) {
 
   return (
     <Card
-      className="group overflow-hidden border-border/50 transition-all duration-200 hover:shadow-md hover:border-brand/30 cursor-pointer"
+      className="group cursor-pointer gap-0 overflow-hidden border-border/50 py-0 transition-all duration-200 hover:border-brand/30 hover:shadow-md"
       onClick={() => router.push(`/dosen/courses/${course.id}`)}
     >
-      <div className="h-2 bg-gradient-to-r from-brand to-brand/60" />
-      <CardContent className="p-5">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-bold text-base leading-snug line-clamp-2 group-hover:text-brand transition-colors">
-              {course.title}
-            </h3>
-            <span
-              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                course.isActive
-                  ? "bg-brand text-black"
-                  : "bg-muted text-muted-foreground"
-              }`}
-            >
-              {course.isActive ? "Aktif" : "Nonaktif"}
-            </span>
-          </div>
+      <div className="relative aspect-[1.55/1] bg-muted">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url("${course.coverImage ?? ""}")` }}
+        />
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card via-card/65 to-transparent" />
+        <span
+          className={`absolute right-3 top-3 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm ${
+            course.isActive
+              ? "bg-brand text-black"
+              : "bg-background/85 text-muted-foreground"
+          }`}
+        >
+          {course.isActive ? "Aktif" : "Nonaktif"}
+        </span>
+      </div>
+      <CardContent className="flex min-h-40 flex-col gap-3 p-5 pt-3">
+        <h3 className="line-clamp-2 text-base font-bold leading-snug transition-colors group-hover:text-brand">
+          {course.title}
+        </h3>
 
-          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-            {course.description || "Belum ada deskripsi"}
-          </p>
+        <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+          {course.description || "Belum ada deskripsi"}
+        </p>
 
-          <div className="flex items-center gap-4 pt-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <GraduationCap className="size-3.5" />
-              {course._count.enrollments} Mahasiswa
-            </span>
-            <span className="flex items-center gap-1">
-              <CalendarDays className="size-3.5" />
-              {course._count.sessions} Sesi
-            </span>
-          </div>
+        <div className="mt-auto flex items-center gap-4 pt-1 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <GraduationCap className="size-3.5" />
+            {course._count.enrollments} Mahasiswa
+          </span>
+          <span className="flex items-center gap-1">
+            <CalendarDays className="size-3.5" />
+            {course._count.sessions} Sesi
+          </span>
         </div>
       </CardContent>
     </Card>
@@ -160,10 +163,9 @@ export default function DosenCoursesPage() {
           )}
         </div>
 
-        {/* Layout toggle dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="sm" className="shrink-0 bg-brand text-black shadow-sm hover:bg-brand/90">
+            <Button className="hidden h-10 shrink-0 bg-brand text-black shadow-sm hover:bg-brand/90 sm:inline-flex">
               <LayoutGrid data-icon="inline-start" />
               {selectedGrid.label}
             </Button>
@@ -186,13 +188,16 @@ export default function DosenCoursesPage() {
       {loading ? (
         <div className={`grid gap-5 ${selectedGrid.class}`}>
           {Array.from({ length: gridColumns }).map((_, i) => (
-            <Card key={i} className="overflow-hidden border-border/50">
-              <div className="h-2 bg-muted" />
-              <CardContent className="p-5 space-y-3">
+            <Card key={i} className="gap-0 overflow-hidden border-border/50 py-0">
+              <div className="relative aspect-[1.55/1]">
+                <Skeleton className="size-full rounded-none" />
+                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card via-card/65 to-transparent" />
+              </div>
+              <CardContent className="flex min-h-40 flex-col gap-3 p-5 pt-3">
                 <Skeleton className="h-5 w-3/4" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-1/2" />
-                <div className="flex gap-4 pt-1">
+                <div className="mt-auto flex gap-4 pt-1">
                   <Skeleton className="h-3 w-20" />
                   <Skeleton className="h-3 w-16" />
                 </div>

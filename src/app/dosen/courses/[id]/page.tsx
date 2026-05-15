@@ -282,37 +282,43 @@ export default function DosenCourseDetailPage() {
       </Button>
 
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight">{course.title}</h1>
-              <Badge className={course.isActive ? "bg-brand text-black hover:bg-brand/80 border-transparent" : "bg-muted text-muted-foreground border-transparent"}>{course.isActive ? "Aktif" : "Nonaktif"}</Badge>
+        <div className="relative min-h-[360px] overflow-hidden rounded-xl border bg-card shadow-sm">
+          <div
+            className="absolute inset-0 bg-muted bg-cover bg-center"
+            style={{ backgroundImage: `url("${course.coverImage ?? ""}")` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/10" />
+          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-5 p-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-3xl font-bold tracking-tight drop-shadow-[0_1px_1px_rgba(255,255,255,0.85)]">{course.title}</h1>
+                <Badge className={course.isActive ? "bg-brand text-black hover:bg-brand/80 border-transparent" : "bg-muted text-muted-foreground border-transparent"}>{course.isActive ? "Aktif" : "Nonaktif"}</Badge>
+              </div>
+              {course.description && (
+                <p className="mt-2 max-w-3xl text-foreground/70 leading-relaxed drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">{course.description}</p>
+              )}
             </div>
-            {course.description && (
-              <p className="mt-2 max-w-3xl text-muted-foreground leading-relaxed">{course.description}</p>
-            )}
-          </div>
-          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-            <StatusToggleButton
-              active={course.isActive}
-              onClick={() => setCourseAction({ type: "toggle", nextActive: !course.isActive })}
-            />
-            <Button
-              size="sm"
-              className="bg-brand text-black shadow-sm hover:bg-brand/90"
-              onClick={() => setShowStudents(true)}
-            >
-              <Users data-icon="inline-start" />
-              Daftar Mahasiswa
-            </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => setCourseAction({ type: "delete" })}
-            >
-              <Trash2 data-icon="inline-start" />
-              Hapus
-            </Button>
+            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+              <StatusToggleButton
+                active={course.isActive}
+                onClick={() => setCourseAction({ type: "toggle", nextActive: !course.isActive })}
+              />
+              <Button
+                className="bg-brand text-black shadow-sm hover:bg-brand/90"
+                onClick={() => setShowStudents(true)}
+              >
+                <Users data-icon="inline-start" />
+                Daftar Mahasiswa
+              </Button>
+              <Button
+                variant="ghost"
+                className="bg-transparent text-destructive shadow-none hover:bg-transparent hover:text-destructive hover:font-semibold"
+                onClick={() => setCourseAction({ type: "delete" })}
+              >
+                <Trash2 data-icon="inline-start" />
+                Hapus
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -439,7 +445,6 @@ export default function DosenCourseDetailPage() {
                 <Label className="text-base font-semibold">Materi Sesi</Label>
                 <Button
                   type="button"
-                  size="sm"
                   onClick={() => setNewMaterials((materials) => [...materials, emptyMaterial()])}
                   disabled={submitting}
                   className="bg-brand text-black hover:bg-brand/90"
@@ -467,8 +472,9 @@ export default function DosenCourseDetailPage() {
                           </div>
                           <Button
                             type="button"
-                            variant="destructive"
-                            size="icon-sm"
+                            variant="ghost"
+                            size="icon"
+                            className="bg-transparent text-destructive shadow-none hover:bg-transparent hover:text-destructive hover:[&_svg]:stroke-[2.5]"
                             onClick={() => setNewMaterials((materials) => materials.filter((item) => item.id !== material.id))}
                             disabled={submitting}
                             aria-label="Hapus materi"

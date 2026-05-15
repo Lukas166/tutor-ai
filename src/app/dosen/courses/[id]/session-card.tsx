@@ -254,8 +254,9 @@ export function SessionCard({
             onClick={() => setContentAction({ target: "session", type: "toggle", nextActive: !session.isActive })}
           />
           <Button
-            size="icon-sm"
-            variant="destructive"
+            size="icon"
+            variant="ghost"
+            className="bg-transparent text-destructive shadow-none hover:bg-transparent hover:text-destructive hover:[&_svg]:stroke-[2.5]"
             onClick={() => setContentAction({ target: "session", type: "delete" })}
             aria-label="Hapus sesi"
           >
@@ -287,7 +288,7 @@ export function SessionCard({
               <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                 Konten
               </h4>
-              <Button size="sm" className="bg-brand text-black hover:bg-brand/90" onClick={() => setShowDialog(true)}>
+              <Button className="bg-brand text-black hover:bg-brand/90" onClick={() => setShowDialog(true)}>
                 <Upload data-icon="inline-start" />
                 Tambah Konten
               </Button>
@@ -323,8 +324,9 @@ export function SessionCard({
                                 onClick={() => setContentAction({ target: "material", type: "toggle", material, nextActive: !material.isActive })}
                               />
                               <Button
-                                size="icon-sm"
-                                variant="destructive"
+                                size="icon"
+                                variant="ghost"
+                                className="bg-transparent text-destructive shadow-none hover:bg-transparent hover:text-destructive hover:[&_svg]:stroke-[2.5]"
                                 onClick={() => setContentAction({ target: "material", type: "delete", material })}
                                 aria-label="Hapus materi"
                               >
@@ -371,8 +373,9 @@ export function SessionCard({
                           onClick={() => setContentAction({ target: "material", type: "toggle", material, nextActive: !material.isActive })}
                         />
                         <Button
-                          size="icon-sm"
-                          variant="destructive"
+                          size="icon"
+                          variant="ghost"
+                          className="bg-transparent text-destructive shadow-none hover:bg-transparent hover:text-destructive hover:[&_svg]:stroke-[2.5]"
                           onClick={() => setContentAction({ target: "material", type: "delete", material })}
                           aria-label="Hapus materi"
                         >

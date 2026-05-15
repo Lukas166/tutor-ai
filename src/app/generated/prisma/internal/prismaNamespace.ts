@@ -1486,6 +1486,7 @@ export const CourseScalarFieldEnum = {
   createdBy: 'createdBy',
   title: 'title',
   description: 'description',
+  coverImage: 'coverImage',
   enrollmentKey: 'enrollmentKey',
   isActive: 'isActive',
   createdAt: 'createdAt',

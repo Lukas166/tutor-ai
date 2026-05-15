@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import type { CreateCourseInput } from "@/lib/schemas/course.schema";
+import { generateCourseCover, isCurrentCourseCover } from "@/lib/course-cover";
 
 export class DosenServiceError extends Error {
   constructor(message: string, readonly status = 400) {
@@ -26,6 +27,29 @@ function serializeBigInt<T>(obj: T): T {
       typeof value === "bigint" ? value.toString() : value
     )
   ) as T;
+}
+
+type CourseWithCover = {
+  id: string;
+  title: string;
+  enrollmentKey: string;
+  coverImage: string | null;
+};
+
+async function ensureCourseCover<T extends CourseWithCover>(course: T): Promise<T> {
+  if (isCurrentCourseCover(course.coverImage)) return course;
+
+  const coverImage = generateCourseCover(course);
+  await prisma.course.update({
+    where: { id: course.id },
+    data: { coverImage },
+  });
+
+  return { ...course, coverImage };
+}
+
+async function ensureCourseCovers<T extends CourseWithCover>(courses: T[]) {
+  return Promise.all(courses.map(ensureCourseCover));
 }
 
 function assertEnrollmentKey(expectedKey: string, submittedKey: string) {
@@ -70,7 +94,7 @@ export async function listDosenCourses(dosenId: string, search?: string) {
     ];
   }
 
-  return prisma.course.findMany({
+  const courses = await prisma.course.findMany({
     where: whereClause,
     include: {
       creator: { select: { id: true, name: true } },
@@ -78,6 +102,8 @@ export async function listDosenCourses(dosenId: string, search?: string) {
     },
     orderBy: { createdAt: "desc" },
   });
+
+  return ensureCourseCovers(courses);
 }
 
 export async function createDosenCourse(data: CreateCourseInput, dosenId: string) {
@@ -100,6 +126,11 @@ export async function createDosenCourse(data: CreateCourseInput, dosenId: string
       description: data.description ?? null,
       isActive: data.isActive ?? true,
       enrollmentKey,
+      coverImage: generateCourseCover({
+        id: courseId,
+        title: data.title,
+        enrollmentKey,
+      }),
     },
     include: {
       creator: { select: { id: true, name: true } },
@@ -130,7 +161,7 @@ export async function getDosenCourseById(courseId: string, dosenId: string) {
   const isInstructor = course.instructors.some((i) => i.user.id === dosenId);
   if (!isInstructor) return null;
 
-  return course;
+  return ensureCourseCover(course);
 }
 
 export async function updateDosenCourseStatus(

@@ -29,6 +29,7 @@ export type CourseMinAggregateOutputType = {
   createdBy: string | null
   title: string | null
   description: string | null
+  coverImage: string | null
   enrollmentKey: string | null
   isActive: boolean | null
   createdAt: Date | null
@@ -40,6 +41,7 @@ export type CourseMaxAggregateOutputType = {
   createdBy: string | null
   title: string | null
   description: string | null
+  coverImage: string | null
   enrollmentKey: string | null
   isActive: boolean | null
   createdAt: Date | null
@@ -51,6 +53,7 @@ export type CourseCountAggregateOutputType = {
   createdBy: number
   title: number
   description: number
+  coverImage: number
   enrollmentKey: number
   isActive: number
   createdAt: number
@@ -64,6 +67,7 @@ export type CourseMinAggregateInputType = {
   createdBy?: true
   title?: true
   description?: true
+  coverImage?: true
   enrollmentKey?: true
   isActive?: true
   createdAt?: true
@@ -75,6 +79,7 @@ export type CourseMaxAggregateInputType = {
   createdBy?: true
   title?: true
   description?: true
+  coverImage?: true
   enrollmentKey?: true
   isActive?: true
   createdAt?: true
@@ -86,6 +91,7 @@ export type CourseCountAggregateInputType = {
   createdBy?: true
   title?: true
   description?: true
+  coverImage?: true
   enrollmentKey?: true
   isActive?: true
   createdAt?: true
@@ -170,6 +176,7 @@ export type CourseGroupByOutputType = {
   createdBy: string
   title: string
   description: string | null
+  coverImage: string | null
   enrollmentKey: string
   isActive: boolean
   createdAt: Date
@@ -202,6 +209,7 @@ export type CourseWhereInput = {
   createdBy?: Prisma.StringFilter<"Course"> | string
   title?: Prisma.StringFilter<"Course"> | string
   description?: Prisma.StringNullableFilter<"Course"> | string | null
+  coverImage?: Prisma.StringNullableFilter<"Course"> | string | null
   enrollmentKey?: Prisma.StringFilter<"Course"> | string
   isActive?: Prisma.BoolFilter<"Course"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Course"> | Date | string
@@ -218,6 +226,7 @@ export type CourseOrderByWithRelationInput = {
   createdBy?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  coverImage?: Prisma.SortOrderInput | Prisma.SortOrder
   enrollmentKey?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -238,6 +247,7 @@ export type CourseWhereUniqueInput = Prisma.AtLeast<{
   createdBy?: Prisma.StringFilter<"Course"> | string
   title?: Prisma.StringFilter<"Course"> | string
   description?: Prisma.StringNullableFilter<"Course"> | string | null
+  coverImage?: Prisma.StringNullableFilter<"Course"> | string | null
   isActive?: Prisma.BoolFilter<"Course"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Course"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Course"> | Date | string
@@ -253,6 +263,7 @@ export type CourseOrderByWithAggregationInput = {
   createdBy?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  coverImage?: Prisma.SortOrderInput | Prisma.SortOrder
   enrollmentKey?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -270,6 +281,7 @@ export type CourseScalarWhereWithAggregatesInput = {
   createdBy?: Prisma.StringWithAggregatesFilter<"Course"> | string
   title?: Prisma.StringWithAggregatesFilter<"Course"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Course"> | string | null
+  coverImage?: Prisma.StringNullableWithAggregatesFilter<"Course"> | string | null
   enrollmentKey?: Prisma.StringWithAggregatesFilter<"Course"> | string
   isActive?: Prisma.BoolWithAggregatesFilter<"Course"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Course"> | Date | string
@@ -280,6 +292,7 @@ export type CourseCreateInput = {
   id: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -296,6 +309,7 @@ export type CourseUncheckedCreateInput = {
   createdBy: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -310,6 +324,7 @@ export type CourseUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -326,6 +341,7 @@ export type CourseUncheckedUpdateInput = {
   createdBy?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -341,6 +357,7 @@ export type CourseCreateManyInput = {
   createdBy: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -351,6 +368,7 @@ export type CourseUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -362,6 +380,7 @@ export type CourseUncheckedUpdateManyInput = {
   createdBy?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -383,6 +402,7 @@ export type CourseCountOrderByAggregateInput = {
   createdBy?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  coverImage?: Prisma.SortOrder
   enrollmentKey?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -394,6 +414,7 @@ export type CourseMaxOrderByAggregateInput = {
   createdBy?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  coverImage?: Prisma.SortOrder
   enrollmentKey?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -405,6 +426,7 @@ export type CourseMinOrderByAggregateInput = {
   createdBy?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  coverImage?: Prisma.SortOrder
   enrollmentKey?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -518,6 +540,7 @@ export type CourseCreateWithoutCreatorInput = {
   id: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -532,6 +555,7 @@ export type CourseUncheckedCreateWithoutCreatorInput = {
   id: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -576,6 +600,7 @@ export type CourseScalarWhereInput = {
   createdBy?: Prisma.StringFilter<"Course"> | string
   title?: Prisma.StringFilter<"Course"> | string
   description?: Prisma.StringNullableFilter<"Course"> | string | null
+  coverImage?: Prisma.StringNullableFilter<"Course"> | string | null
   enrollmentKey?: Prisma.StringFilter<"Course"> | string
   isActive?: Prisma.BoolFilter<"Course"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Course"> | Date | string
@@ -586,6 +611,7 @@ export type CourseCreateWithoutInstructorsInput = {
   id: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -601,6 +627,7 @@ export type CourseUncheckedCreateWithoutInstructorsInput = {
   createdBy: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -630,6 +657,7 @@ export type CourseUpdateWithoutInstructorsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -645,6 +673,7 @@ export type CourseUncheckedUpdateWithoutInstructorsInput = {
   createdBy?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -658,6 +687,7 @@ export type CourseCreateWithoutEnrollmentsInput = {
   id: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -673,6 +703,7 @@ export type CourseUncheckedCreateWithoutEnrollmentsInput = {
   createdBy: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -702,6 +733,7 @@ export type CourseUpdateWithoutEnrollmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -717,6 +749,7 @@ export type CourseUncheckedUpdateWithoutEnrollmentsInput = {
   createdBy?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -730,6 +763,7 @@ export type CourseCreateWithoutSessionsInput = {
   id: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -745,6 +779,7 @@ export type CourseUncheckedCreateWithoutSessionsInput = {
   createdBy: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -774,6 +809,7 @@ export type CourseUpdateWithoutSessionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -789,6 +825,7 @@ export type CourseUncheckedUpdateWithoutSessionsInput = {
   createdBy?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -802,6 +839,7 @@ export type CourseCreateWithoutAiChatSessionsInput = {
   id: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -817,6 +855,7 @@ export type CourseUncheckedCreateWithoutAiChatSessionsInput = {
   createdBy: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -846,6 +885,7 @@ export type CourseUpdateWithoutAiChatSessionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -861,6 +901,7 @@ export type CourseUncheckedUpdateWithoutAiChatSessionsInput = {
   createdBy?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -874,6 +915,7 @@ export type CourseCreateManyCreatorInput = {
   id: string
   title: string
   description?: string | null
+  coverImage?: string | null
   enrollmentKey: string
   isActive?: boolean
   createdAt?: Date | string
@@ -884,6 +926,7 @@ export type CourseUpdateWithoutCreatorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -898,6 +941,7 @@ export type CourseUncheckedUpdateWithoutCreatorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -912,6 +956,7 @@ export type CourseUncheckedUpdateManyWithoutCreatorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   enrollmentKey?: Prisma.StringFieldUpdateOperationsInput | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -981,6 +1026,7 @@ export type CourseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   createdBy?: boolean
   title?: boolean
   description?: boolean
+  coverImage?: boolean
   enrollmentKey?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -998,6 +1044,7 @@ export type CourseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   createdBy?: boolean
   title?: boolean
   description?: boolean
+  coverImage?: boolean
   enrollmentKey?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -1010,6 +1057,7 @@ export type CourseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   createdBy?: boolean
   title?: boolean
   description?: boolean
+  coverImage?: boolean
   enrollmentKey?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -1022,13 +1070,14 @@ export type CourseSelectScalar = {
   createdBy?: boolean
   title?: boolean
   description?: boolean
+  coverImage?: boolean
   enrollmentKey?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CourseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdBy" | "title" | "description" | "enrollmentKey" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["course"]>
+export type CourseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdBy" | "title" | "description" | "coverImage" | "enrollmentKey" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["course"]>
 export type CourseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   instructors?: boolean | Prisma.Course$instructorsArgs<ExtArgs>
@@ -1058,6 +1107,7 @@ export type $CoursePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     createdBy: string
     title: string
     description: string | null
+    coverImage: string | null
     enrollmentKey: string
     isActive: boolean
     createdAt: Date
@@ -1494,6 +1544,7 @@ export interface CourseFieldRefs {
   readonly createdBy: Prisma.FieldRef<"Course", 'String'>
   readonly title: Prisma.FieldRef<"Course", 'String'>
   readonly description: Prisma.FieldRef<"Course", 'String'>
+  readonly coverImage: Prisma.FieldRef<"Course", 'String'>
   readonly enrollmentKey: Prisma.FieldRef<"Course", 'String'>
   readonly isActive: Prisma.FieldRef<"Course", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Course", 'DateTime'>
