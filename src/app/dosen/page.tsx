@@ -142,14 +142,16 @@ function SearchDropdown({
   if (!visible || results.length === 0) return null;
 
   return (
-    <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-xl border bg-card shadow-lg animate-in fade-in slide-in-from-top-2 duration-150">
+    <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-72 overflow-y-auto rounded-2xl border border-brand/25 bg-popover/95 p-1 shadow-xl shadow-brand/10 backdrop-blur animate-in fade-in slide-in-from-top-2 duration-150">
       {results.map((course) => (
         <button
           key={course.id}
           onClick={() => onSelect(course.id)}
-          className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 first:rounded-t-xl last:rounded-b-xl"
+          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-brand/10"
         >
-          <BookOpen className="size-4 shrink-0 text-brand" />
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand/15">
+            <BookOpen className="size-4 text-brand" />
+          </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{course.title}</p>
             {course.description && (
@@ -276,8 +278,13 @@ export default function DosenDashboardPage() {
       </div>
 
       {/* Search Bar */}
-      <div ref={searchRef} className="relative">
-        <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+      <div
+        ref={searchRef}
+        className="relative mx-auto w-full max-w-2xl rounded-2xl border border-brand/35 bg-gradient-to-r from-brand/15 via-card to-card p-1.5 shadow-lg shadow-brand/10 transition-all focus-within:border-brand/60 focus-within:shadow-xl focus-within:shadow-brand/15"
+      >
+        <span className="absolute left-4 top-1/2 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg bg-brand text-black shadow-sm">
+          <Search className="size-4" />
+        </span>
         <Input
           id="dosen-search-course"
           placeholder="Cari course Anda..."
@@ -287,12 +294,12 @@ export default function DosenDashboardPage() {
             setDropdownOpen(true);
           }}
           onFocus={() => searchQuery.trim() && setDropdownOpen(true)}
-          className="pl-10 h-11"
+          className="h-12 rounded-xl border-transparent bg-background/95 pl-14 pr-12 text-base shadow-sm transition-all placeholder:text-muted-foreground/70 focus-visible:border-brand/50 focus-visible:ring-brand/30"
         />
         {searchQuery && (
           <button
             onClick={() => { setSearchQuery(""); setDropdownOpen(false); }}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-4 top-1/2 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-brand/10 hover:text-foreground"
           >
             <X className="size-4" />
           </button>

@@ -367,8 +367,10 @@ export function MahasiswaCoursesClient({ initialSearch }: { initialSearch: strin
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative flex-1 rounded-xl border border-border/70 bg-card p-1 shadow-sm transition-all focus-within:border-brand/50 focus-within:shadow-md focus-within:shadow-brand/10">
+          <span className="absolute left-3 top-1/2 z-10 flex size-7 -translate-y-1/2 items-center justify-center rounded-md bg-brand/15 text-brand">
+            <Search className="size-4" />
+          </span>
           <Input
             id="mahasiswa-courses-search"
             placeholder="Cari judul course..."
@@ -377,7 +379,7 @@ export function MahasiswaCoursesClient({ initialSearch }: { initialSearch: strin
             onKeyDown={(event) => {
               if (event.key === "Enter") setSearch(searchInput);
             }}
-            className="pl-9"
+            className="h-10 rounded-lg border-transparent bg-background/80 pl-11 pr-10 shadow-none focus-visible:border-brand/40 focus-visible:ring-brand/25"
           />
           {searchInput && (
             <button
@@ -387,7 +389,7 @@ export function MahasiswaCoursesClient({ initialSearch }: { initialSearch: strin
                 setSearchInput("");
                 setSearch("");
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-3 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-brand/10 hover:text-foreground"
             >
               <X className="size-4" />
             </button>
