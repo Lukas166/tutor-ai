@@ -22,7 +22,6 @@ interface MahasiswaCourse {
   title: string;
   description: string | null;
   coverImage: string | null;
-  enrollmentKey: string;
   isActive: boolean;
   createdAt: string;
   creator: { id: string; name: string };

@@ -4,7 +4,16 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
@@ -12,14 +21,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { BookOpen, CalendarDays, GraduationCap, LayoutGrid, Search, X } from "lucide-react";
+import {
+  BookOpen,
+  CalendarDays,
+  GraduationCap,
+  KeyRound,
+  LayoutGrid,
+  Loader2,
+  Plus,
+  Search,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface MahasiswaCourse {
   id: string;
   title: string;
   description: string | null;
   coverImage: string | null;
-  enrollmentKey: string;
   isActive: boolean;
   createdAt: string;
   creator: { id: string; name: string };
@@ -75,12 +94,238 @@ function CourseCard({ course }: { course: MahasiswaCourse }) {
   );
 }
 
+function EnrollCourseDialog({
+  open,
+  onOpenChange,
+  onEnrolled,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onEnrolled: (courseId: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<MahasiswaCourse[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<MahasiswaCourse | null>(null);
+  const [enrollmentKey, setEnrollmentKey] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const resetDialog = useCallback(() => {
+    setQuery("");
+    setResults([]);
+    setSelectedCourse(null);
+    setEnrollmentKey("");
+    setSearching(false);
+    setSubmitting(false);
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      resetDialog();
+      return;
+    }
+
+    if (selectedCourse || query.trim().length < 2) {
+      setResults([]);
+      setSearching(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => {
+      setSearching(true);
+      const params = new URLSearchParams({ search: query.trim() });
+
+      fetch(`/api/mahasiswa/courses/available?${params}`, {
+        signal: controller.signal,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (Array.isArray(data)) setResults(data);
+        })
+        .catch((err) => {
+          if ((err as Error).name !== "AbortError") console.error(err);
+        })
+        .finally(() => setSearching(false));
+    }, 250);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [open, query, resetDialog, selectedCourse]);
+
+  async function handleEnroll() {
+    if (!selectedCourse) {
+      toast.error("Pilih course terlebih dahulu");
+      return;
+    }
+
+    if (!enrollmentKey.trim()) {
+      toast.error("Masukkan enrollment key");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/mahasiswa/courses/enroll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          courseId: selectedCourse.id,
+          enrollmentKey: enrollmentKey.trim(),
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Gagal enroll course");
+      }
+
+      toast.success(`Berhasil enroll ${selectedCourse.title}`);
+      onOpenChange(false);
+      onEnrolled(selectedCourse.id);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal enroll course");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[560px]">
+        <DialogHeader className="border-b bg-muted/30 px-6 py-4">
+          <DialogTitle>Tambah Course</DialogTitle>
+          <DialogDescription>
+            Cari mata kuliah, lalu masukkan enrollment key untuk bergabung.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex max-h-[68vh] flex-col gap-5 overflow-y-auto px-6 py-5">
+          <div className="grid gap-2">
+            <Label htmlFor="available-course-search">Cari Mata Kuliah</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="available-course-search"
+                placeholder="Ketik minimal 2 karakter..."
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setSelectedCourse(null);
+                  setEnrollmentKey("");
+                }}
+                disabled={submitting}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          {selectedCourse ? (
+            <Card className="border-brand/30 bg-brand/5 shadow-none">
+              <CardContent className="flex items-start gap-3 p-4">
+                <BookOpen className="mt-0.5 size-5 shrink-0 text-brand" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold">{selectedCourse.title}</p>
+                  <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                    {selectedCourse.description || "Belum ada deskripsi"}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedCourse(null);
+                    setEnrollmentKey("");
+                  }}
+                  disabled={submitting}
+                >
+                  Ganti
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {searching ? (
+                <div className="flex items-center justify-center gap-2 rounded-lg border border-dashed py-8 text-sm text-muted-foreground">
+                  <Loader2 className="animate-spin" data-icon="inline-start" />
+                  Mencari course...
+                </div>
+              ) : query.trim().length >= 2 && results.length === 0 ? (
+                <div className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">
+                  Course tidak ditemukan atau sudah Anda ikuti.
+                </div>
+              ) : (
+                results.map((course) => (
+                  <button
+                    key={course.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedCourse(course);
+                      setQuery(course.title);
+                    }}
+                    className="flex w-full items-start gap-3 rounded-lg border bg-card p-3 text-left transition-colors hover:bg-muted/40"
+                  >
+                    <BookOpen className="mt-0.5 size-5 shrink-0 text-brand" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{course.title}</p>
+                      <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                        {course.description || "Belum ada deskripsi"}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {course._count.sessions} sesi
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+
+          <div className="grid gap-2">
+            <Label htmlFor="enrollment-key">Enrollment Key</Label>
+            <div className="relative">
+              <KeyRound className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="enrollment-key"
+                placeholder="Masukkan key course"
+                value={enrollmentKey}
+                onChange={(event) => setEnrollmentKey(event.target.value.toUpperCase())}
+                disabled={!selectedCourse || submitting}
+                className="pl-9 font-mono tracking-wider"
+              />
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter className="mx-0 mb-0 flex-row justify-end gap-2 rounded-none border-t bg-background px-6 py-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+            Batal
+          </Button>
+          <Button
+            className="bg-brand text-black hover:bg-brand/90"
+            onClick={handleEnroll}
+            disabled={!selectedCourse || !enrollmentKey.trim() || submitting}
+          >
+            {submitting && <Loader2 className="animate-spin" data-icon="inline-start" />}
+            Enroll
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function MahasiswaCoursesClient({ initialSearch }: { initialSearch: string }) {
+  const router = useRouter();
   const [courses, setCourses] = useState<MahasiswaCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState(initialSearch);
   const [search, setSearch] = useState(initialSearch);
   const [gridColumns, setGridColumns] = useState(4);
+  const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
 
   const fetchCourses = useCallback(() => {
     setLoading(true);
@@ -105,11 +350,20 @@ export function MahasiswaCoursesClient({ initialSearch }: { initialSearch: strin
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">My Courses</h1>
-        <p className="text-muted-foreground">
-          Semua mata kuliah yang sedang Anda ikuti
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">My Courses</h1>
+          <p className="text-muted-foreground">
+            Semua mata kuliah yang sedang Anda ikuti
+          </p>
+        </div>
+        <Button
+          onClick={() => setEnrollDialogOpen(true)}
+          className="bg-brand text-black shadow-sm hover:bg-brand/90"
+        >
+          <Plus data-icon="inline-start" />
+          Tambah Course
+        </Button>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -206,6 +460,15 @@ export function MahasiswaCoursesClient({ initialSearch }: { initialSearch: strin
           ))}
         </div>
       )}
+
+      <EnrollCourseDialog
+        open={enrollDialogOpen}
+        onOpenChange={setEnrollDialogOpen}
+        onEnrolled={(courseId) => {
+          fetchCourses();
+          router.push(`/mahasiswa/courses/${courseId}`);
+        }}
+      />
     </div>
   );
 }

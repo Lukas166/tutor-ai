@@ -24,6 +24,12 @@ async function ensureCourseCovers<T extends CourseWithCover>(courses: T[]) {
   return Promise.all(courses.map(ensureCourseCover));
 }
 
+function hideEnrollmentKey<T extends CourseWithCover>(course: T): Omit<T, "enrollmentKey"> {
+  const safeCourse = { ...course };
+  delete (safeCourse as Partial<CourseWithCover>).enrollmentKey;
+  return safeCourse;
+}
+
 function serializeBigInt<T>(obj: T): T {
   return JSON.parse(
     JSON.stringify(obj, (_key, value) =>
@@ -63,7 +69,94 @@ export async function listMahasiswaCourses(mahasiswaId: string, search?: string)
     orderBy: { createdAt: "desc" },
   });
 
-  return ensureCourseCovers(courses);
+  const coursesWithCover = await ensureCourseCovers(courses);
+  return coursesWithCover.map(hideEnrollmentKey);
+}
+
+export async function searchAvailableCourses(mahasiswaId: string, search?: string) {
+  const query = search?.trim();
+  if (!query) return [];
+
+  const courses = await prisma.course.findMany({
+    where: {
+      isActive: true,
+      enrollments: {
+        none: {
+          userId: mahasiswaId,
+          isActive: true,
+        },
+      },
+      OR: [
+        { title: { contains: query, mode: "insensitive" } },
+        { description: { contains: query, mode: "insensitive" } },
+      ],
+    },
+    include: {
+      creator: { select: { id: true, name: true } },
+      instructors: {
+        include: {
+          user: { select: { id: true, name: true } },
+        },
+      },
+      _count: { select: { instructors: true, sessions: true } },
+    },
+    orderBy: { title: "asc" },
+    take: 8,
+  });
+
+  const coursesWithCover = await ensureCourseCovers(courses);
+  return coursesWithCover.map(hideEnrollmentKey);
+}
+
+export async function enrollMahasiswaCourse(
+  mahasiswaId: string,
+  courseId: string,
+  enrollmentKey: string
+) {
+  const course = await prisma.course.findFirst({
+    where: {
+      id: courseId,
+      isActive: true,
+    },
+    select: {
+      id: true,
+      title: true,
+      enrollmentKey: true,
+    },
+  });
+
+  if (!course) {
+    throw new Error("Course tidak ditemukan");
+  }
+
+  if (course.enrollmentKey.toUpperCase() !== enrollmentKey.trim().toUpperCase()) {
+    throw new Error("Enrollment key tidak sesuai");
+  }
+
+  const existing = await prisma.enrollment.findUnique({
+    where: { courseId_userId: { courseId, userId: mahasiswaId } },
+  });
+
+  if (existing?.isActive) {
+    throw new Error("Anda sudah terdaftar di course ini");
+  }
+
+  if (existing) {
+    await prisma.enrollment.update({
+      where: { id: existing.id },
+      data: { isActive: true },
+    });
+  } else {
+    await prisma.enrollment.create({
+      data: {
+        id: crypto.randomUUID(),
+        courseId,
+        userId: mahasiswaId,
+      },
+    });
+  }
+
+  return { success: true, courseId: course.id, courseTitle: course.title };
 }
 
 export async function getMahasiswaCourseById(courseId: string, mahasiswaId: string) {
