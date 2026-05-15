@@ -4,6 +4,7 @@ import {
   deleteCourseSession,
   DosenServiceError,
   updateCourseSessionStatus,
+  updateCourseSession,
 } from "@/lib/services/dosen.service";
 import { z } from "zod/v4";
 
@@ -11,9 +12,13 @@ type SessionRouteContext = {
   params: Promise<{ id: string; sessionId: string }>;
 };
 
-const updateSessionStatusSchema = z.object({
+const updateSessionSchema = z.object({
   enrollmentKey: z.string().trim().min(1, "Enrollment key wajib diisi"),
-  isActive: z.boolean(),
+  isActive: z.boolean().optional(),
+  title: z.string().trim().min(1, "Judul wajib diisi").optional(),
+  description: z.string().trim().optional().nullable(),
+}).refine(data => data.isActive !== undefined || data.title !== undefined, {
+  message: "Tidak ada data yang diubah",
 });
 
 const confirmationSchema = z.object({
@@ -37,22 +42,36 @@ export async function PATCH(request: NextRequest, context: SessionRouteContext) 
 
   const { id: courseId, sessionId } = await context.params;
   const body = await request.json();
-  const parsed = updateSessionStatusSchema.safeParse(body);
+  const parsed = updateSessionSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
   }
 
   try {
-    const courseSession = await updateCourseSessionStatus(
-      courseId,
-      sessionId,
-      session!.user.id,
-      parsed.data.enrollmentKey,
-      parsed.data.isActive
-    );
+    let courseSession;
+    if (parsed.data.isActive !== undefined) {
+      courseSession = await updateCourseSessionStatus(
+        courseId,
+        sessionId,
+        session!.user.id,
+        parsed.data.enrollmentKey,
+        parsed.data.isActive
+      );
+    } else if (parsed.data.title !== undefined) {
+      courseSession = await updateCourseSession(
+        courseId,
+        sessionId,
+        session!.user.id,
+        parsed.data.enrollmentKey,
+        {
+          title: parsed.data.title,
+          description: parsed.data.description,
+        }
+      );
+    }
     return NextResponse.json(courseSession);
   } catch (err) {
-    return toErrorResponse(err, "Gagal mengubah status sesi");
+    return toErrorResponse(err, "Gagal mengubah sesi");
   }
 }
 

@@ -358,6 +358,33 @@ export async function updateCourseSessionStatus(
   });
 }
 
+export async function updateCourseSession(
+  courseId: string,
+  sessionId: string,
+  dosenId: string,
+  enrollmentKey: string,
+  data: { title: string; description?: string | null }
+) {
+  await verifyCourseKey(courseId, dosenId, enrollmentKey);
+
+  const session = await prisma.courseSession.findFirst({
+    where: { id: sessionId, courseId },
+    select: { id: true },
+  });
+
+  if (!session) {
+    throw new DosenServiceError("Sesi tidak ditemukan", 404);
+  }
+
+  return prisma.courseSession.update({
+    where: { id: sessionId },
+    data: { 
+      title: data.title,
+      description: data.description ?? null
+    },
+  });
+}
+
 export async function deleteCourseSession(
   courseId: string,
   sessionId: string,
@@ -449,6 +476,55 @@ export async function updateMaterialStatus(
   const updatedMaterial = await prisma.material.update({
     where: { id: materialId },
     data: { isActive },
+    select: materialSelect,
+  });
+
+  return serializeBigInt(updatedMaterial);
+}
+
+export async function updateMaterial(
+  courseId: string,
+  sessionId: string,
+  materialId: string,
+  dosenId: string,
+  enrollmentKey: string,
+  data: {
+    title: string;
+    description?: string | null;
+    externalUrl?: string | null;
+    textContent?: string | null;
+  }
+) {
+  await verifyCourseKey(courseId, dosenId, enrollmentKey);
+
+  const material = await prisma.material.findFirst({
+    where: {
+      id: materialId,
+      courseSessionId: sessionId,
+      courseSession: { courseId },
+    },
+    select: { id: true },
+  });
+
+  if (!material) {
+    throw new DosenServiceError("Materi tidak ditemukan", 404);
+  }
+
+  const updateData: Record<string, any> = {
+    title: data.title,
+    description: data.description ?? null,
+  };
+
+  if (data.externalUrl !== undefined) {
+    updateData.externalUrl = data.externalUrl;
+  }
+  if (data.textContent !== undefined) {
+    updateData.textContent = data.textContent;
+  }
+
+  const updatedMaterial = await prisma.material.update({
+    where: { id: materialId },
+    data: updateData,
     select: materialSelect,
   });
 

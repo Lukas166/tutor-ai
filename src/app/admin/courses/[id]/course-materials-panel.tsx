@@ -446,7 +446,7 @@ export function CourseMaterialsPanel({ courseId }: { courseId: string }) {
               <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <CardTitle className="text-base">
-                    {session.orderNumber}. {session.title}
+                    {session.title}
                   </CardTitle>
                   <CardDescription>
                     {session.description || `${session._count.materials} materi`}
@@ -459,12 +459,11 @@ export function CourseMaterialsPanel({ courseId }: { courseId: string }) {
                     onClick={() => void handleToggleSession(session)}
                   />
                   <Button
-                    variant="outline"
-                    size="sm"
+                    className="bg-brand text-black shadow-sm hover:bg-brand/90"
                     onClick={() => openMaterialDialog(session)}
                   >
                     <Upload data-icon="inline-start" />
-                    Materi
+                    Tambah Konten
                   </Button>
                   <Button
                     variant="ghost"
@@ -516,7 +515,7 @@ export function CourseMaterialsPanel({ courseId }: { courseId: string }) {
                               </p>
                             </div>
                             {material.materialType !== "text" && (
-                              <ExternalLink className="text-muted-foreground" />
+                              <ExternalLink className="size-4 shrink-0 text-muted-foreground" />
                             )}
                           </a>
 

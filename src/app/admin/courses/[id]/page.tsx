@@ -94,6 +94,7 @@ export default function CourseDetailPage() {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingEnrollments, setLoadingEnrollments] = useState(true);
+  const [activeTab, setActiveTab] = useState("materials");
 
   // Assign instructor
   const [assignOpen, setAssignOpen] = useState(false);
@@ -381,7 +382,7 @@ export default function CourseDetailPage() {
 
 
       {/* Tabs */}
-      <Tabs defaultValue="materials" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
           <TabsList className="!h-10 p-1 flex items-center w-full sm:w-fit">
             <TabsTrigger value="materials" className="flex-1 px-4 h-full sm:flex-none">Sesi & Materi</TabsTrigger>

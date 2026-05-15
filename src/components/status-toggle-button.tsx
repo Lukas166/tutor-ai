@@ -25,7 +25,7 @@ export function StatusToggleButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "inline-flex h-10 shrink-0 items-center gap-2 rounded-lg border border-transparent bg-transparent px-3 text-sm font-medium transition-colors hover:bg-transparent hover:font-semibold",
+        "inline-flex h-10 shrink-0 items-center gap-2 rounded-lg border border-transparent bg-transparent px-3 text-sm font-medium transition-colors hover:bg-muted/30",
         active ? "text-foreground" : "text-muted-foreground",
         disabled && "cursor-not-allowed opacity-50"
       )}

@@ -69,6 +69,7 @@ export default function DosenCourseDetailPage() {
   const [courseForm, setCourseForm] = useState({ title: "", description: "" });
   const [courseSubmitting, setCourseSubmitting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [expandedSessions, setExpandedSessions] = useState<string[]>([]);
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const fetchCourse = useCallback(() => {
@@ -346,7 +347,7 @@ export default function DosenCourseDetailPage() {
                 onClick={() => setCourseAction({ type: "toggle", nextActive: !course.isActive })}
               />
               <Button
-                variant="outline"
+                className="bg-brand text-black shadow-sm hover:bg-brand/90"
                 onClick={openCourseEditDialog}
               >
                 <Pencil data-icon="inline-start" />
@@ -453,6 +454,14 @@ export default function DosenCourseDetailPage() {
                 courseId={courseId}
                 enrollmentKey={course.enrollmentKey}
                 onContentChanged={refreshCourseContent}
+                expanded={expandedSessions.includes(session.id)}
+                onToggleExpand={() => {
+                  setExpandedSessions(prev => 
+                    prev.includes(session.id) 
+                      ? prev.filter(id => id !== session.id) 
+                      : [...prev, session.id]
+                  );
+                }}
               />
             ))}
           </div>
@@ -514,10 +523,10 @@ export default function DosenCourseDetailPage() {
                       <CardContent className="flex flex-col gap-4 p-4">
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-brand text-xs font-bold text-black">
-                              {index + 1}
+                            <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-brand/10 text-brand">
+                              <FileText className="size-4" />
                             </div>
-                            <p className="text-sm font-semibold">Materi {index + 1}</p>
+                            <p className="text-sm font-semibold">Materi</p>
                           </div>
                           <Button
                             type="button"

@@ -4,6 +4,7 @@ import {
   deleteMaterial,
   DosenServiceError,
   updateMaterialStatus,
+  updateMaterial,
 } from "@/lib/services/dosen.service";
 import { z } from "zod/v4";
 
@@ -11,9 +12,15 @@ type MaterialRouteContext = {
   params: Promise<{ id: string; sessionId: string; materialId: string }>;
 };
 
-const updateMaterialStatusSchema = z.object({
+const updateMaterialSchema = z.object({
   enrollmentKey: z.string().trim().min(1, "Enrollment key wajib diisi"),
-  isActive: z.boolean(),
+  isActive: z.boolean().optional(),
+  title: z.string().trim().min(1, "Judul wajib diisi").optional(),
+  description: z.string().trim().optional().nullable(),
+  externalUrl: z.string().trim().optional().nullable(),
+  textContent: z.string().trim().optional().nullable(),
+}).refine(data => data.isActive !== undefined || data.title !== undefined, {
+  message: "Tidak ada data yang diubah",
 });
 
 const confirmationSchema = z.object({
@@ -37,23 +44,40 @@ export async function PATCH(request: NextRequest, context: MaterialRouteContext)
 
   const { id: courseId, sessionId, materialId } = await context.params;
   const body = await request.json();
-  const parsed = updateMaterialStatusSchema.safeParse(body);
+  const parsed = updateMaterialSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
   }
 
   try {
-    const material = await updateMaterialStatus(
-      courseId,
-      sessionId,
-      materialId,
-      session!.user.id,
-      parsed.data.enrollmentKey,
-      parsed.data.isActive
-    );
+    let material;
+    if (parsed.data.isActive !== undefined) {
+      material = await updateMaterialStatus(
+        courseId,
+        sessionId,
+        materialId,
+        session!.user.id,
+        parsed.data.enrollmentKey,
+        parsed.data.isActive
+      );
+    } else if (parsed.data.title !== undefined) {
+      material = await updateMaterial(
+        courseId,
+        sessionId,
+        materialId,
+        session!.user.id,
+        parsed.data.enrollmentKey,
+        {
+          title: parsed.data.title,
+          description: parsed.data.description,
+          externalUrl: parsed.data.externalUrl,
+          textContent: parsed.data.textContent,
+        }
+      );
+    }
     return NextResponse.json(material);
   } catch (err) {
-    return toErrorResponse(err, "Gagal mengubah status materi");
+    return toErrorResponse(err, "Gagal mengubah materi");
   }
 }
 
