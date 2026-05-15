@@ -5,6 +5,7 @@ import {
   getCourseSessionInCourse,
   getDosenCourseById,
 } from "@/lib/services/dosen.service";
+import { createMaterialProcessingJob } from "@/lib/material-processing/jobs";
 import { uploadMaterialFileToSupabase } from "@/lib/supabase-storage";
 
 function isValidHttpUrl(value: string) {
@@ -133,6 +134,13 @@ export async function POST(
       publicUrl: uploadedFile.publicUrl,
       fileSize: file.size,
     });
+
+    try {
+      await createMaterialProcessingJob(material.id, session!.user.id);
+    } catch (processingJobError) {
+      console.error("Gagal menandai job processing material:", processingJobError);
+    }
+
     return NextResponse.json(material, { status: 201 });
   } catch (err) {
     return NextResponse.json(

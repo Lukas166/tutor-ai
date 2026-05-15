@@ -5,14 +5,24 @@ import {
   deleteDosenCourse,
   DosenServiceError,
   getDosenCourseById,
-  updateDosenCourseStatus,
+  updateDosenCourse,
 } from "@/lib/services/dosen.service";
 import { z } from "zod/v4";
 
-const updateCourseStatusSchema = z.object({
-  enrollmentKey: z.string().trim().min(1, "Enrollment key wajib diisi"),
-  isActive: z.boolean(),
-});
+const updateDosenCourseSchema = z
+  .object({
+    enrollmentKey: z.string().trim().min(1, "Enrollment key wajib diisi"),
+    title: z.string().trim().min(3, "Judul minimal 3 karakter").optional(),
+    description: z.string().trim().nullable().optional(),
+    isActive: z.boolean().optional(),
+  })
+  .refine(
+    (data) =>
+      data.title !== undefined ||
+      data.description !== undefined ||
+      data.isActive !== undefined,
+    { message: "Tidak ada perubahan yang dikirim", path: ["title"] }
+  );
 
 const confirmationSchema = z.object({
   enrollmentKey: z.string().trim().min(1, "Enrollment key wajib diisi"),
@@ -49,21 +59,17 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
   const { id } = await context.params;
   const body = await request.json();
-  const parsed = updateCourseStatusSchema.safeParse(body);
+  const parsed = updateDosenCourseSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
   }
 
   try {
-    const course = await updateDosenCourseStatus(
-      id,
-      session!.user.id,
-      parsed.data.enrollmentKey,
-      parsed.data.isActive
-    );
+    const { enrollmentKey, ...data } = parsed.data;
+    const course = await updateDosenCourse(id, session!.user.id, enrollmentKey, data);
     return NextResponse.json(course);
   } catch (err) {
-    return toErrorResponse(err, "Gagal mengubah status course");
+    return toErrorResponse(err, "Gagal mengubah course");
   }
 }
 
