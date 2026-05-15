@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -16,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Plus, GraduationCap, Users, KeyRound, Copy, CalendarDays,
-  FileText, Upload, Loader2, Trash2,
+  FileText, Upload, Loader2, Trash2, Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SessionCard } from "./session-card";
@@ -66,6 +65,9 @@ export default function DosenCourseDetailPage() {
   const [sessionForm, setSessionForm] = useState({ title: "", description: "" });
   const [newMaterials, setNewMaterials] = useState<NewMaterial[]>([]);
   const [courseAction, setCourseAction] = useState<CourseAction>(null);
+  const [editCourseOpen, setEditCourseOpen] = useState(false);
+  const [courseForm, setCourseForm] = useState({ title: "", description: "" });
+  const [courseSubmitting, setCourseSubmitting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -109,6 +111,16 @@ export default function DosenCourseDetailPage() {
     setNewMaterials([]);
   }
 
+  function openCourseEditDialog() {
+    if (!course) return;
+
+    setCourseForm({
+      title: course.title,
+      description: course.description ?? "",
+    });
+    setEditCourseOpen(true);
+  }
+
   function updateMaterial(id: string, updates: Partial<NewMaterial>) {
     setNewMaterials((materials) =>
       materials.map((material) => material.id === id ? { ...material, ...updates } : material)
@@ -142,6 +154,37 @@ export default function DosenCourseDetailPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+  }
+
+  async function handleUpdateCourseDetails() {
+    if (!course) return;
+    if (!courseForm.title.trim()) {
+      toast.error("Judul course wajib diisi");
+      return;
+    }
+
+    setCourseSubmitting(true);
+    try {
+      const response = await fetch(`/api/dosen/courses/${courseId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          enrollmentKey: course.enrollmentKey,
+          title: courseForm.title.trim(),
+          description: courseForm.description.trim() || null,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Gagal memperbarui course");
+
+      setCourse(data);
+      setEditCourseOpen(false);
+      toast.success("Detail course berhasil diperbarui");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal memperbarui course");
+    } finally {
+      setCourseSubmitting(false);
+    }
   }
 
   async function handleCreateSession() {
@@ -292,7 +335,6 @@ export default function DosenCourseDetailPage() {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-3xl font-bold tracking-tight drop-shadow-[0_1px_1px_rgba(255,255,255,0.85)]">{course.title}</h1>
-                <Badge className={course.isActive ? "bg-brand text-black hover:bg-brand/80 border-transparent" : "bg-muted text-muted-foreground border-transparent"}>{course.isActive ? "Aktif" : "Nonaktif"}</Badge>
               </div>
               {course.description && (
                 <p className="mt-2 max-w-3xl text-foreground/70 leading-relaxed drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">{course.description}</p>
@@ -303,6 +345,13 @@ export default function DosenCourseDetailPage() {
                 active={course.isActive}
                 onClick={() => setCourseAction({ type: "toggle", nextActive: !course.isActive })}
               />
+              <Button
+                variant="outline"
+                onClick={openCourseEditDialog}
+              >
+                <Pencil data-icon="inline-start" />
+                Edit Detail
+              </Button>
               <Button
                 className="bg-brand text-black shadow-sm hover:bg-brand/90"
                 onClick={() => setShowStudents(true)}
@@ -574,6 +623,69 @@ export default function DosenCourseDetailPage() {
             >
               {submitting && <Loader2 className="animate-spin" data-icon="inline-start" />}
               Buat Sesi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={editCourseOpen}
+        onOpenChange={(open) => {
+          setEditCourseOpen(open);
+          if (!open && course) {
+            setCourseForm({
+              title: course.title,
+              description: course.description ?? "",
+            });
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[560px]">
+          <DialogHeader>
+            <DialogTitle>Edit Detail Course</DialogTitle>
+            <DialogDescription>Perbarui judul dan deskripsi course.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-1.5">
+              <Label>Judul Course</Label>
+              <Input
+                value={courseForm.title}
+                onChange={(event) =>
+                  setCourseForm({ ...courseForm, title: event.target.value })
+                }
+                disabled={courseSubmitting}
+                placeholder="Judul course"
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Deskripsi</Label>
+              <textarea
+                value={courseForm.description}
+                onChange={(event) =>
+                  setCourseForm({ ...courseForm, description: event.target.value })
+                }
+                disabled={courseSubmitting}
+                rows={4}
+                className="flex w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                placeholder="Deskripsi course"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditCourseOpen(false)}
+              disabled={courseSubmitting}
+            >
+              Batal
+            </Button>
+            <Button
+              className="bg-brand text-black hover:bg-brand/90"
+              onClick={handleUpdateCourseDetails}
+              disabled={courseSubmitting || !courseForm.title.trim()}
+            >
+              {courseSubmitting && <Loader2 className="animate-spin" data-icon="inline-start" />}
+              Simpan
             </Button>
           </DialogFooter>
         </DialogContent>

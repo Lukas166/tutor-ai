@@ -13,7 +13,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UserSelectionDialog } from "@/components/admin/user-selection-dialog";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CourseMaterialsPanel } from "./course-materials-panel";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
@@ -27,7 +28,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  ArrowLeft,
   UserPlus,
   Trash2,
   Loader2,
@@ -35,7 +35,6 @@ import {
   KeyRound,
   Users,
   GraduationCap,
-  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -181,7 +180,7 @@ export default function CourseDetailPage() {
       
       setAssignOpen(false);
       fetchCourse();
-    } catch (err) {
+    } catch {
       toast.error("Terjadi kesalahan saat menambahkan dosen");
     } finally {
       setAssigning(false);
@@ -257,7 +256,7 @@ export default function CourseDetailPage() {
       setEnrollOpen(false);
       fetchEnrollments();
       fetchCourse();
-    } catch (err) {
+    } catch {
       toast.error("Terjadi kesalahan saat mendaftarkan mahasiswa");
     } finally {
       setEnrolling(false);
@@ -382,13 +381,15 @@ export default function CourseDetailPage() {
 
 
       {/* Tabs */}
-      <Tabs defaultValue="instructors" className="w-full">
+      <Tabs defaultValue="materials" className="w-full">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
           <TabsList className="!h-10 p-1 flex items-center w-full sm:w-fit">
+            <TabsTrigger value="materials" className="flex-1 px-4 h-full sm:flex-none">Sesi & Materi</TabsTrigger>
             <TabsTrigger value="instructors" className="flex-1 px-4 h-full sm:flex-none">Dosen Pengampu</TabsTrigger>
             <TabsTrigger value="enrollments" className="flex-1 px-4 h-full sm:flex-none">Mahasiswa Terdaftar</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="materials" className="m-0 hidden sm:block" />
           <TabsContent value="instructors" className="m-0 sm:flex-none flex sm:justify-end">
             <Button
               onClick={openAssignDialog}
@@ -537,6 +538,10 @@ export default function CourseDetailPage() {
               </TableBody>
             </Table>
           </div>
+        </TabsContent>
+
+        <TabsContent value="materials">
+          <CourseMaterialsPanel courseId={courseId} />
         </TabsContent>
       </Tabs>
 
