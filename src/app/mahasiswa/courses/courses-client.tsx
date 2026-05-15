@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,8 +34,13 @@ const GRID_OPTIONS = [
 ] as const;
 
 function CourseCard({ course }: { course: MahasiswaCourse }) {
+  const router = useRouter();
+
   return (
-    <Card className="group gap-0 overflow-hidden border-border/50 py-0 transition-all duration-200 hover:border-brand/30 hover:shadow-md">
+    <Card
+      className="group cursor-pointer gap-0 overflow-hidden border-border/50 py-0 transition-all duration-200 hover:border-brand/30 hover:shadow-md"
+      onClick={() => router.push(`/mahasiswa/courses/${course.id}`)}
+    >
       <div className="relative aspect-[1.55/1] bg-muted">
         <div
           className="absolute inset-0 bg-cover bg-center"

@@ -24,6 +24,14 @@ async function ensureCourseCovers<T extends CourseWithCover>(courses: T[]) {
   return Promise.all(courses.map(ensureCourseCover));
 }
 
+function serializeBigInt<T>(obj: T): T {
+  return JSON.parse(
+    JSON.stringify(obj, (_key, value) =>
+      typeof value === "bigint" ? value.toString() : value
+    )
+  ) as T;
+}
+
 export async function listMahasiswaCourses(mahasiswaId: string, search?: string) {
   const courses = await prisma.course.findMany({
     where: {
@@ -56,6 +64,103 @@ export async function listMahasiswaCourses(mahasiswaId: string, search?: string)
   });
 
   return ensureCourseCovers(courses);
+}
+
+export async function getMahasiswaCourseById(courseId: string, mahasiswaId: string) {
+  const course = await prisma.course.findFirst({
+    where: {
+      id: courseId,
+      isActive: true,
+      enrollments: {
+        some: {
+          userId: mahasiswaId,
+          isActive: true,
+        },
+      },
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      coverImage: true,
+      enrollmentKey: true,
+      isActive: true,
+      createdAt: true,
+      creator: { select: { id: true, name: true } },
+      instructors: {
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+        },
+      },
+      _count: { select: { instructors: true, sessions: true } },
+    },
+  });
+
+  if (!course) return null;
+  const courseWithCover = await ensureCourseCover(course);
+
+  return {
+    id: courseWithCover.id,
+    title: courseWithCover.title,
+    description: courseWithCover.description,
+    coverImage: courseWithCover.coverImage,
+    isActive: courseWithCover.isActive,
+    createdAt: courseWithCover.createdAt,
+    creator: courseWithCover.creator,
+    instructors: courseWithCover.instructors,
+    _count: courseWithCover._count,
+  };
+}
+
+export async function listMahasiswaCourseSessions(courseId: string, mahasiswaId: string) {
+  const course = await prisma.course.findFirst({
+    where: {
+      id: courseId,
+      isActive: true,
+      enrollments: {
+        some: {
+          userId: mahasiswaId,
+          isActive: true,
+        },
+      },
+    },
+    select: { id: true },
+  });
+
+  if (!course) return null;
+
+  const sessions = await prisma.courseSession.findMany({
+    where: {
+      courseId,
+      isActive: true,
+    },
+    include: {
+      creator: { select: { id: true, name: true } },
+      materials: {
+        where: { isActive: true },
+        select: {
+          id: true,
+          title: true,
+          materialType: true,
+          description: true,
+          fileName: true,
+          filePath: true,
+          storagePath: true,
+          publicUrl: true,
+          externalUrl: true,
+          textContent: true,
+          fileSize: true,
+          isActive: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "asc" },
+      },
+      _count: { select: { materials: { where: { isActive: true } } } },
+    },
+    orderBy: { orderNumber: "asc" },
+  });
+
+  return serializeBigInt(sessions);
 }
 
 export async function getMahasiswaRecentActivities(mahasiswaId: string, days = 7) {

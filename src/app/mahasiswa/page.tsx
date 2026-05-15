@@ -42,8 +42,8 @@ interface ActivityItem {
 
 const PREVIEW_LIMIT = 4;
 
-function courseSearchHref(title: string) {
-  return `/mahasiswa/courses?search=${encodeURIComponent(title)}`;
+function courseDetailHref(courseId: string) {
+  return `/mahasiswa/courses/${courseId}`;
 }
 
 function CourseCard({ course }: { course: MahasiswaCourse }) {
@@ -52,7 +52,7 @@ function CourseCard({ course }: { course: MahasiswaCourse }) {
   return (
     <Card
       className="group cursor-pointer gap-0 overflow-hidden border-border/50 py-0 transition-all duration-200 hover:border-brand/30 hover:shadow-md"
-      onClick={() => router.push(courseSearchHref(course.title))}
+      onClick={() => router.push(courseDetailHref(course.id))}
     >
       <div className="relative aspect-[1.55/1] bg-muted">
         <div
@@ -244,7 +244,7 @@ export default function MahasiswaDashboardPage() {
           onSelect={(course) => {
             setDropdownOpen(false);
             setSearchQuery("");
-            router.push(courseSearchHref(course.title));
+            router.push(courseDetailHref(course.id));
           }}
         />
       </div>
@@ -326,7 +326,7 @@ export default function MahasiswaDashboardPage() {
               <Card
                 key={`${activity.type}-${activity.id}`}
                 className="cursor-pointer border-border/50 transition-shadow hover:shadow-sm"
-                onClick={() => router.push(courseSearchHref(activity.courseName))}
+                onClick={() => router.push(courseDetailHref(activity.courseId))}
               >
                 <CardContent className="flex items-center gap-4 p-4">
                   <div
