@@ -39,8 +39,14 @@ export type MaterialMinAggregateOutputType = {
   courseSessionId: string | null
   uploadedBy: string | null
   title: string | null
+  materialType: string | null
+  description: string | null
   fileName: string | null
   filePath: string | null
+  storagePath: string | null
+  publicUrl: string | null
+  externalUrl: string | null
+  textContent: string | null
   fileSize: bigint | null
   isActive: boolean | null
   isProcessed: boolean | null
@@ -52,8 +58,14 @@ export type MaterialMaxAggregateOutputType = {
   courseSessionId: string | null
   uploadedBy: string | null
   title: string | null
+  materialType: string | null
+  description: string | null
   fileName: string | null
   filePath: string | null
+  storagePath: string | null
+  publicUrl: string | null
+  externalUrl: string | null
+  textContent: string | null
   fileSize: bigint | null
   isActive: boolean | null
   isProcessed: boolean | null
@@ -65,8 +77,14 @@ export type MaterialCountAggregateOutputType = {
   courseSessionId: number
   uploadedBy: number
   title: number
+  materialType: number
+  description: number
   fileName: number
   filePath: number
+  storagePath: number
+  publicUrl: number
+  externalUrl: number
+  textContent: number
   fileSize: number
   isActive: number
   isProcessed: number
@@ -88,8 +106,14 @@ export type MaterialMinAggregateInputType = {
   courseSessionId?: true
   uploadedBy?: true
   title?: true
+  materialType?: true
+  description?: true
   fileName?: true
   filePath?: true
+  storagePath?: true
+  publicUrl?: true
+  externalUrl?: true
+  textContent?: true
   fileSize?: true
   isActive?: true
   isProcessed?: true
@@ -101,8 +125,14 @@ export type MaterialMaxAggregateInputType = {
   courseSessionId?: true
   uploadedBy?: true
   title?: true
+  materialType?: true
+  description?: true
   fileName?: true
   filePath?: true
+  storagePath?: true
+  publicUrl?: true
+  externalUrl?: true
+  textContent?: true
   fileSize?: true
   isActive?: true
   isProcessed?: true
@@ -114,8 +144,14 @@ export type MaterialCountAggregateInputType = {
   courseSessionId?: true
   uploadedBy?: true
   title?: true
+  materialType?: true
+  description?: true
   fileName?: true
   filePath?: true
+  storagePath?: true
+  publicUrl?: true
+  externalUrl?: true
+  textContent?: true
   fileSize?: true
   isActive?: true
   isProcessed?: true
@@ -214,8 +250,14 @@ export type MaterialGroupByOutputType = {
   courseSessionId: string
   uploadedBy: string
   title: string
+  materialType: string
+  description: string | null
   fileName: string
   filePath: string
+  storagePath: string | null
+  publicUrl: string | null
+  externalUrl: string | null
+  textContent: string | null
   fileSize: bigint | null
   isActive: boolean
   isProcessed: boolean
@@ -250,8 +292,14 @@ export type MaterialWhereInput = {
   courseSessionId?: Prisma.StringFilter<"Material"> | string
   uploadedBy?: Prisma.StringFilter<"Material"> | string
   title?: Prisma.StringFilter<"Material"> | string
+  materialType?: Prisma.StringFilter<"Material"> | string
+  description?: Prisma.StringNullableFilter<"Material"> | string | null
   fileName?: Prisma.StringFilter<"Material"> | string
   filePath?: Prisma.StringFilter<"Material"> | string
+  storagePath?: Prisma.StringNullableFilter<"Material"> | string | null
+  publicUrl?: Prisma.StringNullableFilter<"Material"> | string | null
+  externalUrl?: Prisma.StringNullableFilter<"Material"> | string | null
+  textContent?: Prisma.StringNullableFilter<"Material"> | string | null
   fileSize?: Prisma.BigIntNullableFilter<"Material"> | bigint | number | null
   isActive?: Prisma.BoolFilter<"Material"> | boolean
   isProcessed?: Prisma.BoolFilter<"Material"> | boolean
@@ -266,8 +314,14 @@ export type MaterialOrderByWithRelationInput = {
   courseSessionId?: Prisma.SortOrder
   uploadedBy?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  materialType?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   fileName?: Prisma.SortOrder
   filePath?: Prisma.SortOrder
+  storagePath?: Prisma.SortOrderInput | Prisma.SortOrder
+  publicUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  externalUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  textContent?: Prisma.SortOrderInput | Prisma.SortOrder
   fileSize?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isProcessed?: Prisma.SortOrder
@@ -285,8 +339,14 @@ export type MaterialWhereUniqueInput = Prisma.AtLeast<{
   courseSessionId?: Prisma.StringFilter<"Material"> | string
   uploadedBy?: Prisma.StringFilter<"Material"> | string
   title?: Prisma.StringFilter<"Material"> | string
+  materialType?: Prisma.StringFilter<"Material"> | string
+  description?: Prisma.StringNullableFilter<"Material"> | string | null
   fileName?: Prisma.StringFilter<"Material"> | string
   filePath?: Prisma.StringFilter<"Material"> | string
+  storagePath?: Prisma.StringNullableFilter<"Material"> | string | null
+  publicUrl?: Prisma.StringNullableFilter<"Material"> | string | null
+  externalUrl?: Prisma.StringNullableFilter<"Material"> | string | null
+  textContent?: Prisma.StringNullableFilter<"Material"> | string | null
   fileSize?: Prisma.BigIntNullableFilter<"Material"> | bigint | number | null
   isActive?: Prisma.BoolFilter<"Material"> | boolean
   isProcessed?: Prisma.BoolFilter<"Material"> | boolean
@@ -301,8 +361,14 @@ export type MaterialOrderByWithAggregationInput = {
   courseSessionId?: Prisma.SortOrder
   uploadedBy?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  materialType?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   fileName?: Prisma.SortOrder
   filePath?: Prisma.SortOrder
+  storagePath?: Prisma.SortOrderInput | Prisma.SortOrder
+  publicUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  externalUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  textContent?: Prisma.SortOrderInput | Prisma.SortOrder
   fileSize?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isProcessed?: Prisma.SortOrder
@@ -322,8 +388,14 @@ export type MaterialScalarWhereWithAggregatesInput = {
   courseSessionId?: Prisma.StringWithAggregatesFilter<"Material"> | string
   uploadedBy?: Prisma.StringWithAggregatesFilter<"Material"> | string
   title?: Prisma.StringWithAggregatesFilter<"Material"> | string
+  materialType?: Prisma.StringWithAggregatesFilter<"Material"> | string
+  description?: Prisma.StringNullableWithAggregatesFilter<"Material"> | string | null
   fileName?: Prisma.StringWithAggregatesFilter<"Material"> | string
   filePath?: Prisma.StringWithAggregatesFilter<"Material"> | string
+  storagePath?: Prisma.StringNullableWithAggregatesFilter<"Material"> | string | null
+  publicUrl?: Prisma.StringNullableWithAggregatesFilter<"Material"> | string | null
+  externalUrl?: Prisma.StringNullableWithAggregatesFilter<"Material"> | string | null
+  textContent?: Prisma.StringNullableWithAggregatesFilter<"Material"> | string | null
   fileSize?: Prisma.BigIntNullableWithAggregatesFilter<"Material"> | bigint | number | null
   isActive?: Prisma.BoolWithAggregatesFilter<"Material"> | boolean
   isProcessed?: Prisma.BoolWithAggregatesFilter<"Material"> | boolean
@@ -333,8 +405,14 @@ export type MaterialScalarWhereWithAggregatesInput = {
 export type MaterialCreateInput = {
   id: string
   title: string
+  materialType?: string
+  description?: string | null
   fileName: string
   filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
@@ -349,8 +427,14 @@ export type MaterialUncheckedCreateInput = {
   courseSessionId: string
   uploadedBy: string
   title: string
+  materialType?: string
+  description?: string | null
   fileName: string
   filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
@@ -361,8 +445,14 @@ export type MaterialUncheckedCreateInput = {
 export type MaterialUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -377,8 +467,14 @@ export type MaterialUncheckedUpdateInput = {
   courseSessionId?: Prisma.StringFieldUpdateOperationsInput | string
   uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -391,8 +487,14 @@ export type MaterialCreateManyInput = {
   courseSessionId: string
   uploadedBy: string
   title: string
+  materialType?: string
+  description?: string | null
   fileName: string
   filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
@@ -402,8 +504,14 @@ export type MaterialCreateManyInput = {
 export type MaterialUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -415,8 +523,14 @@ export type MaterialUncheckedUpdateManyInput = {
   courseSessionId?: Prisma.StringFieldUpdateOperationsInput | string
   uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -438,8 +552,14 @@ export type MaterialCountOrderByAggregateInput = {
   courseSessionId?: Prisma.SortOrder
   uploadedBy?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  materialType?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   fileName?: Prisma.SortOrder
   filePath?: Prisma.SortOrder
+  storagePath?: Prisma.SortOrder
+  publicUrl?: Prisma.SortOrder
+  externalUrl?: Prisma.SortOrder
+  textContent?: Prisma.SortOrder
   fileSize?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isProcessed?: Prisma.SortOrder
@@ -455,8 +575,14 @@ export type MaterialMaxOrderByAggregateInput = {
   courseSessionId?: Prisma.SortOrder
   uploadedBy?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  materialType?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   fileName?: Prisma.SortOrder
   filePath?: Prisma.SortOrder
+  storagePath?: Prisma.SortOrder
+  publicUrl?: Prisma.SortOrder
+  externalUrl?: Prisma.SortOrder
+  textContent?: Prisma.SortOrder
   fileSize?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isProcessed?: Prisma.SortOrder
@@ -468,8 +594,14 @@ export type MaterialMinOrderByAggregateInput = {
   courseSessionId?: Prisma.SortOrder
   uploadedBy?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  materialType?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   fileName?: Prisma.SortOrder
   filePath?: Prisma.SortOrder
+  storagePath?: Prisma.SortOrder
+  publicUrl?: Prisma.SortOrder
+  externalUrl?: Prisma.SortOrder
+  textContent?: Prisma.SortOrder
   fileSize?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isProcessed?: Prisma.SortOrder
@@ -594,8 +726,14 @@ export type MaterialUpdateOneRequiredWithoutChunksNestedInput = {
 export type MaterialCreateWithoutUploaderInput = {
   id: string
   title: string
+  materialType?: string
+  description?: string | null
   fileName: string
   filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
@@ -608,8 +746,14 @@ export type MaterialUncheckedCreateWithoutUploaderInput = {
   id: string
   courseSessionId: string
   title: string
+  materialType?: string
+  description?: string | null
   fileName: string
   filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
@@ -651,8 +795,14 @@ export type MaterialScalarWhereInput = {
   courseSessionId?: Prisma.StringFilter<"Material"> | string
   uploadedBy?: Prisma.StringFilter<"Material"> | string
   title?: Prisma.StringFilter<"Material"> | string
+  materialType?: Prisma.StringFilter<"Material"> | string
+  description?: Prisma.StringNullableFilter<"Material"> | string | null
   fileName?: Prisma.StringFilter<"Material"> | string
   filePath?: Prisma.StringFilter<"Material"> | string
+  storagePath?: Prisma.StringNullableFilter<"Material"> | string | null
+  publicUrl?: Prisma.StringNullableFilter<"Material"> | string | null
+  externalUrl?: Prisma.StringNullableFilter<"Material"> | string | null
+  textContent?: Prisma.StringNullableFilter<"Material"> | string | null
   fileSize?: Prisma.BigIntNullableFilter<"Material"> | bigint | number | null
   isActive?: Prisma.BoolFilter<"Material"> | boolean
   isProcessed?: Prisma.BoolFilter<"Material"> | boolean
@@ -662,8 +812,14 @@ export type MaterialScalarWhereInput = {
 export type MaterialCreateWithoutCourseSessionInput = {
   id: string
   title: string
+  materialType?: string
+  description?: string | null
   fileName: string
   filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
@@ -676,8 +832,14 @@ export type MaterialUncheckedCreateWithoutCourseSessionInput = {
   id: string
   uploadedBy: string
   title: string
+  materialType?: string
+  description?: string | null
   fileName: string
   filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
@@ -714,8 +876,14 @@ export type MaterialUpdateManyWithWhereWithoutCourseSessionInput = {
 export type MaterialCreateWithoutChunksInput = {
   id: string
   title: string
+  materialType?: string
+  description?: string | null
   fileName: string
   filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
@@ -729,8 +897,14 @@ export type MaterialUncheckedCreateWithoutChunksInput = {
   courseSessionId: string
   uploadedBy: string
   title: string
+  materialType?: string
+  description?: string | null
   fileName: string
   filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
@@ -756,8 +930,14 @@ export type MaterialUpdateToOneWithWhereWithoutChunksInput = {
 export type MaterialUpdateWithoutChunksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -771,8 +951,14 @@ export type MaterialUncheckedUpdateWithoutChunksInput = {
   courseSessionId?: Prisma.StringFieldUpdateOperationsInput | string
   uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -783,8 +969,14 @@ export type MaterialCreateManyUploaderInput = {
   id: string
   courseSessionId: string
   title: string
+  materialType?: string
+  description?: string | null
   fileName: string
   filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
@@ -794,8 +986,14 @@ export type MaterialCreateManyUploaderInput = {
 export type MaterialUpdateWithoutUploaderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -808,8 +1006,14 @@ export type MaterialUncheckedUpdateWithoutUploaderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   courseSessionId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -821,8 +1025,14 @@ export type MaterialUncheckedUpdateManyWithoutUploaderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   courseSessionId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -833,8 +1043,14 @@ export type MaterialCreateManyCourseSessionInput = {
   id: string
   uploadedBy: string
   title: string
+  materialType?: string
+  description?: string | null
   fileName: string
   filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
@@ -844,8 +1060,14 @@ export type MaterialCreateManyCourseSessionInput = {
 export type MaterialUpdateWithoutCourseSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -858,8 +1080,14 @@ export type MaterialUncheckedUpdateWithoutCourseSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -871,8 +1099,14 @@ export type MaterialUncheckedUpdateManyWithoutCourseSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileName?: Prisma.StringFieldUpdateOperationsInput | string
   filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -915,8 +1149,14 @@ export type MaterialSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   courseSessionId?: boolean
   uploadedBy?: boolean
   title?: boolean
+  materialType?: boolean
+  description?: boolean
   fileName?: boolean
   filePath?: boolean
+  storagePath?: boolean
+  publicUrl?: boolean
+  externalUrl?: boolean
+  textContent?: boolean
   fileSize?: boolean
   isActive?: boolean
   isProcessed?: boolean
@@ -932,8 +1172,14 @@ export type MaterialSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   courseSessionId?: boolean
   uploadedBy?: boolean
   title?: boolean
+  materialType?: boolean
+  description?: boolean
   fileName?: boolean
   filePath?: boolean
+  storagePath?: boolean
+  publicUrl?: boolean
+  externalUrl?: boolean
+  textContent?: boolean
   fileSize?: boolean
   isActive?: boolean
   isProcessed?: boolean
@@ -947,8 +1193,14 @@ export type MaterialSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   courseSessionId?: boolean
   uploadedBy?: boolean
   title?: boolean
+  materialType?: boolean
+  description?: boolean
   fileName?: boolean
   filePath?: boolean
+  storagePath?: boolean
+  publicUrl?: boolean
+  externalUrl?: boolean
+  textContent?: boolean
   fileSize?: boolean
   isActive?: boolean
   isProcessed?: boolean
@@ -962,15 +1214,21 @@ export type MaterialSelectScalar = {
   courseSessionId?: boolean
   uploadedBy?: boolean
   title?: boolean
+  materialType?: boolean
+  description?: boolean
   fileName?: boolean
   filePath?: boolean
+  storagePath?: boolean
+  publicUrl?: boolean
+  externalUrl?: boolean
+  textContent?: boolean
   fileSize?: boolean
   isActive?: boolean
   isProcessed?: boolean
   createdAt?: boolean
 }
 
-export type MaterialOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "courseSessionId" | "uploadedBy" | "title" | "fileName" | "filePath" | "fileSize" | "isActive" | "isProcessed" | "createdAt", ExtArgs["result"]["material"]>
+export type MaterialOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "courseSessionId" | "uploadedBy" | "title" | "materialType" | "description" | "fileName" | "filePath" | "storagePath" | "publicUrl" | "externalUrl" | "textContent" | "fileSize" | "isActive" | "isProcessed" | "createdAt", ExtArgs["result"]["material"]>
 export type MaterialInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   courseSession?: boolean | Prisma.CourseSessionDefaultArgs<ExtArgs>
   uploader?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -998,8 +1256,14 @@ export type $MaterialPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     courseSessionId: string
     uploadedBy: string
     title: string
+    materialType: string
+    description: string | null
     fileName: string
     filePath: string
+    storagePath: string | null
+    publicUrl: string | null
+    externalUrl: string | null
+    textContent: string | null
     fileSize: bigint | null
     isActive: boolean
     isProcessed: boolean
@@ -1434,8 +1698,14 @@ export interface MaterialFieldRefs {
   readonly courseSessionId: Prisma.FieldRef<"Material", 'String'>
   readonly uploadedBy: Prisma.FieldRef<"Material", 'String'>
   readonly title: Prisma.FieldRef<"Material", 'String'>
+  readonly materialType: Prisma.FieldRef<"Material", 'String'>
+  readonly description: Prisma.FieldRef<"Material", 'String'>
   readonly fileName: Prisma.FieldRef<"Material", 'String'>
   readonly filePath: Prisma.FieldRef<"Material", 'String'>
+  readonly storagePath: Prisma.FieldRef<"Material", 'String'>
+  readonly publicUrl: Prisma.FieldRef<"Material", 'String'>
+  readonly externalUrl: Prisma.FieldRef<"Material", 'String'>
+  readonly textContent: Prisma.FieldRef<"Material", 'String'>
   readonly fileSize: Prisma.FieldRef<"Material", 'BigInt'>
   readonly isActive: Prisma.FieldRef<"Material", 'Boolean'>
   readonly isProcessed: Prisma.FieldRef<"Material", 'Boolean'>

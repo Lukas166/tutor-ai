@@ -1,27 +1,41 @@
 import { auth } from "@/lib/auth";
 import { NextResponse, type NextRequest } from "next/server";
 
+const ROLE_REDIRECT_MAP: Record<string, string> = {
+    admin: "/admin",
+    dosen: "/dosen",
+};
+
 export default async function proxy(request: NextRequest) {
     const session = await auth.api.getSession({
         headers: request.headers
     });
 
-    const isAuthPage = request.nextUrl.pathname.startsWith("/login");
-    const isDashboardPage = request.nextUrl.pathname.startsWith("/dashboard") || 
-                           request.nextUrl.pathname.startsWith("/admin");
+    const { pathname } = request.nextUrl;
+    const isAuthPage = pathname.startsWith("/login");
+    const isProtectedPage = pathname.startsWith("/dashboard") ||
+        pathname.startsWith("/admin") ||
+        pathname.startsWith("/dosen");
 
-    if (!session && isDashboardPage) {
+    // Unauthenticated users cannot access protected pages
+    if (!session && isProtectedPage) {
         return NextResponse.redirect(new URL("/login", request.url));
     }
 
+    // Authenticated users on login page → redirect by role
     if (session && isAuthPage) {
         const role = (session.user as any).role;
-        const redirectTo = role === "admin" ? "/admin" : "/dashboard";
+        const redirectTo = ROLE_REDIRECT_MAP[role] ?? "/dashboard";
         return NextResponse.redirect(new URL(redirectTo, request.url));
     }
 
     // Role-based protection for /admin
-    if (session && request.nextUrl.pathname.startsWith("/admin") && (session.user as any).role !== "admin") {
+    if (session && pathname.startsWith("/admin") && (session.user as any).role !== "admin") {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    // Role-based protection for /dosen
+    if (session && pathname.startsWith("/dosen") && (session.user as any).role !== "dosen") {
         return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
@@ -29,5 +43,5 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/admin/:path*", "/login"],
+    matcher: ["/dashboard/:path*", "/admin/:path*", "/dosen/:path*", "/login"],
 };
