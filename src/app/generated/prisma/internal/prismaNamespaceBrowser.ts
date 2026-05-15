@@ -61,7 +61,9 @@ export const ModelName = {
   CourseSession: 'CourseSession',
   EnrollmentProgress: 'EnrollmentProgress',
   Material: 'Material',
-  VectorChunk: 'VectorChunk',
+  MaterialPage: 'MaterialPage',
+  MaterialChunk: 'MaterialChunk',
+  MaterialProcessingLog: 'MaterialProcessingLog',
   AiChatSession: 'AiChatSession',
   AiChatMessage: 'AiChatMessage'
 } as const
@@ -225,22 +227,68 @@ export const MaterialScalarFieldEnum = {
   fileSize: 'fileSize',
   isActive: 'isActive',
   isProcessed: 'isProcessed',
-  createdAt: 'createdAt'
+  processingStatus: 'processingStatus',
+  processingProgress: 'processingProgress',
+  processingError: 'processingError',
+  processingJobId: 'processingJobId',
+  processingStartedAt: 'processingStartedAt',
+  processingCompletedAt: 'processingCompletedAt',
+  pageCount: 'pageCount',
+  chunkCount: 'chunkCount',
+  embeddingModel: 'embeddingModel',
+  embeddingDimensions: 'embeddingDimensions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type MaterialScalarFieldEnum = (typeof MaterialScalarFieldEnum)[keyof typeof MaterialScalarFieldEnum]
 
 
-export const VectorChunkScalarFieldEnum = {
+export const MaterialPageScalarFieldEnum = {
   id: 'id',
   materialId: 'materialId',
+  pageNumber: 'pageNumber',
+  embeddedText: 'embeddedText',
+  ocrText: 'ocrText',
+  finalText: 'finalText',
+  textCharCount: 'textCharCount',
+  imageOcrAttempted: 'imageOcrAttempted',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MaterialPageScalarFieldEnum = (typeof MaterialPageScalarFieldEnum)[keyof typeof MaterialPageScalarFieldEnum]
+
+
+export const MaterialChunkScalarFieldEnum = {
+  id: 'id',
+  materialId: 'materialId',
+  courseId: 'courseId',
+  sessionId: 'sessionId',
+  pageNumber: 'pageNumber',
   chunkIndex: 'chunkIndex',
   content: 'content',
   tokenCount: 'tokenCount',
+  chunkType: 'chunkType',
+  metadata: 'metadata',
   createdAt: 'createdAt'
 } as const
 
-export type VectorChunkScalarFieldEnum = (typeof VectorChunkScalarFieldEnum)[keyof typeof VectorChunkScalarFieldEnum]
+export type MaterialChunkScalarFieldEnum = (typeof MaterialChunkScalarFieldEnum)[keyof typeof MaterialChunkScalarFieldEnum]
+
+
+export const MaterialProcessingLogScalarFieldEnum = {
+  id: 'id',
+  materialId: 'materialId',
+  status: 'status',
+  message: 'message',
+  error: 'error',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type MaterialProcessingLogScalarFieldEnum = (typeof MaterialProcessingLogScalarFieldEnum)[keyof typeof MaterialProcessingLogScalarFieldEnum]
 
 
 export const AiChatSessionScalarFieldEnum = {

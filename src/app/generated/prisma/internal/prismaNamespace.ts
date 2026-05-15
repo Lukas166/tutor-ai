@@ -394,7 +394,9 @@ export const ModelName = {
   CourseSession: 'CourseSession',
   EnrollmentProgress: 'EnrollmentProgress',
   Material: 'Material',
-  VectorChunk: 'VectorChunk',
+  MaterialPage: 'MaterialPage',
+  MaterialChunk: 'MaterialChunk',
+  MaterialProcessingLog: 'MaterialProcessingLog',
   AiChatSession: 'AiChatSession',
   AiChatMessage: 'AiChatMessage'
 } as const
@@ -412,7 +414,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "course" | "courseInstructor" | "enrollment" | "courseSession" | "enrollmentProgress" | "material" | "vectorChunk" | "aiChatSession" | "aiChatMessage"
+    modelProps: "user" | "session" | "account" | "verification" | "course" | "courseInstructor" | "enrollment" | "courseSession" | "enrollmentProgress" | "material" | "materialPage" | "materialChunk" | "materialProcessingLog" | "aiChatSession" | "aiChatMessage"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1156,77 +1158,225 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    VectorChunk: {
-      payload: Prisma.$VectorChunkPayload<ExtArgs>
-      fields: Prisma.VectorChunkFieldRefs
+    MaterialPage: {
+      payload: Prisma.$MaterialPagePayload<ExtArgs>
+      fields: Prisma.MaterialPageFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.VectorChunkFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$VectorChunkPayload> | null
+          args: Prisma.MaterialPageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialPagePayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.VectorChunkFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$VectorChunkPayload>
+          args: Prisma.MaterialPageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialPagePayload>
         }
         findFirst: {
-          args: Prisma.VectorChunkFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$VectorChunkPayload> | null
+          args: Prisma.MaterialPageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialPagePayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.VectorChunkFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$VectorChunkPayload>
+          args: Prisma.MaterialPageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialPagePayload>
         }
         findMany: {
-          args: Prisma.VectorChunkFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$VectorChunkPayload>[]
+          args: Prisma.MaterialPageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialPagePayload>[]
         }
         create: {
-          args: Prisma.VectorChunkCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$VectorChunkPayload>
+          args: Prisma.MaterialPageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialPagePayload>
         }
         createMany: {
-          args: Prisma.VectorChunkCreateManyArgs<ExtArgs>
+          args: Prisma.MaterialPageCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.VectorChunkCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$VectorChunkPayload>[]
+          args: Prisma.MaterialPageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialPagePayload>[]
         }
         delete: {
-          args: Prisma.VectorChunkDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$VectorChunkPayload>
+          args: Prisma.MaterialPageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialPagePayload>
         }
         update: {
-          args: Prisma.VectorChunkUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$VectorChunkPayload>
+          args: Prisma.MaterialPageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialPagePayload>
         }
         deleteMany: {
-          args: Prisma.VectorChunkDeleteManyArgs<ExtArgs>
+          args: Prisma.MaterialPageDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.VectorChunkUpdateManyArgs<ExtArgs>
+          args: Prisma.MaterialPageUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.VectorChunkUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$VectorChunkPayload>[]
+          args: Prisma.MaterialPageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialPagePayload>[]
         }
         upsert: {
-          args: Prisma.VectorChunkUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$VectorChunkPayload>
+          args: Prisma.MaterialPageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialPagePayload>
         }
         aggregate: {
-          args: Prisma.VectorChunkAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateVectorChunk>
+          args: Prisma.MaterialPageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMaterialPage>
         }
         groupBy: {
-          args: Prisma.VectorChunkGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.VectorChunkGroupByOutputType>[]
+          args: Prisma.MaterialPageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MaterialPageGroupByOutputType>[]
         }
         count: {
-          args: Prisma.VectorChunkCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.VectorChunkCountAggregateOutputType> | number
+          args: Prisma.MaterialPageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MaterialPageCountAggregateOutputType> | number
+        }
+      }
+    }
+    MaterialChunk: {
+      payload: Prisma.$MaterialChunkPayload<ExtArgs>
+      fields: Prisma.MaterialChunkFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MaterialChunkFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialChunkPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MaterialChunkFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialChunkPayload>
+        }
+        findFirst: {
+          args: Prisma.MaterialChunkFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialChunkPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MaterialChunkFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialChunkPayload>
+        }
+        findMany: {
+          args: Prisma.MaterialChunkFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialChunkPayload>[]
+        }
+        create: {
+          args: Prisma.MaterialChunkCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialChunkPayload>
+        }
+        createMany: {
+          args: Prisma.MaterialChunkCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MaterialChunkCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialChunkPayload>[]
+        }
+        delete: {
+          args: Prisma.MaterialChunkDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialChunkPayload>
+        }
+        update: {
+          args: Prisma.MaterialChunkUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialChunkPayload>
+        }
+        deleteMany: {
+          args: Prisma.MaterialChunkDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MaterialChunkUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MaterialChunkUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialChunkPayload>[]
+        }
+        upsert: {
+          args: Prisma.MaterialChunkUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialChunkPayload>
+        }
+        aggregate: {
+          args: Prisma.MaterialChunkAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMaterialChunk>
+        }
+        groupBy: {
+          args: Prisma.MaterialChunkGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MaterialChunkGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MaterialChunkCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MaterialChunkCountAggregateOutputType> | number
+        }
+      }
+    }
+    MaterialProcessingLog: {
+      payload: Prisma.$MaterialProcessingLogPayload<ExtArgs>
+      fields: Prisma.MaterialProcessingLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MaterialProcessingLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialProcessingLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MaterialProcessingLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialProcessingLogPayload>
+        }
+        findFirst: {
+          args: Prisma.MaterialProcessingLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialProcessingLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MaterialProcessingLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialProcessingLogPayload>
+        }
+        findMany: {
+          args: Prisma.MaterialProcessingLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialProcessingLogPayload>[]
+        }
+        create: {
+          args: Prisma.MaterialProcessingLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialProcessingLogPayload>
+        }
+        createMany: {
+          args: Prisma.MaterialProcessingLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MaterialProcessingLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialProcessingLogPayload>[]
+        }
+        delete: {
+          args: Prisma.MaterialProcessingLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialProcessingLogPayload>
+        }
+        update: {
+          args: Prisma.MaterialProcessingLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialProcessingLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.MaterialProcessingLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MaterialProcessingLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MaterialProcessingLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialProcessingLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.MaterialProcessingLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaterialProcessingLogPayload>
+        }
+        aggregate: {
+          args: Prisma.MaterialProcessingLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMaterialProcessingLog>
+        }
+        groupBy: {
+          args: Prisma.MaterialProcessingLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MaterialProcessingLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MaterialProcessingLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MaterialProcessingLogCountAggregateOutputType> | number
         }
       }
     }
@@ -1560,22 +1710,68 @@ export const MaterialScalarFieldEnum = {
   fileSize: 'fileSize',
   isActive: 'isActive',
   isProcessed: 'isProcessed',
-  createdAt: 'createdAt'
+  processingStatus: 'processingStatus',
+  processingProgress: 'processingProgress',
+  processingError: 'processingError',
+  processingJobId: 'processingJobId',
+  processingStartedAt: 'processingStartedAt',
+  processingCompletedAt: 'processingCompletedAt',
+  pageCount: 'pageCount',
+  chunkCount: 'chunkCount',
+  embeddingModel: 'embeddingModel',
+  embeddingDimensions: 'embeddingDimensions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type MaterialScalarFieldEnum = (typeof MaterialScalarFieldEnum)[keyof typeof MaterialScalarFieldEnum]
 
 
-export const VectorChunkScalarFieldEnum = {
+export const MaterialPageScalarFieldEnum = {
   id: 'id',
   materialId: 'materialId',
+  pageNumber: 'pageNumber',
+  embeddedText: 'embeddedText',
+  ocrText: 'ocrText',
+  finalText: 'finalText',
+  textCharCount: 'textCharCount',
+  imageOcrAttempted: 'imageOcrAttempted',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MaterialPageScalarFieldEnum = (typeof MaterialPageScalarFieldEnum)[keyof typeof MaterialPageScalarFieldEnum]
+
+
+export const MaterialChunkScalarFieldEnum = {
+  id: 'id',
+  materialId: 'materialId',
+  courseId: 'courseId',
+  sessionId: 'sessionId',
+  pageNumber: 'pageNumber',
   chunkIndex: 'chunkIndex',
   content: 'content',
   tokenCount: 'tokenCount',
+  chunkType: 'chunkType',
+  metadata: 'metadata',
   createdAt: 'createdAt'
 } as const
 
-export type VectorChunkScalarFieldEnum = (typeof VectorChunkScalarFieldEnum)[keyof typeof VectorChunkScalarFieldEnum]
+export type MaterialChunkScalarFieldEnum = (typeof MaterialChunkScalarFieldEnum)[keyof typeof MaterialChunkScalarFieldEnum]
+
+
+export const MaterialProcessingLogScalarFieldEnum = {
+  id: 'id',
+  materialId: 'materialId',
+  status: 'status',
+  message: 'message',
+  error: 'error',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type MaterialProcessingLogScalarFieldEnum = (typeof MaterialProcessingLogScalarFieldEnum)[keyof typeof MaterialProcessingLogScalarFieldEnum]
 
 
 export const AiChatSessionScalarFieldEnum = {
@@ -1861,7 +2057,9 @@ export type GlobalOmitConfig = {
   courseSession?: Prisma.CourseSessionOmit
   enrollmentProgress?: Prisma.EnrollmentProgressOmit
   material?: Prisma.MaterialOmit
-  vectorChunk?: Prisma.VectorChunkOmit
+  materialPage?: Prisma.MaterialPageOmit
+  materialChunk?: Prisma.MaterialChunkOmit
+  materialProcessingLog?: Prisma.MaterialProcessingLogOmit
   aiChatSession?: Prisma.AiChatSessionOmit
   aiChatMessage?: Prisma.AiChatMessageOmit
 }

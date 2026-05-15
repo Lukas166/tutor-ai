@@ -28,10 +28,18 @@ export type AggregateMaterial = {
 
 export type MaterialAvgAggregateOutputType = {
   fileSize: number | null
+  processingProgress: number | null
+  pageCount: number | null
+  chunkCount: number | null
+  embeddingDimensions: number | null
 }
 
 export type MaterialSumAggregateOutputType = {
   fileSize: bigint | null
+  processingProgress: number | null
+  pageCount: number | null
+  chunkCount: number | null
+  embeddingDimensions: number | null
 }
 
 export type MaterialMinAggregateOutputType = {
@@ -50,7 +58,18 @@ export type MaterialMinAggregateOutputType = {
   fileSize: bigint | null
   isActive: boolean | null
   isProcessed: boolean | null
+  processingStatus: string | null
+  processingProgress: number | null
+  processingError: string | null
+  processingJobId: string | null
+  processingStartedAt: Date | null
+  processingCompletedAt: Date | null
+  pageCount: number | null
+  chunkCount: number | null
+  embeddingModel: string | null
+  embeddingDimensions: number | null
   createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type MaterialMaxAggregateOutputType = {
@@ -69,7 +88,18 @@ export type MaterialMaxAggregateOutputType = {
   fileSize: bigint | null
   isActive: boolean | null
   isProcessed: boolean | null
+  processingStatus: string | null
+  processingProgress: number | null
+  processingError: string | null
+  processingJobId: string | null
+  processingStartedAt: Date | null
+  processingCompletedAt: Date | null
+  pageCount: number | null
+  chunkCount: number | null
+  embeddingModel: string | null
+  embeddingDimensions: number | null
   createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type MaterialCountAggregateOutputType = {
@@ -88,17 +118,36 @@ export type MaterialCountAggregateOutputType = {
   fileSize: number
   isActive: number
   isProcessed: number
+  processingStatus: number
+  processingProgress: number
+  processingError: number
+  processingJobId: number
+  processingStartedAt: number
+  processingCompletedAt: number
+  pageCount: number
+  chunkCount: number
+  embeddingModel: number
+  embeddingDimensions: number
   createdAt: number
+  updatedAt: number
   _all: number
 }
 
 
 export type MaterialAvgAggregateInputType = {
   fileSize?: true
+  processingProgress?: true
+  pageCount?: true
+  chunkCount?: true
+  embeddingDimensions?: true
 }
 
 export type MaterialSumAggregateInputType = {
   fileSize?: true
+  processingProgress?: true
+  pageCount?: true
+  chunkCount?: true
+  embeddingDimensions?: true
 }
 
 export type MaterialMinAggregateInputType = {
@@ -117,7 +166,18 @@ export type MaterialMinAggregateInputType = {
   fileSize?: true
   isActive?: true
   isProcessed?: true
+  processingStatus?: true
+  processingProgress?: true
+  processingError?: true
+  processingJobId?: true
+  processingStartedAt?: true
+  processingCompletedAt?: true
+  pageCount?: true
+  chunkCount?: true
+  embeddingModel?: true
+  embeddingDimensions?: true
   createdAt?: true
+  updatedAt?: true
 }
 
 export type MaterialMaxAggregateInputType = {
@@ -136,7 +196,18 @@ export type MaterialMaxAggregateInputType = {
   fileSize?: true
   isActive?: true
   isProcessed?: true
+  processingStatus?: true
+  processingProgress?: true
+  processingError?: true
+  processingJobId?: true
+  processingStartedAt?: true
+  processingCompletedAt?: true
+  pageCount?: true
+  chunkCount?: true
+  embeddingModel?: true
+  embeddingDimensions?: true
   createdAt?: true
+  updatedAt?: true
 }
 
 export type MaterialCountAggregateInputType = {
@@ -155,7 +226,18 @@ export type MaterialCountAggregateInputType = {
   fileSize?: true
   isActive?: true
   isProcessed?: true
+  processingStatus?: true
+  processingProgress?: true
+  processingError?: true
+  processingJobId?: true
+  processingStartedAt?: true
+  processingCompletedAt?: true
+  pageCount?: true
+  chunkCount?: true
+  embeddingModel?: true
+  embeddingDimensions?: true
   createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -261,7 +343,18 @@ export type MaterialGroupByOutputType = {
   fileSize: bigint | null
   isActive: boolean
   isProcessed: boolean
+  processingStatus: string
+  processingProgress: number
+  processingError: string | null
+  processingJobId: string | null
+  processingStartedAt: Date | null
+  processingCompletedAt: Date | null
+  pageCount: number
+  chunkCount: number
+  embeddingModel: string | null
+  embeddingDimensions: number | null
   createdAt: Date
+  updatedAt: Date
   _count: MaterialCountAggregateOutputType | null
   _avg: MaterialAvgAggregateOutputType | null
   _sum: MaterialSumAggregateOutputType | null
@@ -303,10 +396,23 @@ export type MaterialWhereInput = {
   fileSize?: Prisma.BigIntNullableFilter<"Material"> | bigint | number | null
   isActive?: Prisma.BoolFilter<"Material"> | boolean
   isProcessed?: Prisma.BoolFilter<"Material"> | boolean
+  processingStatus?: Prisma.StringFilter<"Material"> | string
+  processingProgress?: Prisma.IntFilter<"Material"> | number
+  processingError?: Prisma.StringNullableFilter<"Material"> | string | null
+  processingJobId?: Prisma.StringNullableFilter<"Material"> | string | null
+  processingStartedAt?: Prisma.DateTimeNullableFilter<"Material"> | Date | string | null
+  processingCompletedAt?: Prisma.DateTimeNullableFilter<"Material"> | Date | string | null
+  pageCount?: Prisma.IntFilter<"Material"> | number
+  chunkCount?: Prisma.IntFilter<"Material"> | number
+  embeddingModel?: Prisma.StringNullableFilter<"Material"> | string | null
+  embeddingDimensions?: Prisma.IntNullableFilter<"Material"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Material"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Material"> | Date | string
   courseSession?: Prisma.XOR<Prisma.CourseSessionScalarRelationFilter, Prisma.CourseSessionWhereInput>
   uploader?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  chunks?: Prisma.VectorChunkListRelationFilter
+  pages?: Prisma.MaterialPageListRelationFilter
+  chunks?: Prisma.MaterialChunkListRelationFilter
+  processingLogs?: Prisma.MaterialProcessingLogListRelationFilter
 }
 
 export type MaterialOrderByWithRelationInput = {
@@ -325,10 +431,23 @@ export type MaterialOrderByWithRelationInput = {
   fileSize?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isProcessed?: Prisma.SortOrder
+  processingStatus?: Prisma.SortOrder
+  processingProgress?: Prisma.SortOrder
+  processingError?: Prisma.SortOrderInput | Prisma.SortOrder
+  processingJobId?: Prisma.SortOrderInput | Prisma.SortOrder
+  processingStartedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  processingCompletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  pageCount?: Prisma.SortOrder
+  chunkCount?: Prisma.SortOrder
+  embeddingModel?: Prisma.SortOrderInput | Prisma.SortOrder
+  embeddingDimensions?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   courseSession?: Prisma.CourseSessionOrderByWithRelationInput
   uploader?: Prisma.UserOrderByWithRelationInput
-  chunks?: Prisma.VectorChunkOrderByRelationAggregateInput
+  pages?: Prisma.MaterialPageOrderByRelationAggregateInput
+  chunks?: Prisma.MaterialChunkOrderByRelationAggregateInput
+  processingLogs?: Prisma.MaterialProcessingLogOrderByRelationAggregateInput
 }
 
 export type MaterialWhereUniqueInput = Prisma.AtLeast<{
@@ -350,10 +469,23 @@ export type MaterialWhereUniqueInput = Prisma.AtLeast<{
   fileSize?: Prisma.BigIntNullableFilter<"Material"> | bigint | number | null
   isActive?: Prisma.BoolFilter<"Material"> | boolean
   isProcessed?: Prisma.BoolFilter<"Material"> | boolean
+  processingStatus?: Prisma.StringFilter<"Material"> | string
+  processingProgress?: Prisma.IntFilter<"Material"> | number
+  processingError?: Prisma.StringNullableFilter<"Material"> | string | null
+  processingJobId?: Prisma.StringNullableFilter<"Material"> | string | null
+  processingStartedAt?: Prisma.DateTimeNullableFilter<"Material"> | Date | string | null
+  processingCompletedAt?: Prisma.DateTimeNullableFilter<"Material"> | Date | string | null
+  pageCount?: Prisma.IntFilter<"Material"> | number
+  chunkCount?: Prisma.IntFilter<"Material"> | number
+  embeddingModel?: Prisma.StringNullableFilter<"Material"> | string | null
+  embeddingDimensions?: Prisma.IntNullableFilter<"Material"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Material"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Material"> | Date | string
   courseSession?: Prisma.XOR<Prisma.CourseSessionScalarRelationFilter, Prisma.CourseSessionWhereInput>
   uploader?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  chunks?: Prisma.VectorChunkListRelationFilter
+  pages?: Prisma.MaterialPageListRelationFilter
+  chunks?: Prisma.MaterialChunkListRelationFilter
+  processingLogs?: Prisma.MaterialProcessingLogListRelationFilter
 }, "id">
 
 export type MaterialOrderByWithAggregationInput = {
@@ -372,7 +504,18 @@ export type MaterialOrderByWithAggregationInput = {
   fileSize?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isProcessed?: Prisma.SortOrder
+  processingStatus?: Prisma.SortOrder
+  processingProgress?: Prisma.SortOrder
+  processingError?: Prisma.SortOrderInput | Prisma.SortOrder
+  processingJobId?: Prisma.SortOrderInput | Prisma.SortOrder
+  processingStartedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  processingCompletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  pageCount?: Prisma.SortOrder
+  chunkCount?: Prisma.SortOrder
+  embeddingModel?: Prisma.SortOrderInput | Prisma.SortOrder
+  embeddingDimensions?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.MaterialCountOrderByAggregateInput
   _avg?: Prisma.MaterialAvgOrderByAggregateInput
   _max?: Prisma.MaterialMaxOrderByAggregateInput
@@ -399,7 +542,18 @@ export type MaterialScalarWhereWithAggregatesInput = {
   fileSize?: Prisma.BigIntNullableWithAggregatesFilter<"Material"> | bigint | number | null
   isActive?: Prisma.BoolWithAggregatesFilter<"Material"> | boolean
   isProcessed?: Prisma.BoolWithAggregatesFilter<"Material"> | boolean
+  processingStatus?: Prisma.StringWithAggregatesFilter<"Material"> | string
+  processingProgress?: Prisma.IntWithAggregatesFilter<"Material"> | number
+  processingError?: Prisma.StringNullableWithAggregatesFilter<"Material"> | string | null
+  processingJobId?: Prisma.StringNullableWithAggregatesFilter<"Material"> | string | null
+  processingStartedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Material"> | Date | string | null
+  processingCompletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Material"> | Date | string | null
+  pageCount?: Prisma.IntWithAggregatesFilter<"Material"> | number
+  chunkCount?: Prisma.IntWithAggregatesFilter<"Material"> | number
+  embeddingModel?: Prisma.StringNullableWithAggregatesFilter<"Material"> | string | null
+  embeddingDimensions?: Prisma.IntNullableWithAggregatesFilter<"Material"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Material"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Material"> | Date | string
 }
 
 export type MaterialCreateInput = {
@@ -416,10 +570,23 @@ export type MaterialCreateInput = {
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
   createdAt?: Date | string
+  updatedAt?: Date | string
   courseSession: Prisma.CourseSessionCreateNestedOneWithoutMaterialsInput
   uploader: Prisma.UserCreateNestedOneWithoutMaterialsUploadedInput
-  chunks?: Prisma.VectorChunkCreateNestedManyWithoutMaterialInput
+  pages?: Prisma.MaterialPageCreateNestedManyWithoutMaterialInput
+  chunks?: Prisma.MaterialChunkCreateNestedManyWithoutMaterialInput
+  processingLogs?: Prisma.MaterialProcessingLogCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialUncheckedCreateInput = {
@@ -438,8 +605,21 @@ export type MaterialUncheckedCreateInput = {
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
   createdAt?: Date | string
-  chunks?: Prisma.VectorChunkUncheckedCreateNestedManyWithoutMaterialInput
+  updatedAt?: Date | string
+  pages?: Prisma.MaterialPageUncheckedCreateNestedManyWithoutMaterialInput
+  chunks?: Prisma.MaterialChunkUncheckedCreateNestedManyWithoutMaterialInput
+  processingLogs?: Prisma.MaterialProcessingLogUncheckedCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialUpdateInput = {
@@ -456,10 +636,23 @@ export type MaterialUpdateInput = {
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   courseSession?: Prisma.CourseSessionUpdateOneRequiredWithoutMaterialsNestedInput
   uploader?: Prisma.UserUpdateOneRequiredWithoutMaterialsUploadedNestedInput
-  chunks?: Prisma.VectorChunkUpdateManyWithoutMaterialNestedInput
+  pages?: Prisma.MaterialPageUpdateManyWithoutMaterialNestedInput
+  chunks?: Prisma.MaterialChunkUpdateManyWithoutMaterialNestedInput
+  processingLogs?: Prisma.MaterialProcessingLogUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialUncheckedUpdateInput = {
@@ -478,8 +671,21 @@ export type MaterialUncheckedUpdateInput = {
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  chunks?: Prisma.VectorChunkUncheckedUpdateManyWithoutMaterialNestedInput
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pages?: Prisma.MaterialPageUncheckedUpdateManyWithoutMaterialNestedInput
+  chunks?: Prisma.MaterialChunkUncheckedUpdateManyWithoutMaterialNestedInput
+  processingLogs?: Prisma.MaterialProcessingLogUncheckedUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialCreateManyInput = {
@@ -498,7 +704,18 @@ export type MaterialCreateManyInput = {
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type MaterialUpdateManyMutationInput = {
@@ -515,7 +732,18 @@ export type MaterialUpdateManyMutationInput = {
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MaterialUncheckedUpdateManyInput = {
@@ -534,7 +762,18 @@ export type MaterialUncheckedUpdateManyInput = {
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MaterialListRelationFilter = {
@@ -563,11 +802,26 @@ export type MaterialCountOrderByAggregateInput = {
   fileSize?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isProcessed?: Prisma.SortOrder
+  processingStatus?: Prisma.SortOrder
+  processingProgress?: Prisma.SortOrder
+  processingError?: Prisma.SortOrder
+  processingJobId?: Prisma.SortOrder
+  processingStartedAt?: Prisma.SortOrder
+  processingCompletedAt?: Prisma.SortOrder
+  pageCount?: Prisma.SortOrder
+  chunkCount?: Prisma.SortOrder
+  embeddingModel?: Prisma.SortOrder
+  embeddingDimensions?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type MaterialAvgOrderByAggregateInput = {
   fileSize?: Prisma.SortOrder
+  processingProgress?: Prisma.SortOrder
+  pageCount?: Prisma.SortOrder
+  chunkCount?: Prisma.SortOrder
+  embeddingDimensions?: Prisma.SortOrder
 }
 
 export type MaterialMaxOrderByAggregateInput = {
@@ -586,7 +840,18 @@ export type MaterialMaxOrderByAggregateInput = {
   fileSize?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isProcessed?: Prisma.SortOrder
+  processingStatus?: Prisma.SortOrder
+  processingProgress?: Prisma.SortOrder
+  processingError?: Prisma.SortOrder
+  processingJobId?: Prisma.SortOrder
+  processingStartedAt?: Prisma.SortOrder
+  processingCompletedAt?: Prisma.SortOrder
+  pageCount?: Prisma.SortOrder
+  chunkCount?: Prisma.SortOrder
+  embeddingModel?: Prisma.SortOrder
+  embeddingDimensions?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type MaterialMinOrderByAggregateInput = {
@@ -605,11 +870,26 @@ export type MaterialMinOrderByAggregateInput = {
   fileSize?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   isProcessed?: Prisma.SortOrder
+  processingStatus?: Prisma.SortOrder
+  processingProgress?: Prisma.SortOrder
+  processingError?: Prisma.SortOrder
+  processingJobId?: Prisma.SortOrder
+  processingStartedAt?: Prisma.SortOrder
+  processingCompletedAt?: Prisma.SortOrder
+  pageCount?: Prisma.SortOrder
+  chunkCount?: Prisma.SortOrder
+  embeddingModel?: Prisma.SortOrder
+  embeddingDimensions?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type MaterialSumOrderByAggregateInput = {
   fileSize?: Prisma.SortOrder
+  processingProgress?: Prisma.SortOrder
+  pageCount?: Prisma.SortOrder
+  chunkCount?: Prisma.SortOrder
+  embeddingDimensions?: Prisma.SortOrder
 }
 
 export type MaterialScalarRelationFilter = {
@@ -709,6 +989,28 @@ export type NullableBigIntFieldUpdateOperationsInput = {
   divide?: bigint | number
 }
 
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type MaterialCreateNestedOneWithoutPagesInput = {
+  create?: Prisma.XOR<Prisma.MaterialCreateWithoutPagesInput, Prisma.MaterialUncheckedCreateWithoutPagesInput>
+  connectOrCreate?: Prisma.MaterialCreateOrConnectWithoutPagesInput
+  connect?: Prisma.MaterialWhereUniqueInput
+}
+
+export type MaterialUpdateOneRequiredWithoutPagesNestedInput = {
+  create?: Prisma.XOR<Prisma.MaterialCreateWithoutPagesInput, Prisma.MaterialUncheckedCreateWithoutPagesInput>
+  connectOrCreate?: Prisma.MaterialCreateOrConnectWithoutPagesInput
+  upsert?: Prisma.MaterialUpsertWithoutPagesInput
+  connect?: Prisma.MaterialWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MaterialUpdateToOneWithWhereWithoutPagesInput, Prisma.MaterialUpdateWithoutPagesInput>, Prisma.MaterialUncheckedUpdateWithoutPagesInput>
+}
+
 export type MaterialCreateNestedOneWithoutChunksInput = {
   create?: Prisma.XOR<Prisma.MaterialCreateWithoutChunksInput, Prisma.MaterialUncheckedCreateWithoutChunksInput>
   connectOrCreate?: Prisma.MaterialCreateOrConnectWithoutChunksInput
@@ -721,6 +1023,20 @@ export type MaterialUpdateOneRequiredWithoutChunksNestedInput = {
   upsert?: Prisma.MaterialUpsertWithoutChunksInput
   connect?: Prisma.MaterialWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.MaterialUpdateToOneWithWhereWithoutChunksInput, Prisma.MaterialUpdateWithoutChunksInput>, Prisma.MaterialUncheckedUpdateWithoutChunksInput>
+}
+
+export type MaterialCreateNestedOneWithoutProcessingLogsInput = {
+  create?: Prisma.XOR<Prisma.MaterialCreateWithoutProcessingLogsInput, Prisma.MaterialUncheckedCreateWithoutProcessingLogsInput>
+  connectOrCreate?: Prisma.MaterialCreateOrConnectWithoutProcessingLogsInput
+  connect?: Prisma.MaterialWhereUniqueInput
+}
+
+export type MaterialUpdateOneRequiredWithoutProcessingLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.MaterialCreateWithoutProcessingLogsInput, Prisma.MaterialUncheckedCreateWithoutProcessingLogsInput>
+  connectOrCreate?: Prisma.MaterialCreateOrConnectWithoutProcessingLogsInput
+  upsert?: Prisma.MaterialUpsertWithoutProcessingLogsInput
+  connect?: Prisma.MaterialWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MaterialUpdateToOneWithWhereWithoutProcessingLogsInput, Prisma.MaterialUpdateWithoutProcessingLogsInput>, Prisma.MaterialUncheckedUpdateWithoutProcessingLogsInput>
 }
 
 export type MaterialCreateWithoutUploaderInput = {
@@ -737,9 +1053,22 @@ export type MaterialCreateWithoutUploaderInput = {
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
   createdAt?: Date | string
+  updatedAt?: Date | string
   courseSession: Prisma.CourseSessionCreateNestedOneWithoutMaterialsInput
-  chunks?: Prisma.VectorChunkCreateNestedManyWithoutMaterialInput
+  pages?: Prisma.MaterialPageCreateNestedManyWithoutMaterialInput
+  chunks?: Prisma.MaterialChunkCreateNestedManyWithoutMaterialInput
+  processingLogs?: Prisma.MaterialProcessingLogCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialUncheckedCreateWithoutUploaderInput = {
@@ -757,8 +1086,21 @@ export type MaterialUncheckedCreateWithoutUploaderInput = {
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
   createdAt?: Date | string
-  chunks?: Prisma.VectorChunkUncheckedCreateNestedManyWithoutMaterialInput
+  updatedAt?: Date | string
+  pages?: Prisma.MaterialPageUncheckedCreateNestedManyWithoutMaterialInput
+  chunks?: Prisma.MaterialChunkUncheckedCreateNestedManyWithoutMaterialInput
+  processingLogs?: Prisma.MaterialProcessingLogUncheckedCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialCreateOrConnectWithoutUploaderInput = {
@@ -806,7 +1148,18 @@ export type MaterialScalarWhereInput = {
   fileSize?: Prisma.BigIntNullableFilter<"Material"> | bigint | number | null
   isActive?: Prisma.BoolFilter<"Material"> | boolean
   isProcessed?: Prisma.BoolFilter<"Material"> | boolean
+  processingStatus?: Prisma.StringFilter<"Material"> | string
+  processingProgress?: Prisma.IntFilter<"Material"> | number
+  processingError?: Prisma.StringNullableFilter<"Material"> | string | null
+  processingJobId?: Prisma.StringNullableFilter<"Material"> | string | null
+  processingStartedAt?: Prisma.DateTimeNullableFilter<"Material"> | Date | string | null
+  processingCompletedAt?: Prisma.DateTimeNullableFilter<"Material"> | Date | string | null
+  pageCount?: Prisma.IntFilter<"Material"> | number
+  chunkCount?: Prisma.IntFilter<"Material"> | number
+  embeddingModel?: Prisma.StringNullableFilter<"Material"> | string | null
+  embeddingDimensions?: Prisma.IntNullableFilter<"Material"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Material"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Material"> | Date | string
 }
 
 export type MaterialCreateWithoutCourseSessionInput = {
@@ -823,9 +1176,22 @@ export type MaterialCreateWithoutCourseSessionInput = {
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
   createdAt?: Date | string
+  updatedAt?: Date | string
   uploader: Prisma.UserCreateNestedOneWithoutMaterialsUploadedInput
-  chunks?: Prisma.VectorChunkCreateNestedManyWithoutMaterialInput
+  pages?: Prisma.MaterialPageCreateNestedManyWithoutMaterialInput
+  chunks?: Prisma.MaterialChunkCreateNestedManyWithoutMaterialInput
+  processingLogs?: Prisma.MaterialProcessingLogCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialUncheckedCreateWithoutCourseSessionInput = {
@@ -843,8 +1209,21 @@ export type MaterialUncheckedCreateWithoutCourseSessionInput = {
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
   createdAt?: Date | string
-  chunks?: Prisma.VectorChunkUncheckedCreateNestedManyWithoutMaterialInput
+  updatedAt?: Date | string
+  pages?: Prisma.MaterialPageUncheckedCreateNestedManyWithoutMaterialInput
+  chunks?: Prisma.MaterialChunkUncheckedCreateNestedManyWithoutMaterialInput
+  processingLogs?: Prisma.MaterialProcessingLogUncheckedCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialCreateOrConnectWithoutCourseSessionInput = {
@@ -873,6 +1252,150 @@ export type MaterialUpdateManyWithWhereWithoutCourseSessionInput = {
   data: Prisma.XOR<Prisma.MaterialUpdateManyMutationInput, Prisma.MaterialUncheckedUpdateManyWithoutCourseSessionInput>
 }
 
+export type MaterialCreateWithoutPagesInput = {
+  id: string
+  title: string
+  materialType?: string
+  description?: string | null
+  fileName: string
+  filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
+  fileSize?: bigint | number | null
+  isActive?: boolean
+  isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  courseSession: Prisma.CourseSessionCreateNestedOneWithoutMaterialsInput
+  uploader: Prisma.UserCreateNestedOneWithoutMaterialsUploadedInput
+  chunks?: Prisma.MaterialChunkCreateNestedManyWithoutMaterialInput
+  processingLogs?: Prisma.MaterialProcessingLogCreateNestedManyWithoutMaterialInput
+}
+
+export type MaterialUncheckedCreateWithoutPagesInput = {
+  id: string
+  courseSessionId: string
+  uploadedBy: string
+  title: string
+  materialType?: string
+  description?: string | null
+  fileName: string
+  filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
+  fileSize?: bigint | number | null
+  isActive?: boolean
+  isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  chunks?: Prisma.MaterialChunkUncheckedCreateNestedManyWithoutMaterialInput
+  processingLogs?: Prisma.MaterialProcessingLogUncheckedCreateNestedManyWithoutMaterialInput
+}
+
+export type MaterialCreateOrConnectWithoutPagesInput = {
+  where: Prisma.MaterialWhereUniqueInput
+  create: Prisma.XOR<Prisma.MaterialCreateWithoutPagesInput, Prisma.MaterialUncheckedCreateWithoutPagesInput>
+}
+
+export type MaterialUpsertWithoutPagesInput = {
+  update: Prisma.XOR<Prisma.MaterialUpdateWithoutPagesInput, Prisma.MaterialUncheckedUpdateWithoutPagesInput>
+  create: Prisma.XOR<Prisma.MaterialCreateWithoutPagesInput, Prisma.MaterialUncheckedCreateWithoutPagesInput>
+  where?: Prisma.MaterialWhereInput
+}
+
+export type MaterialUpdateToOneWithWhereWithoutPagesInput = {
+  where?: Prisma.MaterialWhereInput
+  data: Prisma.XOR<Prisma.MaterialUpdateWithoutPagesInput, Prisma.MaterialUncheckedUpdateWithoutPagesInput>
+}
+
+export type MaterialUpdateWithoutPagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileName?: Prisma.StringFieldUpdateOperationsInput | string
+  filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  courseSession?: Prisma.CourseSessionUpdateOneRequiredWithoutMaterialsNestedInput
+  uploader?: Prisma.UserUpdateOneRequiredWithoutMaterialsUploadedNestedInput
+  chunks?: Prisma.MaterialChunkUpdateManyWithoutMaterialNestedInput
+  processingLogs?: Prisma.MaterialProcessingLogUpdateManyWithoutMaterialNestedInput
+}
+
+export type MaterialUncheckedUpdateWithoutPagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  courseSessionId?: Prisma.StringFieldUpdateOperationsInput | string
+  uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileName?: Prisma.StringFieldUpdateOperationsInput | string
+  filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  chunks?: Prisma.MaterialChunkUncheckedUpdateManyWithoutMaterialNestedInput
+  processingLogs?: Prisma.MaterialProcessingLogUncheckedUpdateManyWithoutMaterialNestedInput
+}
+
 export type MaterialCreateWithoutChunksInput = {
   id: string
   title: string
@@ -887,9 +1410,22 @@ export type MaterialCreateWithoutChunksInput = {
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
   createdAt?: Date | string
+  updatedAt?: Date | string
   courseSession: Prisma.CourseSessionCreateNestedOneWithoutMaterialsInput
   uploader: Prisma.UserCreateNestedOneWithoutMaterialsUploadedInput
+  pages?: Prisma.MaterialPageCreateNestedManyWithoutMaterialInput
+  processingLogs?: Prisma.MaterialProcessingLogCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialUncheckedCreateWithoutChunksInput = {
@@ -908,7 +1444,20 @@ export type MaterialUncheckedCreateWithoutChunksInput = {
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
   createdAt?: Date | string
+  updatedAt?: Date | string
+  pages?: Prisma.MaterialPageUncheckedCreateNestedManyWithoutMaterialInput
+  processingLogs?: Prisma.MaterialProcessingLogUncheckedCreateNestedManyWithoutMaterialInput
 }
 
 export type MaterialCreateOrConnectWithoutChunksInput = {
@@ -941,9 +1490,22 @@ export type MaterialUpdateWithoutChunksInput = {
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   courseSession?: Prisma.CourseSessionUpdateOneRequiredWithoutMaterialsNestedInput
   uploader?: Prisma.UserUpdateOneRequiredWithoutMaterialsUploadedNestedInput
+  pages?: Prisma.MaterialPageUpdateManyWithoutMaterialNestedInput
+  processingLogs?: Prisma.MaterialProcessingLogUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialUncheckedUpdateWithoutChunksInput = {
@@ -962,7 +1524,164 @@ export type MaterialUncheckedUpdateWithoutChunksInput = {
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pages?: Prisma.MaterialPageUncheckedUpdateManyWithoutMaterialNestedInput
+  processingLogs?: Prisma.MaterialProcessingLogUncheckedUpdateManyWithoutMaterialNestedInput
+}
+
+export type MaterialCreateWithoutProcessingLogsInput = {
+  id: string
+  title: string
+  materialType?: string
+  description?: string | null
+  fileName: string
+  filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
+  fileSize?: bigint | number | null
+  isActive?: boolean
+  isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  courseSession: Prisma.CourseSessionCreateNestedOneWithoutMaterialsInput
+  uploader: Prisma.UserCreateNestedOneWithoutMaterialsUploadedInput
+  pages?: Prisma.MaterialPageCreateNestedManyWithoutMaterialInput
+  chunks?: Prisma.MaterialChunkCreateNestedManyWithoutMaterialInput
+}
+
+export type MaterialUncheckedCreateWithoutProcessingLogsInput = {
+  id: string
+  courseSessionId: string
+  uploadedBy: string
+  title: string
+  materialType?: string
+  description?: string | null
+  fileName: string
+  filePath: string
+  storagePath?: string | null
+  publicUrl?: string | null
+  externalUrl?: string | null
+  textContent?: string | null
+  fileSize?: bigint | number | null
+  isActive?: boolean
+  isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  pages?: Prisma.MaterialPageUncheckedCreateNestedManyWithoutMaterialInput
+  chunks?: Prisma.MaterialChunkUncheckedCreateNestedManyWithoutMaterialInput
+}
+
+export type MaterialCreateOrConnectWithoutProcessingLogsInput = {
+  where: Prisma.MaterialWhereUniqueInput
+  create: Prisma.XOR<Prisma.MaterialCreateWithoutProcessingLogsInput, Prisma.MaterialUncheckedCreateWithoutProcessingLogsInput>
+}
+
+export type MaterialUpsertWithoutProcessingLogsInput = {
+  update: Prisma.XOR<Prisma.MaterialUpdateWithoutProcessingLogsInput, Prisma.MaterialUncheckedUpdateWithoutProcessingLogsInput>
+  create: Prisma.XOR<Prisma.MaterialCreateWithoutProcessingLogsInput, Prisma.MaterialUncheckedCreateWithoutProcessingLogsInput>
+  where?: Prisma.MaterialWhereInput
+}
+
+export type MaterialUpdateToOneWithWhereWithoutProcessingLogsInput = {
+  where?: Prisma.MaterialWhereInput
+  data: Prisma.XOR<Prisma.MaterialUpdateWithoutProcessingLogsInput, Prisma.MaterialUncheckedUpdateWithoutProcessingLogsInput>
+}
+
+export type MaterialUpdateWithoutProcessingLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileName?: Prisma.StringFieldUpdateOperationsInput | string
+  filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  courseSession?: Prisma.CourseSessionUpdateOneRequiredWithoutMaterialsNestedInput
+  uploader?: Prisma.UserUpdateOneRequiredWithoutMaterialsUploadedNestedInput
+  pages?: Prisma.MaterialPageUpdateManyWithoutMaterialNestedInput
+  chunks?: Prisma.MaterialChunkUpdateManyWithoutMaterialNestedInput
+}
+
+export type MaterialUncheckedUpdateWithoutProcessingLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  courseSessionId?: Prisma.StringFieldUpdateOperationsInput | string
+  uploadedBy?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  materialType?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileName?: Prisma.StringFieldUpdateOperationsInput | string
+  filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  storagePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  externalUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  textContent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pages?: Prisma.MaterialPageUncheckedUpdateManyWithoutMaterialNestedInput
+  chunks?: Prisma.MaterialChunkUncheckedUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialCreateManyUploaderInput = {
@@ -980,7 +1699,18 @@ export type MaterialCreateManyUploaderInput = {
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type MaterialUpdateWithoutUploaderInput = {
@@ -997,9 +1727,22 @@ export type MaterialUpdateWithoutUploaderInput = {
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   courseSession?: Prisma.CourseSessionUpdateOneRequiredWithoutMaterialsNestedInput
-  chunks?: Prisma.VectorChunkUpdateManyWithoutMaterialNestedInput
+  pages?: Prisma.MaterialPageUpdateManyWithoutMaterialNestedInput
+  chunks?: Prisma.MaterialChunkUpdateManyWithoutMaterialNestedInput
+  processingLogs?: Prisma.MaterialProcessingLogUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialUncheckedUpdateWithoutUploaderInput = {
@@ -1017,8 +1760,21 @@ export type MaterialUncheckedUpdateWithoutUploaderInput = {
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  chunks?: Prisma.VectorChunkUncheckedUpdateManyWithoutMaterialNestedInput
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pages?: Prisma.MaterialPageUncheckedUpdateManyWithoutMaterialNestedInput
+  chunks?: Prisma.MaterialChunkUncheckedUpdateManyWithoutMaterialNestedInput
+  processingLogs?: Prisma.MaterialProcessingLogUncheckedUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialUncheckedUpdateManyWithoutUploaderInput = {
@@ -1036,7 +1792,18 @@ export type MaterialUncheckedUpdateManyWithoutUploaderInput = {
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MaterialCreateManyCourseSessionInput = {
@@ -1054,7 +1821,18 @@ export type MaterialCreateManyCourseSessionInput = {
   fileSize?: bigint | number | null
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: string
+  processingProgress?: number
+  processingError?: string | null
+  processingJobId?: string | null
+  processingStartedAt?: Date | string | null
+  processingCompletedAt?: Date | string | null
+  pageCount?: number
+  chunkCount?: number
+  embeddingModel?: string | null
+  embeddingDimensions?: number | null
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type MaterialUpdateWithoutCourseSessionInput = {
@@ -1071,9 +1849,22 @@ export type MaterialUpdateWithoutCourseSessionInput = {
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   uploader?: Prisma.UserUpdateOneRequiredWithoutMaterialsUploadedNestedInput
-  chunks?: Prisma.VectorChunkUpdateManyWithoutMaterialNestedInput
+  pages?: Prisma.MaterialPageUpdateManyWithoutMaterialNestedInput
+  chunks?: Prisma.MaterialChunkUpdateManyWithoutMaterialNestedInput
+  processingLogs?: Prisma.MaterialProcessingLogUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialUncheckedUpdateWithoutCourseSessionInput = {
@@ -1091,8 +1882,21 @@ export type MaterialUncheckedUpdateWithoutCourseSessionInput = {
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  chunks?: Prisma.VectorChunkUncheckedUpdateManyWithoutMaterialNestedInput
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pages?: Prisma.MaterialPageUncheckedUpdateManyWithoutMaterialNestedInput
+  chunks?: Prisma.MaterialChunkUncheckedUpdateManyWithoutMaterialNestedInput
+  processingLogs?: Prisma.MaterialProcessingLogUncheckedUpdateManyWithoutMaterialNestedInput
 }
 
 export type MaterialUncheckedUpdateManyWithoutCourseSessionInput = {
@@ -1110,7 +1914,18 @@ export type MaterialUncheckedUpdateManyWithoutCourseSessionInput = {
   fileSize?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isProcessed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  processingStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  processingProgress?: Prisma.IntFieldUpdateOperationsInput | number
+  processingError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processingStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  processingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pageCount?: Prisma.IntFieldUpdateOperationsInput | number
+  chunkCount?: Prisma.IntFieldUpdateOperationsInput | number
+  embeddingModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  embeddingDimensions?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -1119,11 +1934,15 @@ export type MaterialUncheckedUpdateManyWithoutCourseSessionInput = {
  */
 
 export type MaterialCountOutputType = {
+  pages: number
   chunks: number
+  processingLogs: number
 }
 
 export type MaterialCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  pages?: boolean | MaterialCountOutputTypeCountPagesArgs
   chunks?: boolean | MaterialCountOutputTypeCountChunksArgs
+  processingLogs?: boolean | MaterialCountOutputTypeCountProcessingLogsArgs
 }
 
 /**
@@ -1139,8 +1958,22 @@ export type MaterialCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Ext
 /**
  * MaterialCountOutputType without action
  */
+export type MaterialCountOutputTypeCountPagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MaterialPageWhereInput
+}
+
+/**
+ * MaterialCountOutputType without action
+ */
 export type MaterialCountOutputTypeCountChunksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.VectorChunkWhereInput
+  where?: Prisma.MaterialChunkWhereInput
+}
+
+/**
+ * MaterialCountOutputType without action
+ */
+export type MaterialCountOutputTypeCountProcessingLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MaterialProcessingLogWhereInput
 }
 
 
@@ -1160,10 +1993,23 @@ export type MaterialSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   fileSize?: boolean
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: boolean
+  processingProgress?: boolean
+  processingError?: boolean
+  processingJobId?: boolean
+  processingStartedAt?: boolean
+  processingCompletedAt?: boolean
+  pageCount?: boolean
+  chunkCount?: boolean
+  embeddingModel?: boolean
+  embeddingDimensions?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   courseSession?: boolean | Prisma.CourseSessionDefaultArgs<ExtArgs>
   uploader?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  pages?: boolean | Prisma.Material$pagesArgs<ExtArgs>
   chunks?: boolean | Prisma.Material$chunksArgs<ExtArgs>
+  processingLogs?: boolean | Prisma.Material$processingLogsArgs<ExtArgs>
   _count?: boolean | Prisma.MaterialCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["material"]>
 
@@ -1183,7 +2029,18 @@ export type MaterialSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   fileSize?: boolean
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: boolean
+  processingProgress?: boolean
+  processingError?: boolean
+  processingJobId?: boolean
+  processingStartedAt?: boolean
+  processingCompletedAt?: boolean
+  pageCount?: boolean
+  chunkCount?: boolean
+  embeddingModel?: boolean
+  embeddingDimensions?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   courseSession?: boolean | Prisma.CourseSessionDefaultArgs<ExtArgs>
   uploader?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["material"]>
@@ -1204,7 +2061,18 @@ export type MaterialSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   fileSize?: boolean
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: boolean
+  processingProgress?: boolean
+  processingError?: boolean
+  processingJobId?: boolean
+  processingStartedAt?: boolean
+  processingCompletedAt?: boolean
+  pageCount?: boolean
+  chunkCount?: boolean
+  embeddingModel?: boolean
+  embeddingDimensions?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   courseSession?: boolean | Prisma.CourseSessionDefaultArgs<ExtArgs>
   uploader?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["material"]>
@@ -1225,14 +2093,27 @@ export type MaterialSelectScalar = {
   fileSize?: boolean
   isActive?: boolean
   isProcessed?: boolean
+  processingStatus?: boolean
+  processingProgress?: boolean
+  processingError?: boolean
+  processingJobId?: boolean
+  processingStartedAt?: boolean
+  processingCompletedAt?: boolean
+  pageCount?: boolean
+  chunkCount?: boolean
+  embeddingModel?: boolean
+  embeddingDimensions?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type MaterialOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "courseSessionId" | "uploadedBy" | "title" | "materialType" | "description" | "fileName" | "filePath" | "storagePath" | "publicUrl" | "externalUrl" | "textContent" | "fileSize" | "isActive" | "isProcessed" | "createdAt", ExtArgs["result"]["material"]>
+export type MaterialOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "courseSessionId" | "uploadedBy" | "title" | "materialType" | "description" | "fileName" | "filePath" | "storagePath" | "publicUrl" | "externalUrl" | "textContent" | "fileSize" | "isActive" | "isProcessed" | "processingStatus" | "processingProgress" | "processingError" | "processingJobId" | "processingStartedAt" | "processingCompletedAt" | "pageCount" | "chunkCount" | "embeddingModel" | "embeddingDimensions" | "createdAt" | "updatedAt", ExtArgs["result"]["material"]>
 export type MaterialInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   courseSession?: boolean | Prisma.CourseSessionDefaultArgs<ExtArgs>
   uploader?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  pages?: boolean | Prisma.Material$pagesArgs<ExtArgs>
   chunks?: boolean | Prisma.Material$chunksArgs<ExtArgs>
+  processingLogs?: boolean | Prisma.Material$processingLogsArgs<ExtArgs>
   _count?: boolean | Prisma.MaterialCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MaterialIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1249,7 +2130,9 @@ export type $MaterialPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   objects: {
     courseSession: Prisma.$CourseSessionPayload<ExtArgs>
     uploader: Prisma.$UserPayload<ExtArgs>
-    chunks: Prisma.$VectorChunkPayload<ExtArgs>[]
+    pages: Prisma.$MaterialPagePayload<ExtArgs>[]
+    chunks: Prisma.$MaterialChunkPayload<ExtArgs>[]
+    processingLogs: Prisma.$MaterialProcessingLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1267,7 +2150,18 @@ export type $MaterialPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     fileSize: bigint | null
     isActive: boolean
     isProcessed: boolean
+    processingStatus: string
+    processingProgress: number
+    processingError: string | null
+    processingJobId: string | null
+    processingStartedAt: Date | null
+    processingCompletedAt: Date | null
+    pageCount: number
+    chunkCount: number
+    embeddingModel: string | null
+    embeddingDimensions: number | null
     createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["material"]>
   composites: {}
 }
@@ -1664,7 +2558,9 @@ export interface Prisma__MaterialClient<T, Null = never, ExtArgs extends runtime
   readonly [Symbol.toStringTag]: "PrismaPromise"
   courseSession<T extends Prisma.CourseSessionDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CourseSessionDefaultArgs<ExtArgs>>): Prisma.Prisma__CourseSessionClient<runtime.Types.Result.GetResult<Prisma.$CourseSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   uploader<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  chunks<T extends Prisma.Material$chunksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Material$chunksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VectorChunkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  pages<T extends Prisma.Material$pagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Material$pagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialPagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  chunks<T extends Prisma.Material$chunksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Material$chunksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialChunkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  processingLogs<T extends Prisma.Material$processingLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Material$processingLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialProcessingLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1709,7 +2605,18 @@ export interface MaterialFieldRefs {
   readonly fileSize: Prisma.FieldRef<"Material", 'BigInt'>
   readonly isActive: Prisma.FieldRef<"Material", 'Boolean'>
   readonly isProcessed: Prisma.FieldRef<"Material", 'Boolean'>
+  readonly processingStatus: Prisma.FieldRef<"Material", 'String'>
+  readonly processingProgress: Prisma.FieldRef<"Material", 'Int'>
+  readonly processingError: Prisma.FieldRef<"Material", 'String'>
+  readonly processingJobId: Prisma.FieldRef<"Material", 'String'>
+  readonly processingStartedAt: Prisma.FieldRef<"Material", 'DateTime'>
+  readonly processingCompletedAt: Prisma.FieldRef<"Material", 'DateTime'>
+  readonly pageCount: Prisma.FieldRef<"Material", 'Int'>
+  readonly chunkCount: Prisma.FieldRef<"Material", 'Int'>
+  readonly embeddingModel: Prisma.FieldRef<"Material", 'String'>
+  readonly embeddingDimensions: Prisma.FieldRef<"Material", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Material", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"Material", 'DateTime'>
 }
     
 
@@ -2111,27 +3018,75 @@ export type MaterialDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
 }
 
 /**
+ * Material.pages
+ */
+export type Material$pagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MaterialPage
+   */
+  select?: Prisma.MaterialPageSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MaterialPage
+   */
+  omit?: Prisma.MaterialPageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MaterialPageInclude<ExtArgs> | null
+  where?: Prisma.MaterialPageWhereInput
+  orderBy?: Prisma.MaterialPageOrderByWithRelationInput | Prisma.MaterialPageOrderByWithRelationInput[]
+  cursor?: Prisma.MaterialPageWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MaterialPageScalarFieldEnum | Prisma.MaterialPageScalarFieldEnum[]
+}
+
+/**
  * Material.chunks
  */
 export type Material$chunksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the VectorChunk
+   * Select specific fields to fetch from the MaterialChunk
    */
-  select?: Prisma.VectorChunkSelect<ExtArgs> | null
+  select?: Prisma.MaterialChunkSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the VectorChunk
+   * Omit specific fields from the MaterialChunk
    */
-  omit?: Prisma.VectorChunkOmit<ExtArgs> | null
+  omit?: Prisma.MaterialChunkOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.VectorChunkInclude<ExtArgs> | null
-  where?: Prisma.VectorChunkWhereInput
-  orderBy?: Prisma.VectorChunkOrderByWithRelationInput | Prisma.VectorChunkOrderByWithRelationInput[]
-  cursor?: Prisma.VectorChunkWhereUniqueInput
+  include?: Prisma.MaterialChunkInclude<ExtArgs> | null
+  where?: Prisma.MaterialChunkWhereInput
+  orderBy?: Prisma.MaterialChunkOrderByWithRelationInput | Prisma.MaterialChunkOrderByWithRelationInput[]
+  cursor?: Prisma.MaterialChunkWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.VectorChunkScalarFieldEnum | Prisma.VectorChunkScalarFieldEnum[]
+  distinct?: Prisma.MaterialChunkScalarFieldEnum | Prisma.MaterialChunkScalarFieldEnum[]
+}
+
+/**
+ * Material.processingLogs
+ */
+export type Material$processingLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MaterialProcessingLog
+   */
+  select?: Prisma.MaterialProcessingLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MaterialProcessingLog
+   */
+  omit?: Prisma.MaterialProcessingLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MaterialProcessingLogInclude<ExtArgs> | null
+  where?: Prisma.MaterialProcessingLogWhereInput
+  orderBy?: Prisma.MaterialProcessingLogOrderByWithRelationInput | Prisma.MaterialProcessingLogOrderByWithRelationInput[]
+  cursor?: Prisma.MaterialProcessingLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MaterialProcessingLogScalarFieldEnum | Prisma.MaterialProcessingLogScalarFieldEnum[]
 }
 
 /**

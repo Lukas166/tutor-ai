@@ -92,10 +92,20 @@ export type EnrollmentProgress = Prisma.EnrollmentProgressModel
  */
 export type Material = Prisma.MaterialModel
 /**
- * Model VectorChunk
+ * Model MaterialPage
  * 
  */
-export type VectorChunk = Prisma.VectorChunkModel
+export type MaterialPage = Prisma.MaterialPageModel
+/**
+ * Model MaterialChunk
+ * 
+ */
+export type MaterialChunk = Prisma.MaterialChunkModel
+/**
+ * Model MaterialProcessingLog
+ * 
+ */
+export type MaterialProcessingLog = Prisma.MaterialProcessingLogModel
 /**
  * Model AiChatSession
  * 
