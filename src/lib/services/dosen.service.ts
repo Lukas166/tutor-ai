@@ -1,6 +1,13 @@
 import prisma from "@/lib/prisma";
 import type { CreateCourseInput } from "@/lib/schemas/course.schema";
 
+export class DosenServiceError extends Error {
+  constructor(message: string, readonly status = 400) {
+    super(message);
+    this.name = "DosenServiceError";
+  }
+}
+
 /* ─── Helpers ──────────────────────────────────────── */
 
 function generateEnrollmentKey(): string {
@@ -19,6 +26,34 @@ function serializeBigInt<T>(obj: T): T {
       typeof value === "bigint" ? value.toString() : value
     )
   ) as T;
+}
+
+function assertEnrollmentKey(expectedKey: string, submittedKey: string) {
+  if (submittedKey.trim().toUpperCase() !== expectedKey.toUpperCase()) {
+    throw new DosenServiceError("Enrollment key tidak sesuai", 400);
+  }
+}
+
+async function getAuthorizedCourse(courseId: string, dosenId: string) {
+  const course = await prisma.course.findFirst({
+    where: {
+      id: courseId,
+      instructors: { some: { userId: dosenId } },
+    },
+    select: { id: true, enrollmentKey: true },
+  });
+
+  if (!course) {
+    throw new DosenServiceError("Course tidak ditemukan", 404);
+  }
+
+  return course;
+}
+
+async function verifyCourseKey(courseId: string, dosenId: string, enrollmentKey: string) {
+  const course = await getAuthorizedCourse(courseId, dosenId);
+  assertEnrollmentKey(course.enrollmentKey, enrollmentKey);
+  return course;
 }
 
 /* ─── Courses ──────────────────────────────────────── */
@@ -96,6 +131,33 @@ export async function getDosenCourseById(courseId: string, dosenId: string) {
   if (!isInstructor) return null;
 
   return course;
+}
+
+export async function updateDosenCourseStatus(
+  courseId: string,
+  dosenId: string,
+  enrollmentKey: string,
+  isActive: boolean
+) {
+  await verifyCourseKey(courseId, dosenId, enrollmentKey);
+
+  await prisma.course.update({
+    where: { id: courseId },
+    data: { isActive },
+  });
+
+  return getDosenCourseById(courseId, dosenId);
+}
+
+export async function deleteDosenCourse(
+  courseId: string,
+  dosenId: string,
+  enrollmentKey: string
+) {
+  await verifyCourseKey(courseId, dosenId, enrollmentKey);
+
+  await prisma.course.delete({ where: { id: courseId } });
+  return { success: true };
 }
 
 /* ─── Stats ────────────────────────────────────────── */
@@ -209,6 +271,51 @@ export async function getCourseSessionInCourse(courseId: string, sessionId: stri
   });
 }
 
+export async function updateCourseSessionStatus(
+  courseId: string,
+  sessionId: string,
+  dosenId: string,
+  enrollmentKey: string,
+  isActive: boolean
+) {
+  await verifyCourseKey(courseId, dosenId, enrollmentKey);
+
+  const session = await prisma.courseSession.findFirst({
+    where: { id: sessionId, courseId },
+    select: { id: true },
+  });
+
+  if (!session) {
+    throw new DosenServiceError("Sesi tidak ditemukan", 404);
+  }
+
+  return prisma.courseSession.update({
+    where: { id: sessionId },
+    data: { isActive },
+  });
+}
+
+export async function deleteCourseSession(
+  courseId: string,
+  sessionId: string,
+  dosenId: string,
+  enrollmentKey: string
+) {
+  await verifyCourseKey(courseId, dosenId, enrollmentKey);
+
+  const session = await prisma.courseSession.findFirst({
+    where: { id: sessionId, courseId },
+    select: { id: true },
+  });
+
+  if (!session) {
+    throw new DosenServiceError("Sesi tidak ditemukan", 404);
+  }
+
+  await prisma.courseSession.delete({ where: { id: sessionId } });
+  return { success: true };
+}
+
 /* ─── Materials ────────────────────────────────────── */
 
 export async function createMaterial(
@@ -261,6 +368,78 @@ export async function createMaterial(
   });
 
   return serializeBigInt(material);
+}
+
+export async function updateMaterialStatus(
+  courseId: string,
+  sessionId: string,
+  materialId: string,
+  dosenId: string,
+  enrollmentKey: string,
+  isActive: boolean
+) {
+  await verifyCourseKey(courseId, dosenId, enrollmentKey);
+
+  const material = await prisma.material.findFirst({
+    where: {
+      id: materialId,
+      courseSessionId: sessionId,
+      courseSession: { courseId },
+    },
+    select: { id: true },
+  });
+
+  if (!material) {
+    throw new DosenServiceError("Materi tidak ditemukan", 404);
+  }
+
+  const updatedMaterial = await prisma.material.update({
+    where: { id: materialId },
+    data: { isActive },
+    select: {
+      id: true,
+      title: true,
+      materialType: true,
+      description: true,
+      fileName: true,
+      filePath: true,
+      storagePath: true,
+      publicUrl: true,
+      externalUrl: true,
+      textContent: true,
+      fileSize: true,
+      isActive: true,
+      createdAt: true,
+    },
+  });
+
+  return serializeBigInt(updatedMaterial);
+}
+
+export async function deleteMaterial(
+  courseId: string,
+  sessionId: string,
+  materialId: string,
+  dosenId: string,
+  enrollmentKey: string
+) {
+  await verifyCourseKey(courseId, dosenId, enrollmentKey);
+
+  const material = await prisma.material.findFirst({
+    where: {
+      id: materialId,
+      courseSessionId: sessionId,
+      courseSession: { courseId },
+    },
+    select: { id: true },
+  });
+
+  if (!material) {
+    throw new DosenServiceError("Materi tidak ditemukan", 404);
+  }
+
+  await prisma.material.delete({ where: { id: materialId } });
+  return { success: true };
 }
 
 /* ─── Enrollments (Student List) ───────────────────── */

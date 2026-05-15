@@ -5,19 +5,27 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { FileText, Upload, Loader2, ChevronDown, ChevronUp, Link2, Type, ExternalLink } from "lucide-react";
+import { FileText, Upload, Loader2, ChevronDown, ChevronUp, Link2, Type, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { MaterialItem, SessionItem } from "./types";
 import { formatDate, formatFileSize } from "./types";
+import { CourseKeyConfirmDialog } from "./course-key-confirm-dialog";
+import { StatusToggleButton } from "./status-toggle-button";
 
 type ContentType = "file" | "link" | "text";
+
+type ContentAction =
+  | { target: "session"; type: "toggle"; nextActive: boolean }
+  | { target: "session"; type: "delete" }
+  | { target: "material"; type: "toggle"; material: MaterialItem; nextActive: boolean }
+  | { target: "material"; type: "delete"; material: MaterialItem }
+  | null;
 
 function resolveMaterialType(material: MaterialItem): ContentType {
   if (material.materialType) return material.materialType;
@@ -51,15 +59,17 @@ function getMaterialIconBg(type: ContentType) {
 }
 
 export function SessionCard({
-  session, courseId, onContentAdded,
+  session, courseId, enrollmentKey, onContentChanged,
 }: {
   session: SessionItem;
   courseId: string;
-  onContentAdded: () => void;
+  enrollmentKey: string;
+  onContentChanged: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
+  const [contentAction, setContentAction] = useState<ContentAction>(null);
   const [contentType, setContentType] = useState<ContentType>("file");
   const [uploading, setUploading] = useState(false);
   const [title, setTitle] = useState("");
@@ -129,7 +139,7 @@ export function SessionCard({
       toast.success("Konten berhasil ditambahkan");
       setShowDialog(false);
       resetForm();
-      onContentAdded();
+      onContentChanged();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
@@ -137,38 +147,122 @@ export function SessionCard({
     }
   }
 
+  async function handleContentAction(submittedKey: string) {
+    if (!contentAction) return;
+
+    const sessionUrl = `/api/dosen/courses/${courseId}/sessions/${session.id}`;
+    const isToggle = contentAction.type === "toggle";
+    const url = contentAction.target === "session"
+      ? sessionUrl
+      : `${sessionUrl}/materials/${contentAction.material.id}`;
+
+    const response = await fetch(url, {
+      method: isToggle ? "PATCH" : "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(
+        isToggle
+          ? { enrollmentKey: submittedKey, isActive: contentAction.nextActive }
+          : { enrollmentKey: submittedKey }
+      ),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error ?? "Aksi gagal dijalankan");
+
+    const entityName = contentAction.target === "session" ? "Sesi" : "Materi";
+    if (contentAction.type === "delete") {
+      toast.success(`${entityName} berhasil dihapus`);
+    } else {
+      toast.success(contentAction.nextActive ? `${entityName} diaktifkan` : `${entityName} dinonaktifkan`);
+    }
+
+    onContentChanged();
+  }
+
+  function getActionCopy() {
+    if (!contentAction) {
+      return { title: "", description: "", confirmLabel: "" };
+    }
+
+    if (contentAction.target === "session") {
+      if (contentAction.type === "delete") {
+        return {
+          title: "Hapus sesi?",
+          description: `Sesi "${session.title}" beserta seluruh materi di dalamnya akan dihapus permanen.`,
+          confirmLabel: "Hapus Sesi",
+        };
+      }
+
+      return {
+        title: contentAction.nextActive ? "Aktifkan sesi?" : "Nonaktifkan sesi?",
+        description: contentAction.nextActive
+          ? `Sesi "${session.title}" akan kembali terlihat sebagai sesi aktif.`
+          : `Sesi "${session.title}" akan disembunyikan dari mahasiswa.`,
+        confirmLabel: contentAction.nextActive ? "Aktifkan" : "Nonaktifkan",
+      };
+    }
+
+    if (contentAction.type === "delete") {
+      return {
+        title: "Hapus materi?",
+        description: `Materi "${contentAction.material.title}" akan dihapus permanen dari sesi ini.`,
+        confirmLabel: "Hapus Materi",
+      };
+    }
+
+    return {
+      title: contentAction.nextActive ? "Aktifkan materi?" : "Nonaktifkan materi?",
+      description: contentAction.nextActive
+        ? `Materi "${contentAction.material.title}" akan kembali terlihat sebagai materi aktif.`
+        : `Materi "${contentAction.material.title}" akan disembunyikan dari mahasiswa.`,
+      confirmLabel: contentAction.nextActive ? "Aktifkan" : "Nonaktifkan",
+    };
+  }
+
   return (
     <Card className="overflow-hidden border-border/70 shadow-sm transition-shadow hover:shadow-md">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-muted/30"
-      >
-        <div className="flex min-w-0 items-center gap-4">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand text-sm font-bold text-black">
-            {session.orderNumber}
-          </div>
-          <div className="min-w-0">
-            <h3 className="truncate text-base font-bold">{session.title}</h3>
-            <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-              <span>{formatDate(session.createdAt)}</span>
-              <span className="flex items-center gap-1">
-                <FileText className="size-3" />
-                {session._count.materials} materi
-              </span>
+      <div className="flex flex-col gap-3 p-5 transition-colors hover:bg-muted/30 sm:flex-row sm:items-center sm:justify-between">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex min-w-0 flex-1 items-center justify-between gap-4 text-left"
+        >
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand text-sm font-bold text-black">
+              {session.orderNumber}
+            </div>
+            <div className="min-w-0">
+              <h3 className="truncate text-base font-bold">{session.title}</h3>
+              <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <span>{formatDate(session.createdAt)}</span>
+                <span className="flex items-center gap-1">
+                  <FileText className="size-3" />
+                  {session._count.materials} materi
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Badge className={`text-[10px] border-transparent ${session.isActive ? "bg-brand text-black hover:bg-brand/80" : "bg-muted text-muted-foreground"}`}>
-            {session.isActive ? "Aktif" : "Draft"}
-          </Badge>
           {expanded ? (
-            <ChevronUp className="size-4 text-muted-foreground" />
+            <ChevronUp className="size-4 shrink-0 text-muted-foreground" />
           ) : (
-            <ChevronDown className="size-4 text-muted-foreground" />
+            <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
           )}
+        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <StatusToggleButton
+            active={session.isActive}
+            inactiveLabel="Draft"
+            onClick={() => setContentAction({ target: "session", type: "toggle", nextActive: !session.isActive })}
+          />
+          <Button
+            size="icon-sm"
+            variant="destructive"
+            onClick={() => setContentAction({ target: "session", type: "delete" })}
+            aria-label="Hapus sesi"
+          >
+            <Trash2 />
+          </Button>
         </div>
-      </button>
+      </div>
 
       {expanded && (
         <div className="border-t px-5 pb-5">
@@ -213,13 +307,29 @@ export function SessionCard({
                     return (
                       <Card key={material.id} className="border-border/60 bg-muted/5">
                         <CardContent className="flex flex-col gap-3 p-4">
-                          <div className="flex items-center gap-3">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                            <div className="flex min-w-0 flex-1 items-center gap-3">
                             <div className={`flex size-9 shrink-0 items-center justify-center rounded-md ${getMaterialIconBg(type)}`}>
                               {getMaterialIcon(type)}
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="truncate text-sm font-bold">{material.title}</p>
                               <p className="text-xs text-muted-foreground">{material.description || "Materi teks"}</p>
+                            </div>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-2">
+                              <StatusToggleButton
+                                active={material.isActive}
+                                onClick={() => setContentAction({ target: "material", type: "toggle", material, nextActive: !material.isActive })}
+                              />
+                              <Button
+                                size="icon-sm"
+                                variant="destructive"
+                                onClick={() => setContentAction({ target: "material", type: "delete", material })}
+                                aria-label="Hapus materi"
+                              >
+                                <Trash2 />
+                              </Button>
                             </div>
                           </div>
                           <p className="border-t pt-3 text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
@@ -231,27 +341,45 @@ export function SessionCard({
                   }
 
                   return (
-                    <a
+                    <div
                       key={material.id}
-                      href={resolveMaterialHref(material)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/30"
+                      className="flex flex-col gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/30 sm:flex-row sm:items-center"
                     >
-                      <div className={`flex size-9 shrink-0 items-center justify-center rounded-md ${getMaterialIconBg(type)}`}>
-                        {getMaterialIcon(type)}
+                      <a
+                        href={resolveMaterialHref(material)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex min-w-0 flex-1 items-center gap-3"
+                      >
+                        <div className={`flex size-9 shrink-0 items-center justify-center rounded-md ${getMaterialIconBg(type)}`}>
+                          {getMaterialIcon(type)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{material.title}</p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {material.description || material.fileName}
+                            {type === "file" && material.fileSize && material.fileSize !== "0"
+                              ? ` - ${formatFileSize(material.fileSize)}`
+                              : ""}
+                          </p>
+                        </div>
+                        <ExternalLink className="size-4 shrink-0 text-muted-foreground" />
+                      </a>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <StatusToggleButton
+                          active={material.isActive}
+                          onClick={() => setContentAction({ target: "material", type: "toggle", material, nextActive: !material.isActive })}
+                        />
+                        <Button
+                          size="icon-sm"
+                          variant="destructive"
+                          onClick={() => setContentAction({ target: "material", type: "delete", material })}
+                          aria-label="Hapus materi"
+                        >
+                          <Trash2 />
+                        </Button>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">{material.title}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {material.description || material.fileName}
-                          {type === "file" && material.fileSize && material.fileSize !== "0"
-                            ? ` - ${formatFileSize(material.fileSize)}`
-                            : ""}
-                        </p>
-                      </div>
-                      <ExternalLink className="size-4 shrink-0 text-muted-foreground" />
-                    </a>
+                    </div>
                   );
                 })}
               </div>
@@ -352,6 +480,14 @@ export function SessionCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <CourseKeyConfirmDialog
+        open={!!contentAction}
+        onOpenChange={(open) => !open && setContentAction(null)}
+        courseKey={enrollmentKey}
+        destructive={contentAction?.type === "delete"}
+        onConfirm={handleContentAction}
+        {...getActionCopy()}
+      />
     </Card>
   );
 }

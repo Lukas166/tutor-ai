@@ -21,6 +21,8 @@ import {
 import { toast } from "sonner";
 import { SessionCard } from "./session-card";
 import { StudentListDialog } from "./student-list-dialog";
+import { CourseKeyConfirmDialog } from "./course-key-confirm-dialog";
+import { StatusToggleButton } from "./status-toggle-button";
 import type { CourseDetail, SessionItem } from "./types";
 
 type ContentType = "file" | "link" | "text";
@@ -34,6 +36,11 @@ type NewMaterial = {
   content: string;
   file: File | null;
 };
+
+type CourseAction =
+  | { type: "toggle"; nextActive: boolean }
+  | { type: "delete" }
+  | null;
 
 const emptyMaterial = (): NewMaterial => ({
   id: crypto.randomUUID(),
@@ -58,6 +65,7 @@ export default function DosenCourseDetailPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sessionForm, setSessionForm] = useState({ title: "", description: "" });
   const [newMaterials, setNewMaterials] = useState<NewMaterial[]>([]);
+  const [courseAction, setCourseAction] = useState<CourseAction>(null);
   const [submitting, setSubmitting] = useState(false);
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -81,6 +89,11 @@ export default function DosenCourseDetailPage() {
       .catch(console.error)
       .finally(() => setLoadingSessions(false));
   }, [courseId]);
+
+  const refreshCourseContent = useCallback(() => {
+    fetchCourse();
+    fetchSessions();
+  }, [fetchCourse, fetchSessions]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -180,12 +193,66 @@ export default function DosenCourseDetailPage() {
       toast.success("Sesi beserta materi berhasil dibuat");
       setDialogOpen(false);
       resetDialog();
-      fetchSessions();
+      refreshCourseContent();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleCourseAction(submittedKey: string) {
+    if (!courseAction) return;
+
+    if (courseAction.type === "toggle") {
+      const response = await fetch(`/api/dosen/courses/${courseId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          enrollmentKey: submittedKey,
+          isActive: courseAction.nextActive,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Gagal mengubah status course");
+
+      setCourse(data);
+      toast.success(courseAction.nextActive ? "Course diaktifkan" : "Course dinonaktifkan");
+      return;
+    }
+
+    const response = await fetch(`/api/dosen/courses/${courseId}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enrollmentKey: submittedKey }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error ?? "Gagal menghapus course");
+
+    toast.success("Course berhasil dihapus");
+    router.push("/dosen/courses");
+  }
+
+  function getCourseActionCopy() {
+    if (!courseAction || !course) {
+      return { title: "", description: "", confirmLabel: "" };
+    }
+
+    if (courseAction.type === "delete") {
+      return {
+        title: "Hapus course?",
+        description: `Course "${course.title}" beserta sesi, materi, dan data terkait akan dihapus permanen.`,
+        confirmLabel: "Hapus Course",
+      };
+    }
+
+    return {
+      title: courseAction.nextActive ? "Aktifkan course?" : "Nonaktifkan course?",
+      description: courseAction.nextActive
+        ? `Course "${course.title}" akan kembali terlihat sebagai course aktif.`
+        : `Course "${course.title}" akan dinonaktifkan dari akses mahasiswa.`,
+      confirmLabel: courseAction.nextActive ? "Aktifkan" : "Nonaktifkan",
+    };
   }
 
   if (loading) {
@@ -225,14 +292,28 @@ export default function DosenCourseDetailPage() {
               <p className="mt-2 max-w-3xl text-muted-foreground leading-relaxed">{course.description}</p>
             )}
           </div>
-          <Button
-            size="sm"
-            className="self-start bg-brand text-black shadow-sm hover:bg-brand/90"
-            onClick={() => setShowStudents(true)}
-          >
-            <Users data-icon="inline-start" />
-            Daftar Mahasiswa
-          </Button>
+          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+            <StatusToggleButton
+              active={course.isActive}
+              onClick={() => setCourseAction({ type: "toggle", nextActive: !course.isActive })}
+            />
+            <Button
+              size="sm"
+              className="bg-brand text-black shadow-sm hover:bg-brand/90"
+              onClick={() => setShowStudents(true)}
+            >
+              <Users data-icon="inline-start" />
+              Daftar Mahasiswa
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => setCourseAction({ type: "delete" })}
+            >
+              <Trash2 data-icon="inline-start" />
+              Hapus
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
@@ -311,7 +392,13 @@ export default function DosenCourseDetailPage() {
         ) : (
           <div className="flex flex-col gap-4">
             {sessions.map((session) => (
-              <SessionCard key={session.id} session={session} courseId={courseId} onContentAdded={fetchSessions} />
+              <SessionCard
+                key={session.id}
+                session={session}
+                courseId={courseId}
+                enrollmentKey={course.enrollmentKey}
+                onContentChanged={refreshCourseContent}
+              />
             ))}
           </div>
         )}
@@ -487,6 +574,14 @@ export default function DosenCourseDetailPage() {
       </Dialog>
 
       <StudentListDialog courseId={courseId} enrollmentKey={course.enrollmentKey} open={showStudents} onOpenChange={setShowStudents} />
+      <CourseKeyConfirmDialog
+        open={!!courseAction}
+        onOpenChange={(open) => !open && setCourseAction(null)}
+        courseKey={course.enrollmentKey}
+        destructive={courseAction?.type === "delete"}
+        onConfirm={handleCourseAction}
+        {...getCourseActionCopy()}
+      />
     </div>
   );
 }

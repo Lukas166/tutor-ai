@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireDosen } from "@/lib/api-utils";
-import type { RouteContext } from "@/lib/api-utils";
 import {
-  deleteDosenCourse,
+  deleteMaterial,
   DosenServiceError,
-  getDosenCourseById,
-  updateDosenCourseStatus,
+  updateMaterialStatus,
 } from "@/lib/services/dosen.service";
 import { z } from "zod/v4";
 
-const updateCourseStatusSchema = z.object({
+type MaterialRouteContext = {
+  params: Promise<{ id: string; sessionId: string; materialId: string }>;
+};
+
+const updateMaterialStatusSchema = z.object({
   enrollmentKey: z.string().trim().min(1, "Enrollment key wajib diisi"),
   isActive: z.boolean(),
 });
@@ -29,49 +31,37 @@ function toErrorResponse(err: unknown, fallback: string) {
   );
 }
 
-export async function GET(request: NextRequest, context: RouteContext) {
+export async function PATCH(request: NextRequest, context: MaterialRouteContext) {
   const { error, session } = await requireDosen(request);
   if (error) return error;
 
-  const { id } = await context.params;
-  const course = await getDosenCourseById(id, session!.user.id);
-
-  if (!course) {
-    return NextResponse.json({ error: "Course tidak ditemukan" }, { status: 404 });
-  }
-
-  return NextResponse.json(course);
-}
-
-export async function PATCH(request: NextRequest, context: RouteContext) {
-  const { error, session } = await requireDosen(request);
-  if (error) return error;
-
-  const { id } = await context.params;
+  const { id: courseId, sessionId, materialId } = await context.params;
   const body = await request.json();
-  const parsed = updateCourseStatusSchema.safeParse(body);
+  const parsed = updateMaterialStatusSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
   }
 
   try {
-    const course = await updateDosenCourseStatus(
-      id,
+    const material = await updateMaterialStatus(
+      courseId,
+      sessionId,
+      materialId,
       session!.user.id,
       parsed.data.enrollmentKey,
       parsed.data.isActive
     );
-    return NextResponse.json(course);
+    return NextResponse.json(material);
   } catch (err) {
-    return toErrorResponse(err, "Gagal mengubah status course");
+    return toErrorResponse(err, "Gagal mengubah status materi");
   }
 }
 
-export async function DELETE(request: NextRequest, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: MaterialRouteContext) {
   const { error, session } = await requireDosen(request);
   if (error) return error;
 
-  const { id } = await context.params;
+  const { id: courseId, sessionId, materialId } = await context.params;
   const body = await request.json().catch(() => ({}));
   const parsed = confirmationSchema.safeParse(body);
   if (!parsed.success) {
@@ -79,9 +69,15 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    await deleteDosenCourse(id, session!.user.id, parsed.data.enrollmentKey);
+    await deleteMaterial(
+      courseId,
+      sessionId,
+      materialId,
+      session!.user.id,
+      parsed.data.enrollmentKey
+    );
     return NextResponse.json({ success: true });
   } catch (err) {
-    return toErrorResponse(err, "Gagal menghapus course");
+    return toErrorResponse(err, "Gagal menghapus materi");
   }
 }
