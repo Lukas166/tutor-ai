@@ -4,7 +4,12 @@ import { NextResponse, type NextRequest } from "next/server";
 const ROLE_REDIRECT_MAP: Record<string, string> = {
     admin: "/admin",
     dosen: "/dosen",
+    mahasiswa: "/mahasiswa",
 };
+
+function getUserRole(session: Awaited<ReturnType<typeof auth.api.getSession>>) {
+    return (session?.user as { role?: string } | undefined)?.role;
+}
 
 export default async function proxy(request: NextRequest) {
     const session = await auth.api.getSession({
@@ -12,10 +17,12 @@ export default async function proxy(request: NextRequest) {
     });
 
     const { pathname } = request.nextUrl;
+    const role = getUserRole(session);
     const isAuthPage = pathname.startsWith("/login");
     const isProtectedPage = pathname.startsWith("/dashboard") ||
         pathname.startsWith("/admin") ||
-        pathname.startsWith("/dosen");
+        pathname.startsWith("/dosen") ||
+        pathname.startsWith("/mahasiswa");
 
     // Unauthenticated users cannot access protected pages
     if (!session && isProtectedPage) {
@@ -24,18 +31,22 @@ export default async function proxy(request: NextRequest) {
 
     // Authenticated users on login page → redirect by role
     if (session && isAuthPage) {
-        const role = (session.user as any).role;
-        const redirectTo = ROLE_REDIRECT_MAP[role] ?? "/dashboard";
+        const redirectTo = role ? ROLE_REDIRECT_MAP[role] ?? "/dashboard" : "/dashboard";
         return NextResponse.redirect(new URL(redirectTo, request.url));
     }
 
     // Role-based protection for /admin
-    if (session && pathname.startsWith("/admin") && (session.user as any).role !== "admin") {
+    if (session && pathname.startsWith("/admin") && role !== "admin") {
         return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
     // Role-based protection for /dosen
-    if (session && pathname.startsWith("/dosen") && (session.user as any).role !== "dosen") {
+    if (session && pathname.startsWith("/dosen") && role !== "dosen") {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    // Role-based protection for /mahasiswa
+    if (session && pathname.startsWith("/mahasiswa") && role !== "mahasiswa") {
         return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
@@ -43,5 +54,5 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/admin/:path*", "/dosen/:path*", "/login"],
+    matcher: ["/dashboard/:path*", "/admin/:path*", "/dosen/:path*", "/mahasiswa/:path*", "/login"],
 };
