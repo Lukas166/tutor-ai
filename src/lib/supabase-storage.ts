@@ -81,3 +81,24 @@ export async function uploadMaterialFileToSupabase({
     publicUrl: `${supabaseUrl}/storage/v1/object/public/${bucket}/${encodedPath}`,
   };
 }
+
+export async function downloadMaterialFileFromSupabase(storagePath: string): Promise<Buffer> {
+  const { supabaseUrl, serviceRoleKey, bucket } = getStorageConfig();
+  const encodedPath = encodeStoragePath(storagePath);
+  const downloadUrl = `${supabaseUrl}/storage/v1/object/${bucket}/${encodedPath}`;
+
+  const response = await fetch(downloadUrl, {
+    method: "GET",
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+    },
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`Gagal membaca file dari Supabase Storage: ${message || response.statusText}`);
+  }
+
+  return Buffer.from(await response.arrayBuffer());
+}

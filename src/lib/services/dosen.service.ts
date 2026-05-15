@@ -36,6 +36,34 @@ type CourseWithCover = {
   coverImage: string | null;
 };
 
+const materialSelect = {
+  id: true,
+  title: true,
+  materialType: true,
+  description: true,
+  fileName: true,
+  filePath: true,
+  storagePath: true,
+  publicUrl: true,
+  externalUrl: true,
+  textContent: true,
+  fileSize: true,
+  isActive: true,
+  isProcessed: true,
+  processingStatus: true,
+  processingProgress: true,
+  processingError: true,
+  processingJobId: true,
+  processingStartedAt: true,
+  processingCompletedAt: true,
+  pageCount: true,
+  chunkCount: true,
+  embeddingModel: true,
+  embeddingDimensions: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
 async function ensureCourseCover<T extends CourseWithCover>(course: T): Promise<T> {
   if (isCurrentCourseCover(course.coverImage)) return course;
 
@@ -164,17 +192,49 @@ export async function getDosenCourseById(courseId: string, dosenId: string) {
   return ensureCourseCover(course);
 }
 
-export async function updateDosenCourseStatus(
+export async function updateDosenCourse(
   courseId: string,
   dosenId: string,
   enrollmentKey: string,
-  isActive: boolean
+  data: {
+    title?: string;
+    description?: string | null;
+    isActive?: boolean;
+  }
 ) {
-  await verifyCourseKey(courseId, dosenId, enrollmentKey);
+  const course = await prisma.course.findFirst({
+    where: {
+      id: courseId,
+      instructors: { some: { userId: dosenId } },
+    },
+    select: {
+      id: true,
+      title: true,
+      enrollmentKey: true,
+    },
+  });
+
+  if (!course) {
+    throw new DosenServiceError("Course tidak ditemukan", 404);
+  }
+
+  assertEnrollmentKey(course.enrollmentKey, enrollmentKey);
+  const nextTitle = data.title ?? course.title;
 
   await prisma.course.update({
     where: { id: courseId },
-    data: { isActive },
+    data: {
+      ...(data.title !== undefined && {
+        title: data.title,
+        coverImage: generateCourseCover({
+          id: course.id,
+          title: nextTitle,
+          enrollmentKey: course.enrollmentKey,
+        }),
+      }),
+      ...(data.description !== undefined && { description: data.description }),
+      ...(data.isActive !== undefined && { isActive: data.isActive }),
+    },
   });
 
   return getDosenCourseById(courseId, dosenId);
@@ -222,21 +282,7 @@ export async function listCourseSessions(courseId: string) {
     include: {
       creator: { select: { id: true, name: true } },
       materials: {
-        select: {
-          id: true,
-          title: true,
-          materialType: true,
-          description: true,
-          fileName: true,
-          filePath: true,
-          storagePath: true,
-          publicUrl: true,
-          externalUrl: true,
-          textContent: true,
-          fileSize: true,
-          isActive: true,
-          createdAt: true,
-        },
+        select: materialSelect,
         orderBy: { createdAt: "asc" },
       },
       _count: { select: { materials: true } },
@@ -272,21 +318,7 @@ export async function createCourseSession(
     include: {
       creator: { select: { id: true, name: true } },
       materials: {
-        select: {
-          id: true,
-          title: true,
-          materialType: true,
-          description: true,
-          fileName: true,
-          filePath: true,
-          storagePath: true,
-          publicUrl: true,
-          externalUrl: true,
-          textContent: true,
-          fileSize: true,
-          isActive: true,
-          createdAt: true,
-        },
+        select: materialSelect,
       },
       _count: { select: { materials: true } },
     },
@@ -380,22 +412,12 @@ export async function createMaterial(
       externalUrl: data.externalUrl ?? null,
       textContent: data.textContent ?? null,
       fileSize: BigInt(data.fileSize),
+      isProcessed: data.materialType !== "file",
+      processingStatus: data.materialType === "file" ? "uploaded" : "ready",
+      processingProgress: data.materialType === "file" ? 0 : 100,
+      processingCompletedAt: data.materialType === "file" ? null : new Date(),
     },
-    select: {
-      id: true,
-      title: true,
-      materialType: true,
-      description: true,
-      fileName: true,
-      filePath: true,
-      storagePath: true,
-      publicUrl: true,
-      externalUrl: true,
-      textContent: true,
-      fileSize: true,
-      isActive: true,
-      createdAt: true,
-    },
+    select: materialSelect,
   });
 
   return serializeBigInt(material);
@@ -427,21 +449,7 @@ export async function updateMaterialStatus(
   const updatedMaterial = await prisma.material.update({
     where: { id: materialId },
     data: { isActive },
-    select: {
-      id: true,
-      title: true,
-      materialType: true,
-      description: true,
-      fileName: true,
-      filePath: true,
-      storagePath: true,
-      publicUrl: true,
-      externalUrl: true,
-      textContent: true,
-      fileSize: true,
-      isActive: true,
-      createdAt: true,
-    },
+    select: materialSelect,
   });
 
   return serializeBigInt(updatedMaterial);
