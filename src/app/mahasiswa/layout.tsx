@@ -2,12 +2,13 @@
 
 import { authClient } from "@/lib/auth-client";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Loader2, LayoutDashboard, BookOpen } from "lucide-react";
+import { Loader2, LayoutDashboard, BookOpen, UserRound } from "lucide-react";
 import { PanelSidebar } from "@/components/panel-sidebar";
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/mahasiswa", icon: LayoutDashboard, exact: true },
   { title: "My Courses", href: "/mahasiswa/courses", icon: BookOpen },
+  { title: "Profile", href: "/mahasiswa/profile", icon: UserRound },
 ];
 
 export default function MahasiswaLayout({ children }: { children: React.ReactNode }) {

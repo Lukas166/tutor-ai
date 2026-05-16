@@ -4,6 +4,17 @@ import { usePathname, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -21,7 +32,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import Link from "next/link";
-import { ElementType } from "react";
+import { ElementType, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export interface NavItem {
@@ -112,11 +123,19 @@ export function PanelSidebar({ title, href, label, navItems, defaultRoleName }: 
 function ProfileDropdown({ defaultRoleName }: { defaultRoleName: string }) {
   const router = useRouter();
   const { data: session } = authClient.useSession();
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   async function handleLogout() {
-    await authClient.signOut({
-      fetchOptions: { onSuccess: () => router.push("/login") },
-    });
+    setLoggingOut(true);
+    try {
+      await authClient.signOut({
+        fetchOptions: { onSuccess: () => router.push("/login") },
+      });
+    } finally {
+      setLoggingOut(false);
+      setLogoutOpen(false);
+    }
   }
 
   const name = session?.user?.name ?? defaultRoleName;
@@ -125,51 +144,74 @@ function ProfileDropdown({ defaultRoleName }: { defaultRoleName: string }) {
 
   return (
     <TooltipProvider>
-      <div className="flex w-full items-center gap-3 group-data-[collapsible=icon]:justify-center">
-        
-        {/* Visible & Clickable ONLY when collapsed */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button 
-              onClick={handleLogout} 
-              className="hidden group-data-[collapsible=icon]:block outline-none rounded-full ring-offset-background hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-opacity"
+      <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
+        <div className="flex w-full items-center gap-3 group-data-[collapsible=icon]:justify-center">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => setLogoutOpen(true)}
+                className="hidden rounded-full outline-none transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background group-data-[collapsible=icon]:block"
+              >
+                <Avatar className="size-8 shrink-0">
+                  <AvatarFallback className="flex items-center justify-center bg-brand text-sm font-bold text-black">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Logout</TooltipContent>
+          </Tooltip>
+
+          <div className="group-data-[collapsible=icon]:hidden">
+            <Avatar className="size-8 shrink-0">
+              <AvatarFallback className="flex items-center justify-center bg-brand text-sm font-bold text-black">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+
+          <div className="flex min-w-0 flex-1 flex-col justify-center group-data-[collapsible=icon]:hidden">
+            <span className="truncate text-sm font-semibold leading-tight">{name}</span>
+            <span className="truncate text-xs text-muted-foreground">{email}</span>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setLogoutOpen(true)}
+            className="shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-data-[collapsible=icon]:hidden"
+            title="Logout"
+          >
+            <LogOut className="size-4" />
+          </Button>
+        </div>
+
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia className="bg-destructive/10 text-destructive">
+              <LogOut className="size-5" />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Logout dari akun?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Anda akan keluar dari sesi saat ini dan diarahkan ke halaman login.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loggingOut}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={(event) => {
+                event.preventDefault();
+                void handleLogout();
+              }}
+              disabled={loggingOut}
             >
-              <Avatar className="size-8 shrink-0">
-                <AvatarFallback className="bg-brand text-black text-sm font-bold flex items-center justify-center">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            Logout
-          </TooltipContent>
-        </Tooltip>
-
-        {/* Regular Layout (Visible ONLY when open) */}
-        <div className="group-data-[collapsible=icon]:hidden">
-          <Avatar className="size-8 shrink-0">
-            <AvatarFallback className="bg-brand text-black text-sm font-bold flex items-center justify-center">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-        </div>
-        
-        <div className="flex flex-col flex-1 min-w-0 justify-center group-data-[collapsible=icon]:hidden">
-          <span className="truncate text-sm font-semibold leading-tight">{name}</span>
-          <span className="truncate text-xs text-muted-foreground">{email}</span>
-        </div>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleLogout}
-          className="shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive group-data-[collapsible=icon]:hidden"
-          title="Logout"
-        >
-          <LogOut className="size-4" />
-        </Button>
-      </div>
+              {loggingOut ? "Keluar..." : "Logout"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </TooltipProvider>
   );
 }
