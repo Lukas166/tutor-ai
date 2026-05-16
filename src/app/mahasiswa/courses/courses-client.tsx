@@ -66,9 +66,6 @@ function CourseCard({ course }: { course: MahasiswaCourse }) {
           style={{ backgroundImage: `url("${course.coverImage ?? ""}")` }}
         />
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card via-card/65 to-transparent" />
-        <span className="absolute right-3 top-3 rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black shadow-sm">
-          Terdaftar
-        </span>
       </div>
       <CardContent className="flex min-h-40 flex-col gap-3 p-5 pt-3">
         <h3 className="line-clamp-2 text-base font-bold leading-snug transition-colors group-hover:text-brand">
@@ -79,12 +76,12 @@ function CourseCard({ course }: { course: MahasiswaCourse }) {
           {course.description || "Belum ada deskripsi"}
         </p>
 
-        <div className="mt-auto flex items-center gap-4 pt-1 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
+        <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1 whitespace-nowrap">
             <GraduationCap className="size-3.5" />
             {course._count.instructors} Dosen
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1 whitespace-nowrap">
             <CalendarDays className="size-3.5" />
             {course._count.sessions} Sesi
           </span>
@@ -179,14 +176,14 @@ function EnrollCourseDialog({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error ?? "Gagal enroll course");
+        throw new Error(data.error ?? "Gagal bergabung ke course");
       }
 
-      toast.success(`Berhasil enroll ${selectedCourse.title}`);
+      toast.success(`Berhasil bergabung ke ${selectedCourse.title}`);
       onOpenChange(false);
       onEnrolled(selectedCourse.id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Gagal enroll course");
+      toast.error(err instanceof Error ? err.message : "Gagal bergabung ke course");
     } finally {
       setSubmitting(false);
     }
@@ -223,29 +220,28 @@ function EnrollCourseDialog({
           </div>
 
           {selectedCourse ? (
-            <Card className="border-brand/30 bg-brand/5 shadow-none">
-              <CardContent className="flex items-start gap-3 p-4">
-                <BookOpen className="mt-0.5 size-5 shrink-0 text-brand" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold">{selectedCourse.title}</p>
-                  <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                    {selectedCourse.description || "Belum ada deskripsi"}
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedCourse(null);
-                    setEnrollmentKey("");
-                  }}
-                  disabled={submitting}
-                >
-                  Ganti
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="flex w-full items-start gap-3 rounded-lg border border-brand/30 bg-brand/5 p-3 text-left">
+              <BookOpen className="mt-0.5 size-5 shrink-0 text-brand" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{selectedCourse.title}</p>
+                <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                  {selectedCourse.description || "Belum ada deskripsi"}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedCourse(null);
+                  setEnrollmentKey("");
+                }}
+                disabled={submitting}
+                className="h-7 shrink-0 px-2"
+              >
+                Ganti
+              </Button>
+            </div>
           ) : (
             <div className="flex flex-col gap-2">
               {searching ? (
@@ -310,7 +306,7 @@ function EnrollCourseDialog({
             disabled={!selectedCourse || !enrollmentKey.trim() || submitting}
           >
             {submitting && <Loader2 className="animate-spin" data-icon="inline-start" />}
-            Enroll
+            Bergabung
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -367,10 +363,8 @@ export function MahasiswaCoursesClient({ initialSearch }: { initialSearch: strin
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1 rounded-xl border border-border/70 bg-card p-1 shadow-sm transition-all focus-within:border-brand/50 focus-within:shadow-md focus-within:shadow-brand/10">
-          <span className="absolute left-3 top-1/2 z-10 flex size-7 -translate-y-1/2 items-center justify-center rounded-md bg-brand/15 text-brand">
-            <Search className="size-4" />
-          </span>
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             id="mahasiswa-courses-search"
             placeholder="Cari judul course..."
@@ -379,7 +373,7 @@ export function MahasiswaCoursesClient({ initialSearch }: { initialSearch: strin
             onKeyDown={(event) => {
               if (event.key === "Enter") setSearch(searchInput);
             }}
-            className="h-10 rounded-lg border-transparent bg-background/80 pl-11 pr-10 shadow-none focus-visible:border-brand/40 focus-visible:ring-brand/25"
+            className="pl-9 pr-10"
           />
           {searchInput && (
             <button
@@ -389,7 +383,7 @@ export function MahasiswaCoursesClient({ initialSearch }: { initialSearch: strin
                 setSearchInput("");
                 setSearch("");
               }}
-              className="absolute right-3 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-brand/10 hover:text-foreground"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <X className="size-4" />
             </button>
@@ -451,7 +445,7 @@ export function MahasiswaCoursesClient({ initialSearch }: { initialSearch: strin
             <p className="mt-1 text-sm text-muted-foreground/70">
               {search
                 ? "Coba gunakan kata kunci yang berbeda"
-                : "Anda belum terdaftar ke course manapun."}
+                : "Anda belum terdaftar ke course apa pun."}
             </p>
           </CardContent>
         </Card>

@@ -113,9 +113,6 @@ export default function MahasiswaCourseDetailPage() {
                 <h1 className="text-3xl font-bold tracking-tight drop-shadow-[0_1px_1px_rgba(255,255,255,0.85)]">
                   {course.title}
                 </h1>
-                <Badge className="border-transparent bg-brand text-black hover:bg-brand/80">
-                  Terdaftar
-                </Badge>
               </div>
               {course.description && (
                 <p className="mt-2 max-w-3xl whitespace-normal break-words leading-relaxed text-foreground/70 [overflow-wrap:anywhere] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">

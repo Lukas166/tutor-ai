@@ -59,9 +59,6 @@ function CourseCard({ course }: { course: MahasiswaCourse }) {
           style={{ backgroundImage: `url("${course.coverImage ?? ""}")` }}
         />
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card via-card/65 to-transparent" />
-        <span className="absolute right-3 top-3 rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black shadow-sm">
-          Terdaftar
-        </span>
       </div>
       <CardContent className="flex min-h-40 flex-col gap-3 p-5 pt-3">
         <h3 className="line-clamp-2 text-base font-bold leading-snug transition-colors group-hover:text-brand">
@@ -72,12 +69,12 @@ function CourseCard({ course }: { course: MahasiswaCourse }) {
           {course.description || "Belum ada deskripsi"}
         </p>
 
-        <div className="mt-auto flex items-center gap-4 pt-1 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
+        <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1 whitespace-nowrap">
             <GraduationCap className="size-3.5" />
             {course._count.instructors} Dosen
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1 whitespace-nowrap">
             <CalendarDays className="size-3.5" />
             {course._count.sessions} Sesi
           </span>
@@ -215,11 +212,9 @@ export default function MahasiswaDashboardPage() {
 
       <div
         ref={searchRef}
-        className="relative mx-auto w-full max-w-2xl rounded-2xl border border-brand/35 bg-gradient-to-r from-brand/15 via-card to-card p-1.5 shadow-lg shadow-brand/10 transition-all focus-within:border-brand/60 focus-within:shadow-xl focus-within:shadow-brand/15"
+        className="relative w-full"
       >
-        <span className="absolute left-4 top-1/2 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg bg-brand text-black shadow-sm">
-          <Search className="size-4" />
-        </span>
+        <Search className="absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           id="mahasiswa-search-course"
           placeholder="Cari course yang Anda ikuti..."
@@ -229,7 +224,7 @@ export default function MahasiswaDashboardPage() {
             setDropdownOpen(true);
           }}
           onFocus={() => searchQuery.trim() && setDropdownOpen(true)}
-          className="h-12 rounded-xl border-transparent bg-background/95 pl-14 pr-12 text-base shadow-sm transition-all placeholder:text-muted-foreground/70 focus-visible:border-brand/50 focus-visible:ring-brand/30"
+          className="pl-9 pr-10"
         />
         {searchQuery && (
           <button
@@ -239,7 +234,7 @@ export default function MahasiswaDashboardPage() {
               setSearchQuery("");
               setDropdownOpen(false);
             }}
-            className="absolute right-4 top-1/2 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-brand/10 hover:text-foreground"
+            className="absolute right-3 top-1/2 z-10 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
             <X className="size-4" />
           </button>
@@ -257,7 +252,7 @@ export default function MahasiswaDashboardPage() {
 
       <div className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-tight">Course Diikuti</h2>
+          <h2 className="text-xl font-bold tracking-tight">Course Saya</h2>
           {hasMoreCourses && (
             <Button
               variant="ghost"
@@ -293,7 +288,7 @@ export default function MahasiswaDashboardPage() {
               <BookOpen className="mb-4 size-12 text-muted-foreground/50" strokeWidth={1.5} />
               <p className="font-medium text-muted-foreground">Belum ada course</p>
               <p className="mt-1 text-sm text-muted-foreground/70">
-                Anda belum terdaftar ke course manapun.
+                Anda belum terdaftar ke course apa pun.
               </p>
             </CardContent>
           </Card>
@@ -308,7 +303,7 @@ export default function MahasiswaDashboardPage() {
 
       <div className="flex flex-col gap-5">
         <div>
-          <h2 className="text-xl font-bold tracking-tight">Recent Activities</h2>
+          <h2 className="text-xl font-bold tracking-tight">Aktivitas Terbaru</h2>
           <p className="text-sm text-muted-foreground">
             Aktivitas terbaru dari mata kuliah yang Anda ikuti
           </p>
@@ -322,7 +317,7 @@ export default function MahasiswaDashboardPage() {
               </div>
               <p className="font-medium text-muted-foreground">Belum ada aktivitas</p>
               <p className="mt-1 max-w-sm text-sm text-muted-foreground/70">
-                Aktivitas akan muncul saat ada sesi atau materi baru dari course Anda.
+                Aktivitas akan muncul saat ada sesi atau materi baru dari course yang Anda ikuti.
               </p>
             </CardContent>
           </Card>
