@@ -115,12 +115,12 @@ function CourseCard({ course }: { course: DosenCourse }) {
           {course.description || "Belum ada deskripsi"}
         </p>
 
-        <div className="mt-auto flex items-center gap-4 pt-1 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
+        <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1 whitespace-nowrap">
             <GraduationCap className="size-3.5" />
             {course._count.enrollments} Mahasiswa
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1 whitespace-nowrap">
             <CalendarDays className="size-3.5" />
             {course._count.sessions} Sesi
           </span>
@@ -161,7 +161,7 @@ function SearchDropdown({
             )}
           </div>
           <span className="shrink-0 text-xs text-muted-foreground">
-            {course._count.enrollments} siswa
+            {course._count.enrollments} mahasiswa
           </span>
         </button>
       ))}
@@ -280,11 +280,9 @@ export default function DosenDashboardPage() {
       {/* Search Bar */}
       <div
         ref={searchRef}
-        className="relative mx-auto w-full max-w-2xl rounded-2xl border border-brand/35 bg-gradient-to-r from-brand/15 via-card to-card p-1.5 shadow-lg shadow-brand/10 transition-all focus-within:border-brand/60 focus-within:shadow-xl focus-within:shadow-brand/15"
+        className="relative w-full"
       >
-        <span className="absolute left-4 top-1/2 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg bg-brand text-black shadow-sm">
-          <Search className="size-4" />
-        </span>
+        <Search className="absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           id="dosen-search-course"
           placeholder="Cari course Anda..."
@@ -294,12 +292,14 @@ export default function DosenDashboardPage() {
             setDropdownOpen(true);
           }}
           onFocus={() => searchQuery.trim() && setDropdownOpen(true)}
-          className="h-12 rounded-xl border-transparent bg-background/95 pl-14 pr-12 text-base shadow-sm transition-all placeholder:text-muted-foreground/70 focus-visible:border-brand/50 focus-visible:ring-brand/30"
+          className="pl-9 pr-10"
         />
         {searchQuery && (
           <button
+            type="button"
+            aria-label="Bersihkan pencarian"
             onClick={() => { setSearchQuery(""); setDropdownOpen(false); }}
-            className="absolute right-4 top-1/2 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-brand/10 hover:text-foreground"
+            className="absolute right-3 top-1/2 z-10 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
             <X className="size-4" />
           </button>
@@ -358,7 +358,7 @@ export default function DosenDashboardPage() {
       <div className="flex flex-col gap-5">
         <div>
           <h2 className="text-xl font-bold tracking-tight">Aktivitas Terbaru</h2>
-          <p className="text-sm text-muted-foreground">5 aktivitas terakhir dari course Anda</p>
+          <p className="text-sm text-muted-foreground">Aktivitas terakhir dari course Anda</p>
         </div>
         {activities.length === 0 ? (
           <Card className="border-border/50">

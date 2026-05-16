@@ -73,12 +73,12 @@ function CourseCard({ course }: { course: DosenCourse }) {
           {course.description || "Belum ada deskripsi"}
         </p>
 
-        <div className="mt-auto flex items-center gap-4 pt-1 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
+        <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1 text-xs text-muted-foreground">
+          <span className="flex min-w-0 items-center gap-1 whitespace-nowrap">
             <GraduationCap className="size-3.5" />
             {course._count.enrollments} Mahasiswa
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex min-w-0 items-center gap-1 whitespace-nowrap">
             <CalendarDays className="size-3.5" />
             {course._count.sessions} Sesi
           </span>
