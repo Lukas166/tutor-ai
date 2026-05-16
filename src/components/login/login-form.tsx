@@ -60,6 +60,7 @@ export function LoginForm() {
       const roleRedirectMap: Record<string, string> = {
         admin: '/admin',
         dosen: '/dosen',
+        mahasiswa: '/mahasiswa',
       };
       const redirectTo = roleRedirectMap[userWithRole?.role ?? ''] ?? '/dashboard';
       router.push(redirectTo);
