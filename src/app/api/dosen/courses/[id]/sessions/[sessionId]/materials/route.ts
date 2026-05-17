@@ -6,7 +6,10 @@ import {
   getDosenCourseById,
 } from "@/lib/services/dosen.service";
 import { createMaterialProcessingJob } from "@/lib/material-processing/jobs";
-import { uploadMaterialFileToSupabase } from "@/lib/supabase-storage";
+import {
+  deleteMaterialFilesFromSupabase,
+  uploadMaterialFileToSupabase,
+} from "@/lib/supabase-storage";
 
 function isValidHttpUrl(value: string) {
   try {
@@ -104,8 +107,9 @@ export async function POST(
   const file = formData.get("file") as File | null;
   const title = formData.get("title") as string | null;
   const description = formData.get("description") as string | null;
+  const cleanTitle = title?.trim() ?? "";
 
-  if (!file || !title) {
+  if (!file || !cleanTitle) {
     return NextResponse.json({ error: "File dan judul wajib diisi" }, { status: 400 });
   }
 
@@ -114,6 +118,7 @@ export async function POST(
   }
 
   const bytes = await file.arrayBuffer();
+  let uploadedStoragePath: string | null = null;
 
   try {
     const uploadedFile = await uploadMaterialFileToSupabase({
@@ -122,10 +127,13 @@ export async function POST(
       fileName: file.name,
       courseId,
       sessionId,
+      sessionTitle: courseSession.title,
+      materialTitle: cleanTitle,
     });
+    uploadedStoragePath = uploadedFile.storagePath;
 
     const material = await createMaterial(sessionId, session!.user.id, {
-      title,
+      title: cleanTitle,
       materialType: "file",
       description: description?.trim() || null,
       fileName: uploadedFile.fileName,
@@ -143,6 +151,12 @@ export async function POST(
 
     return NextResponse.json(material, { status: 201 });
   } catch (err) {
+    if (uploadedStoragePath) {
+      await deleteMaterialFilesFromSupabase([uploadedStoragePath]).catch((cleanupError) => {
+        console.error("Gagal membersihkan file upload yang tidak jadi disimpan:", cleanupError);
+      });
+    }
+
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal error" },
       { status: 500 }

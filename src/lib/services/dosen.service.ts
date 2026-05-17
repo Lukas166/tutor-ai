@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import type { CreateCourseInput } from "@/lib/schemas/course.schema";
 import { generateCourseCover, isCurrentCourseCover } from "@/lib/course-cover";
+import { deleteMaterialFilesFromSupabase } from "@/lib/supabase-storage";
 
 export class DosenServiceError extends Error {
   constructor(message: string, readonly status = 400) {
@@ -247,6 +248,12 @@ export async function deleteDosenCourse(
 ) {
   await verifyCourseKey(courseId, dosenId, enrollmentKey);
 
+  const materials = await prisma.material.findMany({
+    where: { courseSession: { courseId } },
+    select: { storagePath: true },
+  });
+
+  await deleteMaterialFilesFromSupabase(materials.map((material) => material.storagePath));
   await prisma.course.delete({ where: { id: courseId } });
   return { success: true };
 }
@@ -330,7 +337,7 @@ export async function createCourseSession(
 export async function getCourseSessionInCourse(courseId: string, sessionId: string) {
   return prisma.courseSession.findFirst({
     where: { id: sessionId, courseId },
-    select: { id: true },
+    select: { id: true, title: true },
   });
 }
 
@@ -395,13 +402,19 @@ export async function deleteCourseSession(
 
   const session = await prisma.courseSession.findFirst({
     where: { id: sessionId, courseId },
-    select: { id: true },
+    select: {
+      id: true,
+      materials: { select: { storagePath: true } },
+    },
   });
 
   if (!session) {
     throw new DosenServiceError("Sesi tidak ditemukan", 404);
   }
 
+  await deleteMaterialFilesFromSupabase(
+    session.materials.map((material) => material.storagePath)
+  );
   await prisma.courseSession.delete({ where: { id: sessionId } });
   return { success: true };
 }
@@ -466,7 +479,7 @@ export async function updateMaterialStatus(
       courseSessionId: sessionId,
       courseSession: { courseId },
     },
-    select: { id: true },
+    select: { id: true, storagePath: true },
   });
 
   if (!material) {
@@ -510,7 +523,12 @@ export async function updateMaterial(
     throw new DosenServiceError("Materi tidak ditemukan", 404);
   }
 
-  const updateData: Record<string, any> = {
+  const updateData: {
+    title: string;
+    description: string | null;
+    externalUrl?: string | null;
+    textContent?: string | null;
+  } = {
     title: data.title,
     description: data.description ?? null,
   };
@@ -546,13 +564,14 @@ export async function deleteMaterial(
       courseSessionId: sessionId,
       courseSession: { courseId },
     },
-    select: { id: true },
+    select: { id: true, storagePath: true },
   });
 
   if (!material) {
     throw new DosenServiceError("Materi tidak ditemukan", 404);
   }
 
+  await deleteMaterialFilesFromSupabase([material.storagePath]);
   await prisma.material.delete({ where: { id: materialId } });
   return { success: true };
 }

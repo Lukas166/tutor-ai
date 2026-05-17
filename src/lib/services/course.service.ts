@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import type { CreateCourseInput, UpdateCourseInput } from "@/lib/schemas/course.schema";
 import { generateCourseCover, isCurrentCourseCover } from "@/lib/course-cover";
+import { deleteMaterialFilesFromSupabase } from "@/lib/supabase-storage";
 
 function serializeBigInt<T>(obj: T): T {
   return JSON.parse(
@@ -170,6 +171,12 @@ export async function deleteCourse(id: string) {
     throw new Error("Course tidak ditemukan");
   }
 
+  const materials = await prisma.material.findMany({
+    where: { courseSession: { courseId: id } },
+    select: { storagePath: true },
+  });
+
+  await deleteMaterialFilesFromSupabase(materials.map((material) => material.storagePath));
   await prisma.course.delete({ where: { id } });
   return { success: true };
 }
@@ -300,13 +307,26 @@ export async function updateAdminCourseSession(
   });
 }
 
+export async function getAdminCourseSessionInCourse(courseId: string, sessionId: string) {
+  return prisma.courseSession.findFirst({
+    where: { id: sessionId, courseId },
+    select: { id: true, title: true },
+  });
+}
+
 export async function deleteAdminCourseSession(courseId: string, sessionId: string) {
   const session = await prisma.courseSession.findFirst({
     where: { id: sessionId, courseId },
-    select: { id: true },
+    select: {
+      id: true,
+      materials: { select: { storagePath: true } },
+    },
   });
   if (!session) throw new Error("Sesi tidak ditemukan");
 
+  await deleteMaterialFilesFromSupabase(
+    session.materials.map((material) => material.storagePath)
+  );
   await prisma.courseSession.delete({ where: { id: sessionId } });
   return { success: true };
 }
@@ -409,10 +429,11 @@ export async function deleteAdminMaterial(
 ) {
   const material = await prisma.material.findFirst({
     where: { id: materialId, courseSessionId: sessionId, courseSession: { courseId } },
-    select: { id: true },
+    select: { id: true, storagePath: true },
   });
   if (!material) throw new Error("Materi tidak ditemukan");
 
+  await deleteMaterialFilesFromSupabase([material.storagePath]);
   await prisma.material.delete({ where: { id: materialId } });
   return { success: true };
 }

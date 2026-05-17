@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/api-utils";
 import { createMaterialProcessingJob } from "@/lib/material-processing/jobs";
-import { createAdminMaterial } from "@/lib/services/course.service";
-import { uploadMaterialFileToSupabase } from "@/lib/supabase-storage";
+import {
+  createAdminMaterial,
+  getAdminCourseSessionInCourse,
+} from "@/lib/services/course.service";
+import {
+  deleteMaterialFilesFromSupabase,
+  uploadMaterialFileToSupabase,
+} from "@/lib/supabase-storage";
 
 type AdminMaterialRouteContext = {
   params: Promise<{ id: string; sessionId: string }>;
@@ -22,6 +28,11 @@ export async function POST(request: NextRequest, context: AdminMaterialRouteCont
   if (error) return error;
 
   const { id: courseId, sessionId } = await context.params;
+  const courseSession = await getAdminCourseSessionInCourse(courseId, sessionId);
+  if (!courseSession) {
+    return NextResponse.json({ error: "Sesi tidak ditemukan" }, { status: 404 });
+  }
+
   const contentTypeHeader = request.headers.get("content-type") ?? "";
 
   if (contentTypeHeader.includes("application/json")) {
@@ -90,6 +101,8 @@ export async function POST(request: NextRequest, context: AdminMaterialRouteCont
     return NextResponse.json({ error: "Hanya file PDF yang diperbolehkan" }, { status: 400 });
   }
 
+  let uploadedStoragePath: string | null = null;
+
   try {
     const bytes = await file.arrayBuffer();
     const uploadedFile = await uploadMaterialFileToSupabase({
@@ -98,7 +111,10 @@ export async function POST(request: NextRequest, context: AdminMaterialRouteCont
       fileName: file.name,
       courseId,
       sessionId,
+      sessionTitle: courseSession.title,
+      materialTitle: title.trim(),
     });
+    uploadedStoragePath = uploadedFile.storagePath;
 
     const material = await createAdminMaterial(courseId, sessionId, session!.user.id, {
       title: title.trim(),
@@ -119,6 +135,12 @@ export async function POST(request: NextRequest, context: AdminMaterialRouteCont
 
     return NextResponse.json(material, { status: 201 });
   } catch (err) {
+    if (uploadedStoragePath) {
+      await deleteMaterialFilesFromSupabase([uploadedStoragePath]).catch((cleanupError) => {
+        console.error("Gagal membersihkan file upload admin yang tidak jadi disimpan:", cleanupError);
+      });
+    }
+
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Gagal upload materi" },
       { status: 500 }
