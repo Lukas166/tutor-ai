@@ -141,7 +141,6 @@ model Enrollment {
 
   course   Course               @relation(fields: [courseId], references: [id], onDelete: Cascade)
   user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  progress EnrollmentProgress[]
 
   @@unique([courseId, userId])
   @@index([userId])
@@ -168,28 +167,11 @@ model CourseSession {
   creator        User                 @relation("CourseSessionCreator", fields: [createdBy], references: [id])
   materials      Material[]
   materialChunks MaterialChunk[]
-  progress       EnrollmentProgress[]
   aiChatSessions AiChatSession[]
 
   @@unique([courseId, orderNumber])
   @@index([courseId])
   @@map("course_session")
-}
-
-// Tracking apakah mahasiswa sudah membuka sesi tertentu
-model EnrollmentProgress {
-  id              String    @id
-  enrollmentId    String
-  courseSessionId String
-  isVisited       Boolean   @default(false)
-  visitedAt       DateTime? // timestamp pertama kali dibuka
-  lastVisitedAt   DateTime?
-
-  enrollment    Enrollment    @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-  courseSession CourseSession @relation(fields: [courseSessionId], references: [id], onDelete: Cascade)
-
-  @@unique([enrollmentId, courseSessionId])
-  @@map("enrollment_progress")
 }
 
 // File PDF yang diunggah per sesi — satu sesi bisa punya banyak PDF
