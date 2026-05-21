@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod/v4";
-import { askTutor } from "@/lib/tutor-ai/service";
+import { askTutorStream } from "@/lib/tutor-ai/service";
 import { requireTutorUser, tutorErrorResponse } from "@/lib/tutor-ai/route-helpers";
 
 type TutorMessagesRouteContext = {
@@ -22,13 +22,21 @@ export async function POST(request: NextRequest, context: TutorMessagesRouteCont
   }
 
   try {
-    const session = await askTutor({
+    const stream = await askTutorStream({
       courseId,
       sessionId,
       userId: userId!,
       content: parsed.data.content,
     });
-    return NextResponse.json(session);
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
+      },
+    });
   } catch (err) {
     return tutorErrorResponse(err, "Tutor AI gagal menjawab");
   }

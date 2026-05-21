@@ -99,9 +99,12 @@ export function TutorChatMessages({
   scrollContainerRef,
   messagesEndRef,
 }: TutorChatMessagesProps) {
+  const lastMessage = activeSession?.messages[activeSession.messages.length - 1];
+  const isStreamingEmpty = sending && lastMessage?.senderType === "ai" && !lastMessage.content;
+
   return (
     <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 pb-28 pt-4">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 pb-8 pt-4">
         {loadingSession ? (
           <div className="flex flex-col gap-5">
             <Skeleton className="h-20 w-2/3 rounded-2xl" />
@@ -133,10 +136,15 @@ export function TutorChatMessages({
           activeSession.messages.map((message) => {
             const isUser = message.senderType === "user";
             const sources = getUniqueSources(getMessageSources(message));
+            const isStreaming = sending && message.id.startsWith("streaming-");
+
+            // Skip rendering empty streaming messages — show spinner below instead
+            if (isStreaming && !message.content) return null;
 
             return (
               <div
                 key={message.id}
+                id={`msg-${message.id}`}
                 className={cn("flex w-full", isUser ? "justify-end" : "justify-start")}
               >
                 <div
@@ -150,24 +158,27 @@ export function TutorChatMessages({
                   {isUser ? (
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>
                   ) : (
-                    <div className="prose prose-sm max-w-none break-words dark:prose-invert">
+                    <div className="prose prose-base max-w-none break-words dark:prose-invert">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]}
                         rehypePlugins={[rehypeKatex]}
                       >
                         {message.content}
                       </ReactMarkdown>
+                      {isStreaming && (
+                        <span className="inline-block h-4 w-0.5 animate-pulse bg-brand align-text-bottom" />
+                      )}
                     </div>
                   )}
 
-                  {!isUser && <MessageSources sources={sources} />}
+                  {!isUser && !isStreaming && <MessageSources sources={sources} />}
                 </div>
               </div>
             );
           })
         )}
 
-        {sending && (
+        {isStreamingEmpty && (
           <div className="flex justify-start">
             <div className="flex items-center gap-2 py-1 text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin" />
@@ -175,7 +186,12 @@ export function TutorChatMessages({
             </div>
           </div>
         )}
+        {/* Clearance for floating input area */}
+        <div className="h-28" aria-hidden="true" />
         <div ref={messagesEndRef} />
+
+        {/* Spacer: provides scroll room so user's message can appear at top when sending */}
+        {sending && <div className="min-h-[60vh]" aria-hidden="true" />}
       </div>
     </div>
   );

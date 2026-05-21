@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, Loader2 } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export type TutorChatInputProps = {
@@ -8,6 +8,7 @@ export type TutorChatInputProps = {
   setInput: (value: string) => void;
   sending: boolean;
   handleSend: () => void | Promise<void>;
+  handleStop: () => void;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 };
 
@@ -16,6 +17,7 @@ export function TutorChatInput({
   setInput,
   sending,
   handleSend,
+  handleStop,
   textareaRef,
 }: TutorChatInputProps) {
   return (
@@ -33,27 +35,34 @@ export function TutorChatInput({
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
-                void handleSend();
-              }
-              if (event.key === "ArrowUp" && !input.trim() && !sending) {
-                event.preventDefault();
+                if (sending) return;
                 void handleSend();
               }
             }}
             placeholder="Tulis pertanyaan..."
-            disabled={sending}
             rows={1}
-            className="max-h-40 min-h-11 flex-1 resize-none bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            className="max-h-40 min-h-11 flex-1 resize-none bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground"
           />
-          <Button
-            size="icon"
-            className="mb-0.5 size-10 shrink-0 rounded-full bg-brand text-black hover:bg-brand/90"
-            onClick={() => void handleSend()}
-            disabled={sending || !input.trim()}
-            aria-label="Kirim pertanyaan"
-          >
-            {sending ? <Loader2 className="animate-spin" /> : <ArrowUp />}
-          </Button>
+          {sending ? (
+            <Button
+              size="icon"
+              className="mb-0.5 size-10 shrink-0 rounded-full bg-brand text-black hover:bg-brand/90"
+              onClick={handleStop}
+              aria-label="Hentikan"
+            >
+              <Square className="size-4 fill-current" />
+            </Button>
+          ) : (
+            <Button
+              size="icon"
+              className="mb-0.5 size-10 shrink-0 rounded-full bg-brand text-black hover:bg-brand/90"
+              onClick={() => void handleSend()}
+              disabled={!input.trim()}
+              aria-label="Kirim pertanyaan"
+            >
+              <ArrowUp />
+            </Button>
+          )}
         </div>
 
         {/* Disclaimer */}

@@ -101,3 +101,30 @@ export async function generateTutorAnswer(input: {
 
   return response.text?.trim() || "Materi yang tersedia belum cukup untuk menjawab dengan pasti.";
 }
+
+export async function* streamTutorAnswer(input: {
+  systemInstruction: string;
+  prompt: string;
+}): AsyncGenerator<string, void, unknown> {
+  const ai = getGeminiClient();
+  console.log(`\n[Gemini API] Memanggil generateContentStream...`);
+  console.log(`[Gemini API] Model yang digunakan: ${TUTOR_AI_CHAT_MODEL}`);
+
+  const response = await ai.models.generateContentStream({
+    model: TUTOR_AI_CHAT_MODEL,
+    contents: input.prompt,
+    config: {
+      systemInstruction: input.systemInstruction,
+      temperature: 0.25,
+      topP: 0.85,
+      maxOutputTokens: 8192,
+    },
+  });
+
+  for await (const chunk of response) {
+    const text = chunk.text;
+    if (text) {
+      yield text;
+    }
+  }
+}

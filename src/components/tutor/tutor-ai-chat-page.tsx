@@ -40,28 +40,13 @@ import { TutorChatInput } from "./tutor-chat-input";
 import { TutorChatContextDialog } from "./tutor-chat-context-dialog";
 
 import type {
-  TutorMaterial,
   TutorChatSessionSummary,
   TutorMessage,
   TutorChatSession,
   TutorOverview,
-  RagSource,
   TutorAiChatPageProps,
 } from "./tutor-chat-types";
 
-
-
-function sessionSummaryFromChat(session: TutorChatSession): TutorChatSessionSummary {
-  const firstUserMessage = session.messages.find((message) => message.senderType === "user");
-
-  return {
-    id: session.id,
-    title: firstUserMessage?.content.slice(0, 72) || "Chat baru",
-    messageCount: session.messages.length,
-    startedAt: session.startedAt,
-    lastActiveAt: session.lastActiveAt,
-  };
-}
 
 
 
@@ -71,6 +56,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const activeSessionIdRef = useRef<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const [overview, setOverview] = useState<TutorOverview | null>(null);
   const [chatSessions, setChatSessions] = useState<TutorChatSessionSummary[]>([]);
@@ -171,39 +157,29 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
     void loadOverview();
   }, [loadOverview]);
 
-  // Helper to force scroll container to the very bottom
-  const scrollToBottom = useCallback((behavior: ScrollBehavior = "auto") => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    if (behavior === "auto") {
-      el.scrollTop = el.scrollHeight;
-    } else {
-      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-    }
+  // Helper to scroll to the latest messages (used on session load/switch)
+  const scrollToMessages = useCallback((behavior: ScrollBehavior = "auto") => {
+    messagesEndRef.current?.scrollIntoView({
+      block: "end",
+      behavior: behavior === "smooth" ? "smooth" : "instant",
+    });
   }, []);
 
-  // Scroll to bottom instantly when session loads or changes
+  // Scroll to latest messages when session loads or changes
   useEffect(() => {
     if (!loadingSession && activeSession) {
-      scrollToBottom("auto");
+      scrollToMessages("auto");
 
-      const timer1 = setTimeout(() => scrollToBottom("auto"), 50);
-      const timer2 = setTimeout(() => scrollToBottom("auto"), 150);
-      const timer3 = setTimeout(() => scrollToBottom("auto"), 400);
+      const timer1 = setTimeout(() => scrollToMessages("auto"), 50);
+      const timer2 = setTimeout(() => scrollToMessages("auto"), 150);
+      const timer3 = setTimeout(() => scrollToMessages("auto"), 400);
       return () => {
         clearTimeout(timer1);
         clearTimeout(timer2);
         clearTimeout(timer3);
       };
     }
-  }, [activeSession?.id, loadingSession, scrollToBottom]);
-
-  // Smooth scroll for new messages
-  useEffect(() => {
-    if (!loadingSession && activeSession) {
-      scrollToBottom("smooth");
-    }
-  }, [activeSession?.messages.length, sending, loadingSession, scrollToBottom]);
+  }, [activeSession?.id, loadingSession, scrollToMessages]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -349,6 +325,13 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
     }
   }
 
+  function handleStop() {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }
+
   async function handleSend() {
     const question = input.trim();
     if (!question || sending) return;
@@ -362,6 +345,9 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
     setInput("");
     setSending(true);
 
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     const pendingMessage: TutorMessage = {
       id: `pending-${Date.now()}`,
       senderType: "user",
@@ -371,10 +357,27 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
       createdAt: new Date().toISOString(),
     };
 
-    // Optimistically update UI IMMEDIATELY to prevent empty state flicker
+    const streamingAiMessage: TutorMessage = {
+      id: `streaming-${Date.now()}`,
+      senderType: "ai",
+      content: "",
+      ragSources: null,
+      responseTimeMs: null,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Optimistically update UI IMMEDIATELY with user message + empty AI placeholder
     setActiveSession({
       ...session,
-      messages: [...session.messages, pendingMessage],
+      messages: [...session.messages, pendingMessage, streamingAiMessage],
+    });
+
+    // Scroll user's message to the TOP of the viewport (ChatGPT-style)
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`msg-${pendingMessage.id}`);
+      if (el) {
+        el.scrollIntoView({ block: "start", behavior: "smooth" });
+      }
     });
 
     let realSessionId = session.id;
@@ -415,22 +418,139 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: question }),
+          signal: abortController.signal,
         }
       );
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Tutor AI gagal menjawab");
 
-      setActiveSession(data);
-      setChatSessions((sessions) => {
-        const summary = sessionSummaryFromChat(data);
-        const others = sessions.filter((item) => item.id !== summary.id && item.id !== session.id);
-        return [summary, ...others];
-      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error ?? "Tutor AI gagal menjawab");
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("Stream tidak tersedia");
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let accumulatedText = "";
+      let ragSources: unknown = null;
+      let responseTimeMs: number | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Parse SSE events from buffer
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        let eventType = "";
+        for (const line of lines) {
+          if (line.startsWith("event: ")) {
+            eventType = line.slice(7).trim();
+          } else if (line.startsWith("data: ") && eventType) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (eventType === "text") {
+                accumulatedText += data.text;
+                // Update the streaming message in place
+                setActiveSession((prev) => {
+                  if (!prev) return prev;
+                  const messages = [...prev.messages];
+                  const lastMsg = messages[messages.length - 1];
+                  if (lastMsg && lastMsg.id === streamingAiMessage.id) {
+                    messages[messages.length - 1] = {
+                      ...lastMsg,
+                      content: accumulatedText,
+                    };
+                  }
+                  return { ...prev, messages };
+                });
+              } else if (eventType === "metadata") {
+                ragSources = data.ragSources;
+                responseTimeMs = data.responseTimeMs;
+              } else if (eventType === "done") {
+                // Finalize the streaming message
+                setActiveSession((prev) => {
+                  if (!prev) return prev;
+                  const sessionId = isNewSession ? realSessionId : prev.id;
+                  const messages = prev.messages.map((msg) => {
+                    if (msg.id === pendingMessage.id) {
+                      return { ...msg, id: `user-${Date.now()}` };
+                    }
+                    if (msg.id === streamingAiMessage.id) {
+                      return {
+                        ...msg,
+                        id: `ai-${Date.now()}`,
+                        content: accumulatedText.trim(),
+                        ragSources,
+                        responseTimeMs,
+                      };
+                    }
+                    return msg;
+                  });
+                  return { ...prev, id: sessionId, messages };
+                });
+                setChatSessions((sessions) => {
+                  const sid = isNewSession ? realSessionId : session.id;
+                  const summary: TutorChatSessionSummary = {
+                    id: sid,
+                    title: question.slice(0, 72),
+                    messageCount: (session.messages.length || 0) + 2,
+                    startedAt: session.startedAt,
+                    lastActiveAt: new Date().toISOString(),
+                  };
+                  const others = sessions.filter(
+                    (item) => item.id !== sid && item.id !== session.id
+                  );
+                  return [summary, ...others];
+                });
+              } else if (eventType === "error") {
+                throw new Error(data.error ?? "Tutor AI gagal menjawab");
+              }
+            } catch (parseError) {
+              if (parseError instanceof Error && parseError.message !== "Tutor AI gagal menjawab") {
+                // JSON parse error, ignore
+              } else {
+                throw parseError;
+              }
+            }
+            eventType = "";
+          }
+        }
+      }
     } catch (err) {
-      setActiveSession({ ...session, id: realSessionId });
-      setInput(question);
-      toast.error(err instanceof Error ? err.message : "Tutor AI gagal menjawab");
+      // Don't show error toast if user intentionally aborted
+      const isAborted = err instanceof DOMException && err.name === "AbortError";
+      setActiveSession((prev) => {
+        if (!prev) return prev;
+        if (isAborted) {
+          // Keep whatever content was streamed so far, finalize the message
+          const messages = prev.messages.map((msg) => {
+            if (msg.id === streamingAiMessage.id) {
+              return msg.content
+                ? { ...msg, id: `ai-stopped-${Date.now()}` }
+                : null;
+            }
+            return msg;
+          }).filter((msg): msg is TutorMessage => msg !== null);
+          return { ...prev, id: isNewSession ? realSessionId : prev.id, messages };
+        }
+        // Remove the streaming AI message on error
+        const messages = prev.messages.filter(
+          (msg) => msg.id !== streamingAiMessage.id
+        );
+        return { ...prev, id: isNewSession ? realSessionId : prev.id, messages };
+      });
+      if (!isAborted) {
+        setInput(question);
+        toast.error(err instanceof Error ? err.message : "Tutor AI gagal menjawab");
+      }
     } finally {
+      abortControllerRef.current = null;
       setSending(false);
     }
   }
@@ -555,6 +675,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
           setInput={setInput}
           sending={sending}
           handleSend={handleSend}
+          handleStop={handleStop}
           textareaRef={textareaRef}
         />
       </main>

@@ -1,6 +1,6 @@
 import { Prisma } from "@/app/generated/prisma/client";
 import prisma from "@/lib/prisma";
-import { embedTutorQuestion, generateTutorAnswer, toPgVector } from "@/lib/tutor-ai/gemini";
+import { embedTutorQuestion, generateTutorAnswer, streamTutorAnswer, toPgVector } from "@/lib/tutor-ai/gemini";
 
 type AcademicLevel = "S1" | "S2" | "S3";
 
@@ -772,4 +772,155 @@ export async function askTutor(input: {
   });
 
   return getTutorChatSession(input);
+}
+
+export async function askTutorStream(input: {
+  courseId: string;
+  userId: string;
+  sessionId: string;
+  content: string;
+}): Promise<ReadableStream<Uint8Array>> {
+  const startTime = Date.now();
+  const question = input.content.trim();
+  if (!question) {
+    throw new TutorAiServiceError("Pertanyaan tidak boleh kosong.", 400);
+  }
+
+  const { user, course } = await getTutorAccess(input.courseId, input.userId);
+  const [session, readyMaterials] = await Promise.all([
+    getSessionOrThrow(input),
+    listReadyMaterialsForCourse(input.courseId),
+  ]);
+
+  const readyMaterialIds = readyMaterials.map((material) => material.id);
+  const selectedMaterialIds = await getStoredSelectedMaterialIds(session.id, readyMaterialIds);
+
+  const userMessage = await prisma.aiChatMessage.create({
+    data: {
+      id: crypto.randomUUID(),
+      aiChatSessionId: input.sessionId,
+      senderType: "user",
+      content: question,
+    },
+  });
+
+  const encoder = new TextEncoder();
+
+  function sseEvent(event: string, data: unknown): Uint8Array {
+    return encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  }
+
+  const insufficientContextAnswer =
+    readyMaterials.length === 0
+      ? "Belum ada materi PDF yang sudah ready untuk course ini, jadi materi yang tersedia belum cukup untuk menjawab dengan pasti."
+      : "Materi yang dipilih sebagai konteks belum cukup untuk menjawab dengan pasti. Aktifkan materi PDF yang relevan atau unggah materi yang sudah diproses.";
+
+  if (readyMaterials.length === 0 || selectedMaterialIds.length === 0) {
+    const ragSources = buildRagSources([], "no_selected_materials");
+    const responseTimeMs = Date.now() - startTime;
+
+    await createAiMessage({
+      aiChatSessionId: input.sessionId,
+      content: insufficientContextAnswer,
+      ragSources: ragSources as unknown as Prisma.InputJsonValue,
+      responseTimeMs,
+    });
+    await prisma.aiChatSession.update({
+      where: { id: input.sessionId },
+      data: { lastActiveAt: new Date() },
+    });
+
+    return new ReadableStream({
+      start(controller) {
+        controller.enqueue(sseEvent("text", { text: insufficientContextAnswer }));
+        controller.enqueue(sseEvent("metadata", { ragSources, responseTimeMs }));
+        controller.enqueue(sseEvent("done", { sessionId: input.sessionId }));
+        controller.close();
+      },
+    });
+  }
+
+  // --- Embedding + RAG retrieval (same as askTutor) ---
+  let chunks: RetrievedChunkRow[];
+  let systemInstruction: string;
+  let prompt: string;
+
+  try {
+    const questionEmbedding = await embedTutorQuestion(question);
+    chunks = await retrieveRelevantChunks({
+      courseId: input.courseId,
+      selectedMaterialIds,
+      questionEmbedding,
+    });
+
+    const history = await prisma.aiChatMessage.findMany({
+      where: {
+        aiChatSessionId: input.sessionId,
+        senderType: { in: VISIBLE_SENDER_TYPES },
+        id: { not: userMessage.id },
+      },
+      select: { senderType: true, content: true },
+      orderBy: { createdAt: "desc" },
+      take: MAX_HISTORY_MESSAGES,
+    });
+
+    const activeMaterials = readyMaterials.filter((m) => selectedMaterialIds.includes(m.id));
+
+    systemInstruction = buildSystemInstruction(user);
+    prompt = buildPrompt({
+      course,
+      question,
+      history: history.reverse(),
+      chunks,
+      activeMaterials,
+    });
+  } catch (error) {
+    await prisma.aiChatMessage.delete({ where: { id: userMessage.id } });
+    throw error;
+  }
+
+  // --- Stream the LLM response ---
+  const capturedChunks = chunks;
+  return new ReadableStream({
+    async start(controller) {
+      let fullAnswer = "";
+      try {
+        const stream = streamTutorAnswer({ systemInstruction, prompt });
+        for await (const textChunk of stream) {
+          fullAnswer += textChunk;
+          controller.enqueue(sseEvent("text", { text: textChunk }));
+        }
+
+        if (!fullAnswer.trim()) {
+          fullAnswer = "Materi yang tersedia belum cukup untuk menjawab dengan pasti.";
+        }
+
+        const ragSources = buildRagSources(capturedChunks);
+        const responseTimeMs = Date.now() - startTime;
+
+        await createAiMessage({
+          aiChatSessionId: input.sessionId,
+          content: fullAnswer.trim(),
+          ragSources: ragSources as unknown as Prisma.InputJsonValue,
+          responseTimeMs,
+        });
+        await prisma.aiChatSession.update({
+          where: { id: input.sessionId },
+          data: { lastActiveAt: new Date() },
+        });
+
+        controller.enqueue(sseEvent("metadata", { ragSources, responseTimeMs }));
+        controller.enqueue(sseEvent("done", { sessionId: input.sessionId }));
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Streaming gagal";
+        controller.enqueue(sseEvent("error", { error: errorMessage }));
+        // Cleanup: delete user message if streaming failed and no AI answer was saved
+        if (!fullAnswer.trim()) {
+          await prisma.aiChatMessage.delete({ where: { id: userMessage.id } }).catch(() => {});
+        }
+      } finally {
+        controller.close();
+      }
+    },
+  });
 }
