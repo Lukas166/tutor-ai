@@ -59,7 +59,6 @@ export const ModelName = {
   CourseInstructor: 'CourseInstructor',
   Enrollment: 'Enrollment',
   CourseSession: 'CourseSession',
-  EnrollmentProgress: 'EnrollmentProgress',
   Material: 'Material',
   MaterialPage: 'MaterialPage',
   MaterialChunk: 'MaterialChunk',
@@ -197,18 +196,6 @@ export const CourseSessionScalarFieldEnum = {
 } as const
 
 export type CourseSessionScalarFieldEnum = (typeof CourseSessionScalarFieldEnum)[keyof typeof CourseSessionScalarFieldEnum]
-
-
-export const EnrollmentProgressScalarFieldEnum = {
-  id: 'id',
-  enrollmentId: 'enrollmentId',
-  courseSessionId: 'courseSessionId',
-  isVisited: 'isVisited',
-  visitedAt: 'visitedAt',
-  lastVisitedAt: 'lastVisitedAt'
-} as const
-
-export type EnrollmentProgressScalarFieldEnum = (typeof EnrollmentProgressScalarFieldEnum)[keyof typeof EnrollmentProgressScalarFieldEnum]
 
 
 export const MaterialScalarFieldEnum = {

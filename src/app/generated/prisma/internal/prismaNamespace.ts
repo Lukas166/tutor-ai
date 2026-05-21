@@ -392,7 +392,6 @@ export const ModelName = {
   CourseInstructor: 'CourseInstructor',
   Enrollment: 'Enrollment',
   CourseSession: 'CourseSession',
-  EnrollmentProgress: 'EnrollmentProgress',
   Material: 'Material',
   MaterialPage: 'MaterialPage',
   MaterialChunk: 'MaterialChunk',
@@ -414,7 +413,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "course" | "courseInstructor" | "enrollment" | "courseSession" | "enrollmentProgress" | "material" | "materialPage" | "materialChunk" | "materialProcessingLog" | "aiChatSession" | "aiChatMessage"
+    modelProps: "user" | "session" | "account" | "verification" | "course" | "courseInstructor" | "enrollment" | "courseSession" | "material" | "materialPage" | "materialChunk" | "materialProcessingLog" | "aiChatSession" | "aiChatMessage"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1007,80 +1006,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CourseSessionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CourseSessionCountAggregateOutputType> | number
-        }
-      }
-    }
-    EnrollmentProgress: {
-      payload: Prisma.$EnrollmentProgressPayload<ExtArgs>
-      fields: Prisma.EnrollmentProgressFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.EnrollmentProgressFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentProgressPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.EnrollmentProgressFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentProgressPayload>
-        }
-        findFirst: {
-          args: Prisma.EnrollmentProgressFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentProgressPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.EnrollmentProgressFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentProgressPayload>
-        }
-        findMany: {
-          args: Prisma.EnrollmentProgressFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentProgressPayload>[]
-        }
-        create: {
-          args: Prisma.EnrollmentProgressCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentProgressPayload>
-        }
-        createMany: {
-          args: Prisma.EnrollmentProgressCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.EnrollmentProgressCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentProgressPayload>[]
-        }
-        delete: {
-          args: Prisma.EnrollmentProgressDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentProgressPayload>
-        }
-        update: {
-          args: Prisma.EnrollmentProgressUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentProgressPayload>
-        }
-        deleteMany: {
-          args: Prisma.EnrollmentProgressDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.EnrollmentProgressUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.EnrollmentProgressUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentProgressPayload>[]
-        }
-        upsert: {
-          args: Prisma.EnrollmentProgressUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentProgressPayload>
-        }
-        aggregate: {
-          args: Prisma.EnrollmentProgressAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateEnrollmentProgress>
-        }
-        groupBy: {
-          args: Prisma.EnrollmentProgressGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.EnrollmentProgressGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.EnrollmentProgressCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.EnrollmentProgressCountAggregateOutputType> | number
         }
       }
     }
@@ -1682,18 +1607,6 @@ export const CourseSessionScalarFieldEnum = {
 export type CourseSessionScalarFieldEnum = (typeof CourseSessionScalarFieldEnum)[keyof typeof CourseSessionScalarFieldEnum]
 
 
-export const EnrollmentProgressScalarFieldEnum = {
-  id: 'id',
-  enrollmentId: 'enrollmentId',
-  courseSessionId: 'courseSessionId',
-  isVisited: 'isVisited',
-  visitedAt: 'visitedAt',
-  lastVisitedAt: 'lastVisitedAt'
-} as const
-
-export type EnrollmentProgressScalarFieldEnum = (typeof EnrollmentProgressScalarFieldEnum)[keyof typeof EnrollmentProgressScalarFieldEnum]
-
-
 export const MaterialScalarFieldEnum = {
   id: 'id',
   courseSessionId: 'courseSessionId',
@@ -2055,7 +1968,6 @@ export type GlobalOmitConfig = {
   courseInstructor?: Prisma.CourseInstructorOmit
   enrollment?: Prisma.EnrollmentOmit
   courseSession?: Prisma.CourseSessionOmit
-  enrollmentProgress?: Prisma.EnrollmentProgressOmit
   material?: Prisma.MaterialOmit
   materialPage?: Prisma.MaterialPageOmit
   materialChunk?: Prisma.MaterialChunkOmit
