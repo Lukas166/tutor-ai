@@ -3,30 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
-  ArrowUp,
-  Check,
-  ChevronRight,
-  FileText,
   Loader2,
   MessageCircle,
-  MoreHorizontal,
-  Pencil,
-  Plus,
   Search,
   Settings2,
-  Trash2,
-  X,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import remarkBreaks from "remark-breaks";
-import rehypeKatex from "rehype-katex";
-import "katex/dist/katex.min.css";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -45,155 +28,28 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-type TutorMaterial = {
-  id: string;
-  title: string;
-  fileName: string;
-  sessionId: string;
-  sessionTitle: string;
-  pageCount: number;
-  chunkCount: number;
-  createdAt: string;
-};
+import { TutorChatSidebar, SidebarToggleIcon } from "./tutor-chat-sidebar";
+import { TutorChatMessages } from "./tutor-chat-messages";
+import { TutorChatInput } from "./tutor-chat-input";
+import { TutorChatContextDialog } from "./tutor-chat-context-dialog";
 
-type TutorChatSessionSummary = {
-  id: string;
-  title: string;
-  messageCount: number;
-  startedAt: string;
-  lastActiveAt: string;
-};
+import type {
+  TutorMaterial,
+  TutorChatSessionSummary,
+  TutorMessage,
+  TutorChatSession,
+  TutorOverview,
+  RagSource,
+  TutorAiChatPageProps,
+} from "./tutor-chat-types";
 
-type TutorMessage = {
-  id: string;
-  senderType: "user" | "ai" | string;
-  content: string;
-  ragSources: unknown;
-  responseTimeMs: number | null;
-  createdAt: string;
-};
 
-type TutorChatSession = {
-  id: string;
-  courseId: string;
-  selectedMaterialIds: string[];
-  startedAt: string;
-  lastActiveAt: string;
-  messages: TutorMessage[];
-};
-
-type TutorOverview = {
-  course: {
-    id: string;
-    title: string;
-    description: string | null;
-    isActive: boolean;
-  };
-  user: {
-    academicLevel: "S1" | "S2" | "S3";
-    role: string;
-  };
-  readyMaterials: TutorMaterial[];
-  chatSessions: TutorChatSessionSummary[];
-};
-
-type RagSource = {
-  chunkId: string;
-  materialId: string;
-  materialTitle: string;
-  fileName: string;
-  sessionTitle: string;
-  pageNumber: number;
-  chunkIndex: number;
-  similarity: number;
-  snippet: string;
-};
-
-type TutorAiChatPageProps = {
-  courseId: string;
-  backHref: string;
-};
-
-function getMessageSources(message: TutorMessage): RagSource[] {
-  if (!message.ragSources || typeof message.ragSources !== "object") return [];
-  const sources = (message.ragSources as { sources?: unknown }).sources;
-  if (!Array.isArray(sources)) return [];
-
-  return sources.filter((source): source is RagSource => {
-    return (
-      typeof source === "object" &&
-      source !== null &&
-      "chunkId" in source &&
-      "materialTitle" in source
-    );
-  });
-}
-
-function getUniqueSources(sources: RagSource[]) {
-  const seen = new Set<string>();
-  return sources.filter((source) => {
-    const key = `${source.materialId}-${source.pageNumber}-${source.chunkIndex}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function MessageSources({ sources }: { sources: RagSource[] }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  if (sources.length === 0) return null;
-
-  return (
-    <div className="mt-5 border-t border-border/50 pt-3">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground/80 transition-colors hover:text-foreground"
-      >
-        <ChevronRight className={cn("size-3.5 transition-transform duration-200 text-muted-foreground/60", isOpen && "rotate-90 text-brand")} />
-        <span>Sumber ({sources.length})</span>
-      </button>
-
-      {isOpen && (
-        <div className="mt-2.5 flex flex-col gap-3 pl-2 animate-in fade-in-50 slide-in-from-top-1 duration-200">
-          {sources.map((source) => (
-            <div
-              key={source.chunkId}
-              className="flex flex-col gap-1 px-1 py-1 text-xs text-muted-foreground"
-            >
-              <div className="flex items-center gap-1.5 font-medium text-foreground">
-                <FileText className="size-3.5 shrink-0 text-brand" />
-                <span className="truncate">
-                  {source.materialTitle} - hal. {source.pageNumber}
-                </span>
-              </div>
-              {source.snippet && (
-                <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground/80 italic">
-                  "{source.snippet}"
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function sessionSummaryFromChat(session: TutorChatSession): TutorChatSessionSummary {
   const firstUserMessage = session.messages.find((message) => message.senderType === "user");
@@ -207,24 +63,7 @@ function sessionSummaryFromChat(session: TutorChatSession): TutorChatSessionSumm
   };
 }
 
-/* ================================================================
-   Sidebar Toggle Icon — panel layout icon like Claude/ChatGPT
-   ================================================================ */
-function SidebarToggleIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 18 18"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-    >
-      <rect x="1.5" y="2.5" width="15" height="13" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-      <line x1="6.5" y1="2.5" x2="6.5" y2="15.5" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
-  );
-}
+
 
 export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
   const router = useRouter();
@@ -622,220 +461,27 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
   return (
     <div className="flex h-svh overflow-hidden bg-background">
       {/* ==================== SIDEBAR ==================== */}
-      {/* Mobile Backdrop */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/10 supports-backdrop-filter:backdrop-blur-xs transition-opacity duration-300 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
       {/* ==================== SIDEBAR ==================== */}
-      <aside
-        className={cn(
-          "flex h-full shrink-0 flex-col bg-muted/30 transition-all duration-300 z-50 border-r",
-          "max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:bg-background",
-          sidebarOpen ? "w-72" : "w-16 max-md:-translate-x-full"
-        )}
-      >
-        {/* Sidebar Header */}
-        <div className={cn("flex h-14 shrink-0 items-center", sidebarOpen ? "justify-between px-5" : "justify-center px-0")}>
-          {sidebarOpen && <span className="text-lg font-bold truncate">Tutor AI Chat</span>}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="text-muted-foreground hover:text-foreground"
-                aria-label="Toggle sidebar"
-              >
-                <SidebarToggleIcon />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">{sidebarOpen ? "Tutup panel" : "Buka panel"}</TooltipContent>
-          </Tooltip>
-        </div>
-
-        {/* Menu Items — New Chat & Search */}
-        <div className="mt-2 flex flex-col gap-2 px-3">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={createNewChat}
-                disabled={isNewChatDisabled}
-                className={cn(
-                  "flex h-11 w-full items-center rounded-lg text-sm font-medium transition-colors",
-                  sidebarOpen ? "gap-4 px-4" : "justify-center px-0",
-                  isNewChatDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-muted hover:text-foreground"
-                )}
-              >
-                {creatingChat ? (
-                  <Loader2 className="size-4 shrink-0 animate-spin" />
-                ) : (
-                  <Plus className="size-4 shrink-0" />
-                )}
-                {sidebarOpen && <span className="truncate">New chat</span>}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right" hidden={sidebarOpen}>New chat</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => { setSearchOpen(true); setSearchQuery(""); }}
-                className={cn(
-                  "flex h-11 w-full items-center rounded-lg text-sm font-medium transition-colors hover:bg-muted hover:text-foreground",
-                  sidebarOpen ? "gap-4 px-4" : "justify-center px-0"
-                )}
-              >
-                <Search className="size-4 shrink-0" />
-                {sidebarOpen && <span className="truncate">Search</span>}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right" hidden={sidebarOpen}>Search</TooltipContent>
-          </Tooltip>
-        </div>
-
-        {/* Chats Label */}
-        {sidebarOpen ? (
-          <div className="mt-6 px-5">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Chats
-            </span>
-          </div>
-        ) : (
-          <div className="mx-4 mb-2 mt-6 border-t" />
-        )}
-
-        {/* Session List */}
-        <div className="mt-2 flex-1 overflow-y-auto px-3 pb-3">
-          <div className="flex flex-col gap-1">
-            {chatSessions.length === 0 ? (
-              <div className="px-2 py-8 text-center text-sm text-muted-foreground">
-                {sidebarOpen ? "Belum ada chat." : "-"}
-              </div>
-            ) : (
-              chatSessions.map((session) => (
-                <div
-                  key={session.id}
-                  className={cn(
-                    "group/session relative flex items-center rounded-lg transition-colors",
-                    activeSession?.id === session.id ? "bg-brand font-medium text-black" : "hover:bg-muted hover:text-foreground",
-                    !sidebarOpen && "h-11 justify-center"
-                  )}
-                >
-                  {renamingSessionId === session.id && sidebarOpen ? (
-                    <div className="flex w-full items-center gap-1.5 px-3 py-2">
-                      <input
-                        type="text"
-                        value={renameValue}
-                        onChange={(e) => setRenameValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") void handleRenameSession();
-                          if (e.key === "Escape") setRenamingSessionId(null);
-                        }}
-                        autoFocus
-                        className="min-w-0 flex-1 rounded-md border bg-background px-2.5 py-1.5 text-sm outline-none focus:border-brand"
-                        disabled={savingRename}
-                      />
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => void handleRenameSession()}
-                        disabled={savingRename}
-                      >
-                        {savingRename ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => setRenamingSessionId(null)}
-                        disabled={savingRename}
-                      >
-                        <X className="size-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={() => loadSession(session.id)}
-                            className={cn(
-                              "flex min-w-0 flex-1 items-center",
-                              sidebarOpen ? "px-4 py-2.5 text-left" : "justify-center h-full w-full"
-                            )}
-                          >
-                            {!sidebarOpen ? (
-                              <MessageCircle className="size-4 shrink-0" />
-                            ) : (
-                              <span className="truncate text-sm">{session.title}</span>
-                            )}
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="right" hidden={sidebarOpen}>{session.title}</TooltipContent>
-                      </Tooltip>
-
-                      {/* More Actions — visible on hover */}
-                      {sidebarOpen && (
-                        <div className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/session:opacity-100 data-[state=open]:opacity-100">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="icon-xs" 
-                                className={cn(
-                                  "transition-colors",
-                                  activeSession?.id === session.id 
-                                    ? "text-black/60 hover:bg-black/10 hover:text-black" 
-                                    : "text-muted-foreground hover:text-foreground"
-                                )}
-                              >
-                                <MoreHorizontal className="size-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" side="bottom">
-                              <DropdownMenuGroup>
-                                <DropdownMenuItem onClick={() => { setRenamingSessionId(session.id); setRenameValue(session.title); }}>
-                                  <Pencil className="mr-2 size-4" /> Rename
-                                </DropdownMenuItem>
-                                <DropdownMenuItem variant="destructive" onClick={() => setDeleteSessionId(session.id)}>
-                                  <Trash2 className="mr-2 size-4" /> Hapus
-                                </DropdownMenuItem>
-                              </DropdownMenuGroup>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Sidebar Footer — Back button */}
-        <div className="shrink-0 px-3 pb-4 pt-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => router.push(backHref)}
-                className={cn(
-                  "flex h-11 w-full items-center rounded-lg text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                  sidebarOpen ? "gap-4 px-4" : "justify-center px-0"
-                )}
-              >
-                <ArrowLeft className="size-4 shrink-0" />
-                {sidebarOpen && <span className="truncate">Kembali ke course</span>}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right" hidden={sidebarOpen}>Kembali ke course</TooltipContent>
-          </Tooltip>
-        </div>
-      </aside>
+      <TutorChatSidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        chatSessions={chatSessions}
+        activeSession={activeSession}
+        creatingChat={creatingChat}
+        isNewChatDisabled={isNewChatDisabled}
+        setSearchOpen={setSearchOpen}
+        setSearchQuery={setSearchQuery}
+        createNewChat={createNewChat}
+        loadSession={loadSession}
+        renamingSessionId={renamingSessionId}
+        setRenamingSessionId={setRenamingSessionId}
+        renameValue={renameValue}
+        setRenameValue={setRenameValue}
+        savingRename={savingRename}
+        handleRenameSession={handleRenameSession}
+        setDeleteSessionId={setDeleteSessionId}
+        backHref={backHref}
+      />
 
       {/* ==================== MAIN CHAT AREA ==================== */}
       <main className="relative flex min-w-0 flex-1 flex-col">
@@ -895,129 +541,22 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
         </header>
 
         {/* Messages area — only this scrolls */}
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
-          <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 pb-28 pt-4">
-            {loadingSession ? (
-              <div className="flex flex-col gap-5">
-                <Skeleton className="h-20 w-2/3 rounded-2xl" />
-                <Skeleton className="ml-auto h-16 w-1/2 rounded-2xl" />
-                <Skeleton className="h-28 w-3/4 rounded-2xl" />
-              </div>
-            ) : !activeSession ? (
-              <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 text-center text-muted-foreground">
-                <div className="flex size-16 items-center justify-center rounded-full bg-brand/10">
-                  <MessageCircle className="size-8 text-brand" strokeWidth={1.5} />
-                </div>
-                <div>
-                  <p className="text-base font-medium text-foreground">
-                    Mulai bertanya tentang materi course.
-                  </p>
-                  <p className="mt-1.5 text-sm">
-                    Chat baru akan memakai semua PDF ready sebagai konteks default.
-                  </p>
-                </div>
-              </div>
-            ) : activeSession.messages.length === 0 ? (
-              <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 text-center text-muted-foreground">
-                <div className="flex size-16 items-center justify-center rounded-full bg-brand/10">
-                  <MessageCircle className="size-8 text-brand" strokeWidth={1.5} />
-                </div>
-                <p className="text-sm">Ajukan pertanyaan tentang materi PDF course ini.</p>
-              </div>
-            ) : (
-              activeSession.messages.map((message) => {
-                const isUser = message.senderType === "user";
-                const sources = getUniqueSources(getMessageSources(message));
-
-                return (
-                  <div
-                    key={message.id}
-                    className={cn("flex w-full", isUser ? "justify-end" : "justify-start")}
-                  >
-                    <div
-                      className={cn(
-                        "rounded-2xl text-sm leading-relaxed",
-                        isUser
-                          ? "max-w-[85%] bg-primary px-4 py-3 text-primary-foreground"
-                          : "w-full py-1 text-foreground"
-                      )}
-                    >
-                      {isUser ? (
-                        <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                      ) : (
-                        <div className="prose prose-sm max-w-none break-words dark:prose-invert">
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]}
-                            rehypePlugins={[rehypeKatex]}
-                          >
-                            {message.content}
-                          </ReactMarkdown>
-                        </div>
-                      )}
-
-                      {!isUser && <MessageSources sources={sources} />}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-
-            {sending && (
-              <div className="flex justify-start">
-                <div className="flex items-center gap-2 py-1 text-sm text-muted-foreground">
-                  <Loader2 className="size-4 animate-spin" />
-                  Tutor AI sedang menjawab...
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
+        <TutorChatMessages
+          activeSession={activeSession}
+          loadingSession={loadingSession}
+          sending={sending}
+          scrollContainerRef={scrollContainerRef}
+          messagesEndRef={messagesEndRef}
+        />
 
         {/* ==================== FLOATING INPUT AREA ==================== */}
-        <div className="absolute inset-x-0 bottom-0 flex flex-col items-center">
-          {/* Gradient fade */}
-          <div className="pointer-events-none h-10 w-full bg-gradient-to-t from-background to-transparent" />
-
-          {/* Input container */}
-          <div className="w-full bg-background px-5 pb-4 pt-0">
-            <div className="mx-auto flex w-full max-w-3xl items-end gap-2 rounded-[26px] border bg-card p-1.5 shadow-lg shadow-black/5">
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault();
-                    void handleSend();
-                  }
-                  if (event.key === "ArrowUp" && !input.trim() && !sending) {
-                    event.preventDefault();
-                    void handleSend();
-                  }
-                }}
-                placeholder="Tulis pertanyaan..."
-                disabled={sending}
-                rows={1}
-                className="max-h-40 min-h-11 flex-1 resize-none bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-              />
-              <Button
-                size="icon"
-                className="mb-0.5 size-10 shrink-0 rounded-full bg-brand text-black hover:bg-brand/90"
-                onClick={handleSend}
-                disabled={sending || !input.trim()}
-                aria-label="Kirim pertanyaan"
-              >
-                {sending ? <Loader2 className="animate-spin" /> : <ArrowUp />}
-              </Button>
-            </div>
-
-            {/* Disclaimer */}
-            <p className="mt-2.5 text-center text-xs text-muted-foreground">
-              Tutor AI bisa melakukan kesalahan. Cek informasi penting.
-            </p>
-          </div>
-        </div>
+        <TutorChatInput
+          input={input}
+          setInput={setInput}
+          sending={sending}
+          handleSend={handleSend}
+          textareaRef={textareaRef}
+        />
       </main>
 
       {/* ==================== SEARCH DIALOG ==================== */}
@@ -1071,61 +610,15 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
 
 
       {/* ==================== CONTEXT MATERI DIALOG ==================== */}
-      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent className="sm:max-w-[520px] p-6 sm:p-8">
-          <DialogHeader className="pr-8">
-            <DialogTitle>Konteks Materi</DialogTitle>
-            <DialogDescription>
-              Pilih dokumen PDF yang akan dijadikan sumber pengetahuan Tutor AI untuk menjawab pertanyaan di sesi chat ini.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="mt-2 flex max-h-[60vh] flex-col gap-3.5 overflow-y-auto pr-2">
-            {readyMaterials.length === 0 ? (
-              <div className="rounded-2xl border border-dashed px-3 py-10 text-center text-sm text-muted-foreground">
-                Belum ada materi PDF yang siap digunakan untuk course ini.
-              </div>
-            ) : (
-              readyMaterials.map((material) => {
-                const isSelected = selectedMaterialSet.has(material.id);
-                return (
-                  <label
-                    key={material.id}
-                    className={cn(
-                      "flex cursor-pointer items-center gap-3.5 rounded-2xl border bg-background p-4 shadow-sm transition-all hover:bg-muted/40",
-                      isSelected ? "border-brand ring-1 ring-brand/20" : "border-border"
-                    )}
-                  >
-                    <div className="flex shrink-0 items-center justify-center">
-                      <Checkbox
-                        checked={isSelected}
-                        disabled={!activeSession || savingContext}
-                        onCheckedChange={(checked: boolean | "indeterminate") =>
-                          void handleMaterialToggle(material.id, checked === true)
-                        }
-                        aria-label={`Aktifkan ${material.title}`}
-                      />
-                    </div>
-                    
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                      <FileText className="size-6" />
-                    </div>
-
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-base font-semibold leading-tight text-foreground">
-                        {material.title}
-                      </span>
-                      <span className="mt-1.5 block truncate text-sm text-muted-foreground">
-                        Materi: {material.sessionTitle}
-                      </span>
-                    </span>
-                  </label>
-                );
-              })
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <TutorChatContextDialog
+        settingsOpen={settingsOpen}
+        setSettingsOpen={setSettingsOpen}
+        readyMaterials={readyMaterials}
+        selectedMaterialSet={selectedMaterialSet}
+        activeSession={activeSession}
+        savingContext={savingContext}
+        handleMaterialToggle={handleMaterialToggle}
+      />
 
       {/* ==================== DELETE CONFIRMATION ==================== */}
       <AlertDialog

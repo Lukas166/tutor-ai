@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { TutorAiChatPage } from "@/components/tutor/tutor-ai-chat-page";
 
 type MahasiswaTutorPageProps = {
   params: Promise<{ id: string }>;
@@ -6,5 +6,11 @@ type MahasiswaTutorPageProps = {
 
 export default async function MahasiswaTutorPage({ params }: MahasiswaTutorPageProps) {
   const { id } = await params;
-  redirect(`/courses/${id}/tutor`);
+
+  return (
+    <TutorAiChatPage 
+      courseId={id} 
+      backHref={`/mahasiswa/courses/${id}`} 
+    />
+  );
 }
