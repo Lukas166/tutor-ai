@@ -30,6 +30,7 @@ import {
   Loader2,
   Pencil,
   Plus,
+  RefreshCw,
   Trash2,
   Type,
   Upload,
@@ -382,6 +383,22 @@ export function CourseMaterialsPanel({ courseId }: { courseId: string }) {
     await fetchSessions(false);
   }
 
+  async function handleRetryMaterial(session: CourseSession, material: MaterialItem) {
+    try {
+      const response = await fetch(
+        `/api/admin/courses/${courseId}/sessions/${session.id}/materials/${material.id}/retry`,
+        { method: "POST" }
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Gagal memproses ulang materi");
+      
+      toast.success("Materi dimasukkan kembali ke antrean");
+      await fetchSessions(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal memproses ulang materi");
+    }
+  }
+
   async function handleDelete() {
     if (!deleteTarget) return;
 
@@ -538,6 +555,17 @@ export function CourseMaterialsPanel({ courseId }: { courseId: string }) {
                                   {material.pageCount} halaman - {material.chunkCount} chunk
                                 </span>
                               </>
+                            )}
+                            {material.processingStatus === "failed" && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => void handleRetryMaterial(session, material)}
+                                title="Ulangi pemrosesan PDF"
+                                aria-label="Ulangi proses materi"
+                              >
+                                <RefreshCw className="h-4 w-4" />
+                              </Button>
                             )}
                             <StatusToggleButton
                               active={material.isActive}
