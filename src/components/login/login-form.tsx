@@ -57,9 +57,12 @@ export function LoginForm() {
       }
 
       const userWithRole = result?.data?.user as { role?: string } | undefined;
-      const isAdmin = userWithRole?.role === 'admin';
-
-      const redirectTo = isAdmin ? '/admin' : '/dashboard';
+      const roleRedirectMap: Record<string, string> = {
+        admin: '/admin',
+        dosen: '/dosen',
+        mahasiswa: '/mahasiswa',
+      };
+      const redirectTo = roleRedirectMap[userWithRole?.role ?? ''] ?? '/dashboard';
       router.push(redirectTo);
     } catch {
       setFormError('An error occurred during login. Please try again.');

@@ -37,3 +37,58 @@ export type Account = Prisma.AccountModel
  * 
  */
 export type Verification = Prisma.VerificationModel
+/**
+ * Model Course
+ * 
+ */
+export type Course = Prisma.CourseModel
+/**
+ * Model CourseInstructor
+ * 
+ */
+export type CourseInstructor = Prisma.CourseInstructorModel
+/**
+ * Model Enrollment
+ * 
+ */
+export type Enrollment = Prisma.EnrollmentModel
+/**
+ * Model CourseSession
+ * 
+ */
+export type CourseSession = Prisma.CourseSessionModel
+/**
+ * Model EnrollmentProgress
+ * 
+ */
+export type EnrollmentProgress = Prisma.EnrollmentProgressModel
+/**
+ * Model Material
+ * 
+ */
+export type Material = Prisma.MaterialModel
+/**
+ * Model MaterialPage
+ * 
+ */
+export type MaterialPage = Prisma.MaterialPageModel
+/**
+ * Model MaterialChunk
+ * 
+ */
+export type MaterialChunk = Prisma.MaterialChunkModel
+/**
+ * Model MaterialProcessingLog
+ * 
+ */
+export type MaterialProcessingLog = Prisma.MaterialProcessingLogModel
+/**
+ * Model AiChatSession
+ * 
+ */
+export type AiChatSession = Prisma.AiChatSessionModel
+/**
+ * Model AiChatMessage
+ * 
+ */
+export type AiChatMessage = Prisma.AiChatMessageModel

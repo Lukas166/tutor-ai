@@ -30,9 +30,14 @@ export type UserMinAggregateOutputType = {
   email: string | null
   emailVerified: boolean | null
   image: string | null
+  role: string | null
+  academicLevel: string | null
+  npm: string | null
+  major: string | null
+  faculty: string | null
+  bio: string | null
   createdAt: Date | null
   updatedAt: Date | null
-  role: string | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -41,9 +46,14 @@ export type UserMaxAggregateOutputType = {
   email: string | null
   emailVerified: boolean | null
   image: string | null
+  role: string | null
+  academicLevel: string | null
+  npm: string | null
+  major: string | null
+  faculty: string | null
+  bio: string | null
   createdAt: Date | null
   updatedAt: Date | null
-  role: string | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -52,9 +62,14 @@ export type UserCountAggregateOutputType = {
   email: number
   emailVerified: number
   image: number
+  role: number
+  academicLevel: number
+  npm: number
+  major: number
+  faculty: number
+  bio: number
   createdAt: number
   updatedAt: number
-  role: number
   _all: number
 }
 
@@ -65,9 +80,14 @@ export type UserMinAggregateInputType = {
   email?: true
   emailVerified?: true
   image?: true
+  role?: true
+  academicLevel?: true
+  npm?: true
+  major?: true
+  faculty?: true
+  bio?: true
   createdAt?: true
   updatedAt?: true
-  role?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -76,9 +96,14 @@ export type UserMaxAggregateInputType = {
   email?: true
   emailVerified?: true
   image?: true
+  role?: true
+  academicLevel?: true
+  npm?: true
+  major?: true
+  faculty?: true
+  bio?: true
   createdAt?: true
   updatedAt?: true
-  role?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -87,9 +112,14 @@ export type UserCountAggregateInputType = {
   email?: true
   emailVerified?: true
   image?: true
+  role?: true
+  academicLevel?: true
+  npm?: true
+  major?: true
+  faculty?: true
+  bio?: true
   createdAt?: true
   updatedAt?: true
-  role?: true
   _all?: true
 }
 
@@ -171,9 +201,14 @@ export type UserGroupByOutputType = {
   email: string
   emailVerified: boolean
   image: string | null
+  role: string
+  academicLevel: string | null
+  npm: string | null
+  major: string | null
+  faculty: string | null
+  bio: string | null
   createdAt: Date
   updatedAt: Date
-  role: string
   _count: UserCountAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
@@ -203,11 +238,22 @@ export type UserWhereInput = {
   email?: Prisma.StringFilter<"User"> | string
   emailVerified?: Prisma.BoolFilter<"User"> | boolean
   image?: Prisma.StringNullableFilter<"User"> | string | null
+  role?: Prisma.StringFilter<"User"> | string
+  academicLevel?: Prisma.StringNullableFilter<"User"> | string | null
+  npm?: Prisma.StringNullableFilter<"User"> | string | null
+  major?: Prisma.StringNullableFilter<"User"> | string | null
+  faculty?: Prisma.StringNullableFilter<"User"> | string | null
+  bio?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  role?: Prisma.StringFilter<"User"> | string
   sessions?: Prisma.SessionListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
+  coursesCreated?: Prisma.CourseListRelationFilter
+  courseInstructor?: Prisma.CourseInstructorListRelationFilter
+  enrollments?: Prisma.EnrollmentListRelationFilter
+  courseSessionsMade?: Prisma.CourseSessionListRelationFilter
+  materialsUploaded?: Prisma.MaterialListRelationFilter
+  aiChatSessions?: Prisma.AiChatSessionListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -216,28 +262,50 @@ export type UserOrderByWithRelationInput = {
   email?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
+  role?: Prisma.SortOrder
+  academicLevel?: Prisma.SortOrderInput | Prisma.SortOrder
+  npm?: Prisma.SortOrderInput | Prisma.SortOrder
+  major?: Prisma.SortOrderInput | Prisma.SortOrder
+  faculty?: Prisma.SortOrderInput | Prisma.SortOrder
+  bio?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  role?: Prisma.SortOrder
   sessions?: Prisma.SessionOrderByRelationAggregateInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
+  coursesCreated?: Prisma.CourseOrderByRelationAggregateInput
+  courseInstructor?: Prisma.CourseInstructorOrderByRelationAggregateInput
+  enrollments?: Prisma.EnrollmentOrderByRelationAggregateInput
+  courseSessionsMade?: Prisma.CourseSessionOrderByRelationAggregateInput
+  materialsUploaded?: Prisma.MaterialOrderByRelationAggregateInput
+  aiChatSessions?: Prisma.AiChatSessionOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   email?: string
+  npm?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   name?: Prisma.StringFilter<"User"> | string
   emailVerified?: Prisma.BoolFilter<"User"> | boolean
   image?: Prisma.StringNullableFilter<"User"> | string | null
+  role?: Prisma.StringFilter<"User"> | string
+  academicLevel?: Prisma.StringNullableFilter<"User"> | string | null
+  major?: Prisma.StringNullableFilter<"User"> | string | null
+  faculty?: Prisma.StringNullableFilter<"User"> | string | null
+  bio?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  role?: Prisma.StringFilter<"User"> | string
   sessions?: Prisma.SessionListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
-}, "id" | "email">
+  coursesCreated?: Prisma.CourseListRelationFilter
+  courseInstructor?: Prisma.CourseInstructorListRelationFilter
+  enrollments?: Prisma.EnrollmentListRelationFilter
+  courseSessionsMade?: Prisma.CourseSessionListRelationFilter
+  materialsUploaded?: Prisma.MaterialListRelationFilter
+  aiChatSessions?: Prisma.AiChatSessionListRelationFilter
+}, "id" | "email" | "npm">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -245,9 +313,14 @@ export type UserOrderByWithAggregationInput = {
   email?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
+  role?: Prisma.SortOrder
+  academicLevel?: Prisma.SortOrderInput | Prisma.SortOrder
+  npm?: Prisma.SortOrderInput | Prisma.SortOrder
+  major?: Prisma.SortOrderInput | Prisma.SortOrder
+  faculty?: Prisma.SortOrderInput | Prisma.SortOrder
+  bio?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  role?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
@@ -262,9 +335,14 @@ export type UserScalarWhereWithAggregatesInput = {
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
   emailVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   image?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  role?: Prisma.StringWithAggregatesFilter<"User"> | string
+  academicLevel?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  npm?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  major?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  faculty?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  bio?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
-  role?: Prisma.StringWithAggregatesFilter<"User"> | string
 }
 
 export type UserCreateInput = {
@@ -273,11 +351,22 @@ export type UserCreateInput = {
   email: string
   emailVerified: boolean
   image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
   createdAt: Date | string
   updatedAt: Date | string
-  role?: string
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -286,11 +375,22 @@ export type UserUncheckedCreateInput = {
   email: string
   emailVerified: boolean
   image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
   createdAt: Date | string
   updatedAt: Date | string
-  role?: string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseUncheckedCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentUncheckedCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialUncheckedCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -299,11 +399,22 @@ export type UserUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -312,11 +423,22 @@ export type UserUncheckedUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUncheckedUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUncheckedUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUncheckedUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -325,9 +447,14 @@ export type UserCreateManyInput = {
   email: string
   emailVerified: boolean
   image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
   createdAt: Date | string
   updatedAt: Date | string
-  role?: string
 }
 
 export type UserUpdateManyMutationInput = {
@@ -336,9 +463,14 @@ export type UserUpdateManyMutationInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -347,9 +479,14 @@ export type UserUncheckedUpdateManyInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -358,9 +495,14 @@ export type UserCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  academicLevel?: Prisma.SortOrder
+  npm?: Prisma.SortOrder
+  major?: Prisma.SortOrder
+  faculty?: Prisma.SortOrder
+  bio?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  role?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -369,9 +511,14 @@ export type UserMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  academicLevel?: Prisma.SortOrder
+  npm?: Prisma.SortOrder
+  major?: Prisma.SortOrder
+  faculty?: Prisma.SortOrder
+  bio?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  role?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -380,9 +527,14 @@ export type UserMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  role?: Prisma.SortOrder
+  academicLevel?: Prisma.SortOrder
+  npm?: Prisma.SortOrder
+  major?: Prisma.SortOrder
+  faculty?: Prisma.SortOrder
+  bio?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  role?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -434,16 +586,111 @@ export type UserUpdateOneRequiredWithoutAccountsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAccountsInput, Prisma.UserUpdateWithoutAccountsInput>, Prisma.UserUncheckedUpdateWithoutAccountsInput>
 }
 
+export type UserCreateNestedOneWithoutCoursesCreatedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCoursesCreatedInput, Prisma.UserUncheckedCreateWithoutCoursesCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCoursesCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutCoursesCreatedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCoursesCreatedInput, Prisma.UserUncheckedCreateWithoutCoursesCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCoursesCreatedInput
+  upsert?: Prisma.UserUpsertWithoutCoursesCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCoursesCreatedInput, Prisma.UserUpdateWithoutCoursesCreatedInput>, Prisma.UserUncheckedUpdateWithoutCoursesCreatedInput>
+}
+
+export type UserCreateNestedOneWithoutCourseInstructorInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCourseInstructorInput, Prisma.UserUncheckedCreateWithoutCourseInstructorInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCourseInstructorInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutCourseInstructorNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCourseInstructorInput, Prisma.UserUncheckedCreateWithoutCourseInstructorInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCourseInstructorInput
+  upsert?: Prisma.UserUpsertWithoutCourseInstructorInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCourseInstructorInput, Prisma.UserUpdateWithoutCourseInstructorInput>, Prisma.UserUncheckedUpdateWithoutCourseInstructorInput>
+}
+
+export type UserCreateNestedOneWithoutEnrollmentsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEnrollmentsInput, Prisma.UserUncheckedCreateWithoutEnrollmentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEnrollmentsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutEnrollmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEnrollmentsInput, Prisma.UserUncheckedCreateWithoutEnrollmentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEnrollmentsInput
+  upsert?: Prisma.UserUpsertWithoutEnrollmentsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEnrollmentsInput, Prisma.UserUpdateWithoutEnrollmentsInput>, Prisma.UserUncheckedUpdateWithoutEnrollmentsInput>
+}
+
+export type UserCreateNestedOneWithoutCourseSessionsMadeInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCourseSessionsMadeInput, Prisma.UserUncheckedCreateWithoutCourseSessionsMadeInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCourseSessionsMadeInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutCourseSessionsMadeNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCourseSessionsMadeInput, Prisma.UserUncheckedCreateWithoutCourseSessionsMadeInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCourseSessionsMadeInput
+  upsert?: Prisma.UserUpsertWithoutCourseSessionsMadeInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCourseSessionsMadeInput, Prisma.UserUpdateWithoutCourseSessionsMadeInput>, Prisma.UserUncheckedUpdateWithoutCourseSessionsMadeInput>
+}
+
+export type UserCreateNestedOneWithoutMaterialsUploadedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutMaterialsUploadedInput, Prisma.UserUncheckedCreateWithoutMaterialsUploadedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutMaterialsUploadedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutMaterialsUploadedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutMaterialsUploadedInput, Prisma.UserUncheckedCreateWithoutMaterialsUploadedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutMaterialsUploadedInput
+  upsert?: Prisma.UserUpsertWithoutMaterialsUploadedInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutMaterialsUploadedInput, Prisma.UserUpdateWithoutMaterialsUploadedInput>, Prisma.UserUncheckedUpdateWithoutMaterialsUploadedInput>
+}
+
+export type UserCreateNestedOneWithoutAiChatSessionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAiChatSessionsInput, Prisma.UserUncheckedCreateWithoutAiChatSessionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAiChatSessionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutAiChatSessionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAiChatSessionsInput, Prisma.UserUncheckedCreateWithoutAiChatSessionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAiChatSessionsInput
+  upsert?: Prisma.UserUpsertWithoutAiChatSessionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAiChatSessionsInput, Prisma.UserUpdateWithoutAiChatSessionsInput>, Prisma.UserUncheckedUpdateWithoutAiChatSessionsInput>
+}
+
 export type UserCreateWithoutSessionsInput = {
   id: string
   name: string
   email: string
   emailVerified: boolean
   image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
   createdAt: Date | string
   updatedAt: Date | string
-  role?: string
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -452,10 +699,21 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   email: string
   emailVerified: boolean
   image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
   createdAt: Date | string
   updatedAt: Date | string
-  role?: string
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseUncheckedCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentUncheckedCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialUncheckedCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -480,10 +738,21 @@ export type UserUpdateWithoutSessionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -492,10 +761,21 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUncheckedUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUncheckedUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUncheckedUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -504,10 +784,21 @@ export type UserCreateWithoutAccountsInput = {
   email: string
   emailVerified: boolean
   image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
   createdAt: Date | string
   updatedAt: Date | string
-  role?: string
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -516,10 +807,21 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   email: string
   emailVerified: boolean
   image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
   createdAt: Date | string
   updatedAt: Date | string
-  role?: string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseUncheckedCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentUncheckedCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialUncheckedCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -544,10 +846,21 @@ export type UserUpdateWithoutAccountsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -556,10 +869,669 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  role?: Prisma.StringFieldUpdateOperationsInput | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUncheckedUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUncheckedUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUncheckedUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutCoursesCreatedInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  courseInstructor?: Prisma.CourseInstructorCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutCoursesCreatedInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentUncheckedCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialUncheckedCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutCoursesCreatedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCoursesCreatedInput, Prisma.UserUncheckedCreateWithoutCoursesCreatedInput>
+}
+
+export type UserUpsertWithoutCoursesCreatedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCoursesCreatedInput, Prisma.UserUncheckedUpdateWithoutCoursesCreatedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCoursesCreatedInput, Prisma.UserUncheckedCreateWithoutCoursesCreatedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCoursesCreatedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCoursesCreatedInput, Prisma.UserUncheckedUpdateWithoutCoursesCreatedInput>
+}
+
+export type UserUpdateWithoutCoursesCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  courseInstructor?: Prisma.CourseInstructorUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCoursesCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUncheckedUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUncheckedUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutCourseInstructorInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseCreateNestedManyWithoutCreatorInput
+  enrollments?: Prisma.EnrollmentCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutCourseInstructorInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseUncheckedCreateNestedManyWithoutCreatorInput
+  enrollments?: Prisma.EnrollmentUncheckedCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialUncheckedCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutCourseInstructorInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCourseInstructorInput, Prisma.UserUncheckedCreateWithoutCourseInstructorInput>
+}
+
+export type UserUpsertWithoutCourseInstructorInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCourseInstructorInput, Prisma.UserUncheckedUpdateWithoutCourseInstructorInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCourseInstructorInput, Prisma.UserUncheckedCreateWithoutCourseInstructorInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCourseInstructorInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCourseInstructorInput, Prisma.UserUncheckedUpdateWithoutCourseInstructorInput>
+}
+
+export type UserUpdateWithoutCourseInstructorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUpdateManyWithoutCreatorNestedInput
+  enrollments?: Prisma.EnrollmentUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCourseInstructorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUncheckedUpdateManyWithoutCreatorNestedInput
+  enrollments?: Prisma.EnrollmentUncheckedUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUncheckedUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutEnrollmentsInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutEnrollmentsInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseUncheckedCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialUncheckedCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutEnrollmentsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutEnrollmentsInput, Prisma.UserUncheckedCreateWithoutEnrollmentsInput>
+}
+
+export type UserUpsertWithoutEnrollmentsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutEnrollmentsInput, Prisma.UserUncheckedUpdateWithoutEnrollmentsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutEnrollmentsInput, Prisma.UserUncheckedCreateWithoutEnrollmentsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutEnrollmentsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutEnrollmentsInput, Prisma.UserUncheckedUpdateWithoutEnrollmentsInput>
+}
+
+export type UserUpdateWithoutEnrollmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutEnrollmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUncheckedUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUncheckedUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutCourseSessionsMadeInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentCreateNestedManyWithoutUserInput
+  materialsUploaded?: Prisma.MaterialCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutCourseSessionsMadeInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseUncheckedCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentUncheckedCreateNestedManyWithoutUserInput
+  materialsUploaded?: Prisma.MaterialUncheckedCreateNestedManyWithoutUploaderInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutCourseSessionsMadeInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCourseSessionsMadeInput, Prisma.UserUncheckedCreateWithoutCourseSessionsMadeInput>
+}
+
+export type UserUpsertWithoutCourseSessionsMadeInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCourseSessionsMadeInput, Prisma.UserUncheckedUpdateWithoutCourseSessionsMadeInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCourseSessionsMadeInput, Prisma.UserUncheckedCreateWithoutCourseSessionsMadeInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCourseSessionsMadeInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCourseSessionsMadeInput, Prisma.UserUncheckedUpdateWithoutCourseSessionsMadeInput>
+}
+
+export type UserUpdateWithoutCourseSessionsMadeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUpdateManyWithoutUserNestedInput
+  materialsUploaded?: Prisma.MaterialUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCourseSessionsMadeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUncheckedUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUncheckedUpdateManyWithoutUserNestedInput
+  materialsUploaded?: Prisma.MaterialUncheckedUpdateManyWithoutUploaderNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutMaterialsUploadedInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionCreateNestedManyWithoutCreatorInput
+  aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutMaterialsUploadedInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseUncheckedCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentUncheckedCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedCreateNestedManyWithoutCreatorInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutMaterialsUploadedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutMaterialsUploadedInput, Prisma.UserUncheckedCreateWithoutMaterialsUploadedInput>
+}
+
+export type UserUpsertWithoutMaterialsUploadedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutMaterialsUploadedInput, Prisma.UserUncheckedUpdateWithoutMaterialsUploadedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutMaterialsUploadedInput, Prisma.UserUncheckedCreateWithoutMaterialsUploadedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutMaterialsUploadedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutMaterialsUploadedInput, Prisma.UserUncheckedUpdateWithoutMaterialsUploadedInput>
+}
+
+export type UserUpdateWithoutMaterialsUploadedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUpdateManyWithoutCreatorNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutMaterialsUploadedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUncheckedUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUncheckedUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedUpdateManyWithoutCreatorNestedInput
+  aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutAiChatSessionsInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialCreateNestedManyWithoutUploaderInput
+}
+
+export type UserUncheckedCreateWithoutAiChatSessionsInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role?: string
+  academicLevel?: string | null
+  npm?: string | null
+  major?: string | null
+  faculty?: string | null
+  bio?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  coursesCreated?: Prisma.CourseUncheckedCreateNestedManyWithoutCreatorInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedCreateNestedManyWithoutUserInput
+  enrollments?: Prisma.EnrollmentUncheckedCreateNestedManyWithoutUserInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedCreateNestedManyWithoutCreatorInput
+  materialsUploaded?: Prisma.MaterialUncheckedCreateNestedManyWithoutUploaderInput
+}
+
+export type UserCreateOrConnectWithoutAiChatSessionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAiChatSessionsInput, Prisma.UserUncheckedCreateWithoutAiChatSessionsInput>
+}
+
+export type UserUpsertWithoutAiChatSessionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAiChatSessionsInput, Prisma.UserUncheckedUpdateWithoutAiChatSessionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAiChatSessionsInput, Prisma.UserUncheckedCreateWithoutAiChatSessionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAiChatSessionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAiChatSessionsInput, Prisma.UserUncheckedUpdateWithoutAiChatSessionsInput>
+}
+
+export type UserUpdateWithoutAiChatSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUpdateManyWithoutUploaderNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAiChatSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  academicLevel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  major?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  faculty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  coursesCreated?: Prisma.CourseUncheckedUpdateManyWithoutCreatorNestedInput
+  courseInstructor?: Prisma.CourseInstructorUncheckedUpdateManyWithoutUserNestedInput
+  enrollments?: Prisma.EnrollmentUncheckedUpdateManyWithoutUserNestedInput
+  courseSessionsMade?: Prisma.CourseSessionUncheckedUpdateManyWithoutCreatorNestedInput
+  materialsUploaded?: Prisma.MaterialUncheckedUpdateManyWithoutUploaderNestedInput
 }
 
 
@@ -570,11 +1542,23 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
 export type UserCountOutputType = {
   sessions: number
   accounts: number
+  coursesCreated: number
+  courseInstructor: number
+  enrollments: number
+  courseSessionsMade: number
+  materialsUploaded: number
+  aiChatSessions: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | UserCountOutputTypeCountSessionsArgs
   accounts?: boolean | UserCountOutputTypeCountAccountsArgs
+  coursesCreated?: boolean | UserCountOutputTypeCountCoursesCreatedArgs
+  courseInstructor?: boolean | UserCountOutputTypeCountCourseInstructorArgs
+  enrollments?: boolean | UserCountOutputTypeCountEnrollmentsArgs
+  courseSessionsMade?: boolean | UserCountOutputTypeCountCourseSessionsMadeArgs
+  materialsUploaded?: boolean | UserCountOutputTypeCountMaterialsUploadedArgs
+  aiChatSessions?: boolean | UserCountOutputTypeCountAiChatSessionsArgs
 }
 
 /**
@@ -601,6 +1585,48 @@ export type UserCountOutputTypeCountAccountsArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.AccountWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountCoursesCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CourseWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountCourseInstructorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CourseInstructorWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountEnrollmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EnrollmentWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountCourseSessionsMadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CourseSessionWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountMaterialsUploadedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MaterialWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAiChatSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AiChatSessionWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -608,11 +1634,22 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   email?: boolean
   emailVerified?: boolean
   image?: boolean
+  role?: boolean
+  academicLevel?: boolean
+  npm?: boolean
+  major?: boolean
+  faculty?: boolean
+  bio?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  role?: boolean
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
+  coursesCreated?: boolean | Prisma.User$coursesCreatedArgs<ExtArgs>
+  courseInstructor?: boolean | Prisma.User$courseInstructorArgs<ExtArgs>
+  enrollments?: boolean | Prisma.User$enrollmentsArgs<ExtArgs>
+  courseSessionsMade?: boolean | Prisma.User$courseSessionsMadeArgs<ExtArgs>
+  materialsUploaded?: boolean | Prisma.User$materialsUploadedArgs<ExtArgs>
+  aiChatSessions?: boolean | Prisma.User$aiChatSessionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -622,9 +1659,14 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   email?: boolean
   emailVerified?: boolean
   image?: boolean
+  role?: boolean
+  academicLevel?: boolean
+  npm?: boolean
+  major?: boolean
+  faculty?: boolean
+  bio?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  role?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -633,9 +1675,14 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   email?: boolean
   emailVerified?: boolean
   image?: boolean
+  role?: boolean
+  academicLevel?: boolean
+  npm?: boolean
+  major?: boolean
+  faculty?: boolean
+  bio?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  role?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -644,15 +1691,26 @@ export type UserSelectScalar = {
   email?: boolean
   emailVerified?: boolean
   image?: boolean
+  role?: boolean
+  academicLevel?: boolean
+  npm?: boolean
+  major?: boolean
+  faculty?: boolean
+  bio?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  role?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "createdAt" | "updatedAt" | "role", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "role" | "academicLevel" | "npm" | "major" | "faculty" | "bio" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
+  coursesCreated?: boolean | Prisma.User$coursesCreatedArgs<ExtArgs>
+  courseInstructor?: boolean | Prisma.User$courseInstructorArgs<ExtArgs>
+  enrollments?: boolean | Prisma.User$enrollmentsArgs<ExtArgs>
+  courseSessionsMade?: boolean | Prisma.User$courseSessionsMadeArgs<ExtArgs>
+  materialsUploaded?: boolean | Prisma.User$materialsUploadedArgs<ExtArgs>
+  aiChatSessions?: boolean | Prisma.User$aiChatSessionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -663,6 +1721,12 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     sessions: Prisma.$SessionPayload<ExtArgs>[]
     accounts: Prisma.$AccountPayload<ExtArgs>[]
+    coursesCreated: Prisma.$CoursePayload<ExtArgs>[]
+    courseInstructor: Prisma.$CourseInstructorPayload<ExtArgs>[]
+    enrollments: Prisma.$EnrollmentPayload<ExtArgs>[]
+    courseSessionsMade: Prisma.$CourseSessionPayload<ExtArgs>[]
+    materialsUploaded: Prisma.$MaterialPayload<ExtArgs>[]
+    aiChatSessions: Prisma.$AiChatSessionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -670,9 +1734,14 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     email: string
     emailVerified: boolean
     image: string | null
+    role: string
+    academicLevel: string | null
+    npm: string | null
+    major: string | null
+    faculty: string | null
+    bio: string | null
     createdAt: Date
     updatedAt: Date
-    role: string
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -1069,6 +2138,12 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   sessions<T extends Prisma.User$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   accounts<T extends Prisma.User$accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  coursesCreated<T extends Prisma.User$coursesCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$coursesCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  courseInstructor<T extends Prisma.User$courseInstructorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$courseInstructorArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CourseInstructorPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  enrollments<T extends Prisma.User$enrollmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$enrollmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  courseSessionsMade<T extends Prisma.User$courseSessionsMadeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$courseSessionsMadeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CourseSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  materialsUploaded<T extends Prisma.User$materialsUploadedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$materialsUploadedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  aiChatSessions<T extends Prisma.User$aiChatSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$aiChatSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AiChatSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1103,9 +2178,14 @@ export interface UserFieldRefs {
   readonly email: Prisma.FieldRef<"User", 'String'>
   readonly emailVerified: Prisma.FieldRef<"User", 'Boolean'>
   readonly image: Prisma.FieldRef<"User", 'String'>
+  readonly role: Prisma.FieldRef<"User", 'String'>
+  readonly academicLevel: Prisma.FieldRef<"User", 'String'>
+  readonly npm: Prisma.FieldRef<"User", 'String'>
+  readonly major: Prisma.FieldRef<"User", 'String'>
+  readonly faculty: Prisma.FieldRef<"User", 'String'>
+  readonly bio: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
-  readonly role: Prisma.FieldRef<"User", 'String'>
 }
     
 
@@ -1544,6 +2624,150 @@ export type User$accountsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.AccountScalarFieldEnum | Prisma.AccountScalarFieldEnum[]
+}
+
+/**
+ * User.coursesCreated
+ */
+export type User$coursesCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Course
+   */
+  select?: Prisma.CourseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Course
+   */
+  omit?: Prisma.CourseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CourseInclude<ExtArgs> | null
+  where?: Prisma.CourseWhereInput
+  orderBy?: Prisma.CourseOrderByWithRelationInput | Prisma.CourseOrderByWithRelationInput[]
+  cursor?: Prisma.CourseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CourseScalarFieldEnum | Prisma.CourseScalarFieldEnum[]
+}
+
+/**
+ * User.courseInstructor
+ */
+export type User$courseInstructorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CourseInstructor
+   */
+  select?: Prisma.CourseInstructorSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CourseInstructor
+   */
+  omit?: Prisma.CourseInstructorOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CourseInstructorInclude<ExtArgs> | null
+  where?: Prisma.CourseInstructorWhereInput
+  orderBy?: Prisma.CourseInstructorOrderByWithRelationInput | Prisma.CourseInstructorOrderByWithRelationInput[]
+  cursor?: Prisma.CourseInstructorWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CourseInstructorScalarFieldEnum | Prisma.CourseInstructorScalarFieldEnum[]
+}
+
+/**
+ * User.enrollments
+ */
+export type User$enrollmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Enrollment
+   */
+  select?: Prisma.EnrollmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Enrollment
+   */
+  omit?: Prisma.EnrollmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EnrollmentInclude<ExtArgs> | null
+  where?: Prisma.EnrollmentWhereInput
+  orderBy?: Prisma.EnrollmentOrderByWithRelationInput | Prisma.EnrollmentOrderByWithRelationInput[]
+  cursor?: Prisma.EnrollmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EnrollmentScalarFieldEnum | Prisma.EnrollmentScalarFieldEnum[]
+}
+
+/**
+ * User.courseSessionsMade
+ */
+export type User$courseSessionsMadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CourseSession
+   */
+  select?: Prisma.CourseSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CourseSession
+   */
+  omit?: Prisma.CourseSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CourseSessionInclude<ExtArgs> | null
+  where?: Prisma.CourseSessionWhereInput
+  orderBy?: Prisma.CourseSessionOrderByWithRelationInput | Prisma.CourseSessionOrderByWithRelationInput[]
+  cursor?: Prisma.CourseSessionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CourseSessionScalarFieldEnum | Prisma.CourseSessionScalarFieldEnum[]
+}
+
+/**
+ * User.materialsUploaded
+ */
+export type User$materialsUploadedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Material
+   */
+  select?: Prisma.MaterialSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Material
+   */
+  omit?: Prisma.MaterialOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MaterialInclude<ExtArgs> | null
+  where?: Prisma.MaterialWhereInput
+  orderBy?: Prisma.MaterialOrderByWithRelationInput | Prisma.MaterialOrderByWithRelationInput[]
+  cursor?: Prisma.MaterialWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MaterialScalarFieldEnum | Prisma.MaterialScalarFieldEnum[]
+}
+
+/**
+ * User.aiChatSessions
+ */
+export type User$aiChatSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AiChatSession
+   */
+  select?: Prisma.AiChatSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AiChatSession
+   */
+  omit?: Prisma.AiChatSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AiChatSessionInclude<ExtArgs> | null
+  where?: Prisma.AiChatSessionWhereInput
+  orderBy?: Prisma.AiChatSessionOrderByWithRelationInput | Prisma.AiChatSessionOrderByWithRelationInput[]
+  cursor?: Prisma.AiChatSessionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AiChatSessionScalarFieldEnum | Prisma.AiChatSessionScalarFieldEnum[]
 }
 
 /**

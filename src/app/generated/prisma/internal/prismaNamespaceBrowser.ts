@@ -54,7 +54,18 @@ export const ModelName = {
   User: 'User',
   Session: 'Session',
   Account: 'Account',
-  Verification: 'Verification'
+  Verification: 'Verification',
+  Course: 'Course',
+  CourseInstructor: 'CourseInstructor',
+  Enrollment: 'Enrollment',
+  CourseSession: 'CourseSession',
+  EnrollmentProgress: 'EnrollmentProgress',
+  Material: 'Material',
+  MaterialPage: 'MaterialPage',
+  MaterialChunk: 'MaterialChunk',
+  MaterialProcessingLog: 'MaterialProcessingLog',
+  AiChatSession: 'AiChatSession',
+  AiChatMessage: 'AiChatMessage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -79,9 +90,14 @@ export const UserScalarFieldEnum = {
   email: 'email',
   emailVerified: 'emailVerified',
   image: 'image',
+  role: 'role',
+  academicLevel: 'academicLevel',
+  npm: 'npm',
+  major: 'major',
+  faculty: 'faculty',
+  bio: 'bio',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  role: 'role'
+  updatedAt: 'updatedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -132,12 +148,189 @@ export const VerificationScalarFieldEnum = {
 export type VerificationScalarFieldEnum = (typeof VerificationScalarFieldEnum)[keyof typeof VerificationScalarFieldEnum]
 
 
+export const CourseScalarFieldEnum = {
+  id: 'id',
+  createdBy: 'createdBy',
+  title: 'title',
+  description: 'description',
+  coverImage: 'coverImage',
+  enrollmentKey: 'enrollmentKey',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CourseScalarFieldEnum = (typeof CourseScalarFieldEnum)[keyof typeof CourseScalarFieldEnum]
+
+
+export const CourseInstructorScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  userId: 'userId',
+  assignedAt: 'assignedAt'
+} as const
+
+export type CourseInstructorScalarFieldEnum = (typeof CourseInstructorScalarFieldEnum)[keyof typeof CourseInstructorScalarFieldEnum]
+
+
+export const EnrollmentScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  userId: 'userId',
+  isActive: 'isActive',
+  enrolledAt: 'enrolledAt'
+} as const
+
+export type EnrollmentScalarFieldEnum = (typeof EnrollmentScalarFieldEnum)[keyof typeof EnrollmentScalarFieldEnum]
+
+
+export const CourseSessionScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  createdBy: 'createdBy',
+  title: 'title',
+  description: 'description',
+  orderNumber: 'orderNumber',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CourseSessionScalarFieldEnum = (typeof CourseSessionScalarFieldEnum)[keyof typeof CourseSessionScalarFieldEnum]
+
+
+export const EnrollmentProgressScalarFieldEnum = {
+  id: 'id',
+  enrollmentId: 'enrollmentId',
+  courseSessionId: 'courseSessionId',
+  isVisited: 'isVisited',
+  visitedAt: 'visitedAt',
+  lastVisitedAt: 'lastVisitedAt'
+} as const
+
+export type EnrollmentProgressScalarFieldEnum = (typeof EnrollmentProgressScalarFieldEnum)[keyof typeof EnrollmentProgressScalarFieldEnum]
+
+
+export const MaterialScalarFieldEnum = {
+  id: 'id',
+  courseSessionId: 'courseSessionId',
+  uploadedBy: 'uploadedBy',
+  title: 'title',
+  materialType: 'materialType',
+  description: 'description',
+  fileName: 'fileName',
+  filePath: 'filePath',
+  storagePath: 'storagePath',
+  publicUrl: 'publicUrl',
+  externalUrl: 'externalUrl',
+  textContent: 'textContent',
+  fileSize: 'fileSize',
+  isActive: 'isActive',
+  isProcessed: 'isProcessed',
+  processingStatus: 'processingStatus',
+  processingProgress: 'processingProgress',
+  processingError: 'processingError',
+  processingJobId: 'processingJobId',
+  processingStartedAt: 'processingStartedAt',
+  processingCompletedAt: 'processingCompletedAt',
+  pageCount: 'pageCount',
+  chunkCount: 'chunkCount',
+  embeddingModel: 'embeddingModel',
+  embeddingDimensions: 'embeddingDimensions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MaterialScalarFieldEnum = (typeof MaterialScalarFieldEnum)[keyof typeof MaterialScalarFieldEnum]
+
+
+export const MaterialPageScalarFieldEnum = {
+  id: 'id',
+  materialId: 'materialId',
+  pageNumber: 'pageNumber',
+  embeddedText: 'embeddedText',
+  ocrText: 'ocrText',
+  finalText: 'finalText',
+  textCharCount: 'textCharCount',
+  imageOcrAttempted: 'imageOcrAttempted',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MaterialPageScalarFieldEnum = (typeof MaterialPageScalarFieldEnum)[keyof typeof MaterialPageScalarFieldEnum]
+
+
+export const MaterialChunkScalarFieldEnum = {
+  id: 'id',
+  materialId: 'materialId',
+  courseId: 'courseId',
+  sessionId: 'sessionId',
+  pageNumber: 'pageNumber',
+  chunkIndex: 'chunkIndex',
+  content: 'content',
+  tokenCount: 'tokenCount',
+  chunkType: 'chunkType',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type MaterialChunkScalarFieldEnum = (typeof MaterialChunkScalarFieldEnum)[keyof typeof MaterialChunkScalarFieldEnum]
+
+
+export const MaterialProcessingLogScalarFieldEnum = {
+  id: 'id',
+  materialId: 'materialId',
+  status: 'status',
+  message: 'message',
+  error: 'error',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type MaterialProcessingLogScalarFieldEnum = (typeof MaterialProcessingLogScalarFieldEnum)[keyof typeof MaterialProcessingLogScalarFieldEnum]
+
+
+export const AiChatSessionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  courseId: 'courseId',
+  courseSessionId: 'courseSessionId',
+  startedAt: 'startedAt',
+  lastActiveAt: 'lastActiveAt'
+} as const
+
+export type AiChatSessionScalarFieldEnum = (typeof AiChatSessionScalarFieldEnum)[keyof typeof AiChatSessionScalarFieldEnum]
+
+
+export const AiChatMessageScalarFieldEnum = {
+  id: 'id',
+  aiChatSessionId: 'aiChatSessionId',
+  senderType: 'senderType',
+  content: 'content',
+  audioUrl: 'audioUrl',
+  ragSources: 'ragSources',
+  responseTimeMs: 'responseTimeMs',
+  createdAt: 'createdAt'
+} as const
+
+export type AiChatMessageScalarFieldEnum = (typeof AiChatMessageScalarFieldEnum)[keyof typeof AiChatMessageScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -154,4 +347,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
