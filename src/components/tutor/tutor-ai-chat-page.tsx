@@ -229,6 +229,7 @@ function SidebarToggleIcon({ className }: { className?: string }) {
 export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const activeSessionIdRef = useRef<string | null>(null);
 
@@ -244,6 +245,10 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
   const [loadingSession, setLoadingSession] = useState(false);
   const [creatingChat, setCreatingChat] = useState(false);
   const [sending, setSending] = useState(false);
+  const sendingRef = useRef(false);
+  useEffect(() => {
+    sendingRef.current = sending;
+  }, [sending]);
   const [savingContext, setSavingContext] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -271,7 +276,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
 
   // Check if new chat should be disabled (active session has 0 messages)
   const isNewChatDisabled =
-    creatingChat || (activeSession !== null && activeSession.messages.length === 0);
+    creatingChat || sending || (activeSession !== null && activeSession.messages.length === 0);
 
   // Search-filtered sessions
   const filteredSessions = useMemo(() => {
@@ -282,6 +287,10 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
 
   const loadSession = useCallback(
     async (sessionId: string) => {
+      if (sendingRef.current) {
+        toast("Harap tunggu Tutor AI membalas sebelum pindah chat");
+        return;
+      }
       if (activeSessionIdRef.current === sessionId) return;
       setLoadingSession(true);
       try {
@@ -323,24 +332,39 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
     void loadOverview();
   }, [loadOverview]);
 
+  // Helper to force scroll container to the very bottom
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "auto") => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    if (behavior === "auto") {
+      el.scrollTop = el.scrollHeight;
+    } else {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    }
+  }, []);
+
   // Scroll to bottom instantly when session loads or changes
   useEffect(() => {
     if (!loadingSession && activeSession) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
-      
-      const timer = setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
-      }, 50);
-      return () => clearTimeout(timer);
+      scrollToBottom("auto");
+
+      const timer1 = setTimeout(() => scrollToBottom("auto"), 50);
+      const timer2 = setTimeout(() => scrollToBottom("auto"), 150);
+      const timer3 = setTimeout(() => scrollToBottom("auto"), 400);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearTimeout(timer3);
+      };
     }
-  }, [activeSession?.id, loadingSession]);
+  }, [activeSession?.id, loadingSession, scrollToBottom]);
 
   // Smooth scroll for new messages
   useEffect(() => {
     if (!loadingSession && activeSession) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      scrollToBottom("smooth");
     }
-  }, [activeSession?.messages.length, sending]);
+  }, [activeSession?.messages.length, sending, loadingSession, scrollToBottom]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -362,6 +386,22 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
       selectedMaterialIds: overview?.readyMaterials.map((m) => m.id) || [],
     };
     setActiveSession(newSession);
+
+    // Add dummy to list so it's focused in the sidebar
+    setChatSessions((prev) => {
+      const cleaned = prev.filter((s) => !s.id.startsWith("new-"));
+      return [
+        {
+          id: dummyId,
+          title: "Chat baru",
+          messageCount: 0,
+          startedAt: newSession.startedAt,
+          lastActiveAt: newSession.lastActiveAt,
+        },
+        ...cleaned,
+      ];
+    });
+
     return newSession;
   }
 
@@ -483,6 +523,21 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
     setInput("");
     setSending(true);
 
+    const pendingMessage: TutorMessage = {
+      id: `pending-${Date.now()}`,
+      senderType: "user",
+      content: question,
+      ragSources: null,
+      responseTimeMs: null,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Optimistically update UI IMMEDIATELY to prevent empty state flicker
+    setActiveSession({
+      ...session,
+      messages: [...session.messages, pendingMessage],
+    });
+
     let realSessionId = session.id;
     const isNewSession = session.id.startsWith("new-");
 
@@ -509,24 +564,10 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
         toast.error(err instanceof Error ? err.message : "Gagal membuat sesi baru");
         setInput(question);
         setSending(false);
+        setActiveSession(session); // Revert optimistic message
         return;
       }
     }
-
-    const pendingMessage: TutorMessage = {
-      id: `pending-${Date.now()}`,
-      senderType: "user",
-      content: question,
-      ragSources: null,
-      responseTimeMs: null,
-      createdAt: new Date().toISOString(),
-    };
-
-    setActiveSession({
-      ...session,
-      id: realSessionId,
-      messages: [...session.messages, pendingMessage],
-    });
 
     try {
       const response = await fetch(
@@ -543,7 +584,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
       setActiveSession(data);
       setChatSessions((sessions) => {
         const summary = sessionSummaryFromChat(data);
-        const others = sessions.filter((item) => item.id !== summary.id);
+        const others = sessions.filter((item) => item.id !== summary.id && item.id !== session.id);
         return [summary, ...others];
       });
     } catch (err) {
@@ -617,7 +658,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
         </div>
 
         {/* Menu Items — New Chat & Search */}
-        <div className="flex flex-col gap-2 px-3 mt-2">
+        <div className="mt-2 flex flex-col gap-2 px-3">
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -626,7 +667,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
                 className={cn(
                   "flex h-11 w-full items-center rounded-lg text-sm font-medium transition-colors",
                   sidebarOpen ? "gap-4 px-4" : "justify-center px-0",
-                  isNewChatDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-muted"
+                  isNewChatDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-muted hover:text-foreground"
                 )}
               >
                 {creatingChat ? (
@@ -645,7 +686,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
               <button
                 onClick={() => { setSearchOpen(true); setSearchQuery(""); }}
                 className={cn(
-                  "flex h-11 w-full items-center rounded-lg text-sm font-medium transition-colors hover:bg-muted",
+                  "flex h-11 w-full items-center rounded-lg text-sm font-medium transition-colors hover:bg-muted hover:text-foreground",
                   sidebarOpen ? "gap-4 px-4" : "justify-center px-0"
                 )}
               >
@@ -665,7 +706,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
             </span>
           </div>
         ) : (
-          <div className="mt-6 mb-2 border-t mx-4" />
+          <div className="mx-4 mb-2 mt-6 border-t" />
         )}
 
         {/* Session List */}
@@ -681,8 +722,8 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
                   key={session.id}
                   className={cn(
                     "group/session relative flex items-center rounded-lg transition-colors",
-                    activeSession?.id === session.id ? "bg-muted" : "hover:bg-muted/60",
-                    !sidebarOpen && "justify-center h-11"
+                    activeSession?.id === session.id ? "bg-brand font-medium text-black" : "hover:bg-muted hover:text-foreground",
+                    !sidebarOpen && "h-11 justify-center"
                   )}
                 >
                   {renamingSessionId === session.id && sidebarOpen ? (
@@ -742,7 +783,16 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
                         <div className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/session:opacity-100 data-[state=open]:opacity-100">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-foreground">
+                              <Button 
+                                variant="ghost" 
+                                size="icon-xs" 
+                                className={cn(
+                                  "transition-colors",
+                                  activeSession?.id === session.id 
+                                    ? "text-black/60 hover:bg-black/10 hover:text-black" 
+                                    : "text-muted-foreground hover:text-foreground"
+                                )}
+                              >
                                 <MoreHorizontal className="size-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -845,8 +895,8 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
         </header>
 
         {/* Messages area — only this scrolls */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 pb-52 pt-4">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 pb-28 pt-4">
             {loadingSession ? (
               <div className="flex flex-col gap-5">
                 <Skeleton className="h-20 w-2/3 rounded-2xl" />
@@ -1022,7 +1072,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
 
       {/* ==================== CONTEXT MATERI DIALOG ==================== */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent className="sm:max-w-[620px] p-6 sm:p-8">
+        <DialogContent className="sm:max-w-[520px] p-6 sm:p-8">
           <DialogHeader className="pr-8">
             <DialogTitle>Konteks Materi</DialogTitle>
             <DialogDescription>
@@ -1030,7 +1080,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="mt-2 flex max-h-[60vh] flex-col gap-4 overflow-y-auto pr-2">
+          <div className="mt-2 flex max-h-[60vh] flex-col gap-3.5 overflow-y-auto pr-2">
             {readyMaterials.length === 0 ? (
               <div className="rounded-2xl border border-dashed px-3 py-10 text-center text-sm text-muted-foreground">
                 Belum ada materi PDF yang siap digunakan untuk course ini.
@@ -1042,7 +1092,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
                   <label
                     key={material.id}
                     className={cn(
-                      "flex cursor-pointer items-center gap-5 rounded-2xl border bg-background p-5 shadow-sm transition-all hover:bg-muted/40",
+                      "flex cursor-pointer items-center gap-3.5 rounded-2xl border bg-background p-4 shadow-sm transition-all hover:bg-muted/40",
                       isSelected ? "border-brand ring-1 ring-brand/20" : "border-border"
                     )}
                   >
