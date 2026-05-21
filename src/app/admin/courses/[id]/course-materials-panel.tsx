@@ -513,15 +513,21 @@ export function CourseMaterialsPanel({ courseId }: { courseId: string }) {
                       material.processingLogs?.find((log) => log.error)?.error ||
                       null;
 
+                    const isText = material.materialType === "text";
+                    const Wrapper = isText ? "div" : "a";
+                    const wrapperProps = isText
+                      ? { className: "flex min-w-0 flex-1 items-center gap-3" }
+                      : {
+                          href: getMaterialHref(material),
+                          target: "_blank",
+                          rel: "noopener noreferrer",
+                          className: "flex min-w-0 flex-1 items-center gap-3 hover:underline cursor-pointer",
+                        };
+
                     return (
                       <div key={material.id} className="rounded-lg border bg-card p-3">
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                          <a
-                            href={getMaterialHref(material)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex min-w-0 flex-1 items-center gap-3"
-                          >
+                          <Wrapper {...(wrapperProps as any)}>
                             <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
                               {getMaterialIcon(material.materialType)}
                             </div>
@@ -531,10 +537,10 @@ export function CourseMaterialsPanel({ courseId }: { courseId: string }) {
                                 {material.description || material.fileName} - {formatFileSize(material.fileSize)} - {formatDate(material.createdAt)}
                               </p>
                             </div>
-                            {material.materialType !== "text" && (
+                            {!isText && (
                               <ExternalLink className="size-4 shrink-0 text-muted-foreground" />
                             )}
-                          </a>
+                          </Wrapper>
 
                           <div className="flex flex-wrap items-center gap-2 lg:justify-end">
                             {material.materialType === "file" && (

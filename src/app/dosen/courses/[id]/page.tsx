@@ -338,7 +338,7 @@ export default function DosenCourseDetailPage() {
                 <h1 className="text-3xl font-bold tracking-tight drop-shadow-[0_1px_1px_rgba(255,255,255,0.85)]">{course.title}</h1>
               </div>
               {course.description && (
-                <p className="mt-2 max-w-3xl text-foreground/70 leading-relaxed drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">{course.description}</p>
+                <p className="mt-2 max-w-3xl text-foreground/70 leading-relaxed whitespace-pre-wrap break-words drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">{course.description}</p>
               )}
             </div>
             <div className="flex flex-wrap items-center gap-2 lg:justify-end">
