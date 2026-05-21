@@ -291,6 +291,7 @@ model AiChatSession {
   userId          String
   courseId        String
   courseSessionId String // RAG hanya query chunk dari sesi ini
+  customTitle     String?  // judul kustom dari user (rename); null = pakai pesan pertama
   startedAt       DateTime @default(now())
   lastActiveAt    DateTime @default(now())
 

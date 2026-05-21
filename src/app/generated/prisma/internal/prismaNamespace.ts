@@ -1692,6 +1692,7 @@ export const AiChatSessionScalarFieldEnum = {
   userId: 'userId',
   courseId: 'courseId',
   courseSessionId: 'courseSessionId',
+  customTitle: 'customTitle',
   startedAt: 'startedAt',
   lastActiveAt: 'lastActiveAt'
 } as const
