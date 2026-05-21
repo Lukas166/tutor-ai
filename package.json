@@ -8,7 +8,9 @@
     "dev:worker": "tsx src/workers/material-processing.worker.ts",
     "build": "next build",
     "postinstall": "prisma generate",
-    "start": "next start",
+    "start": "concurrently -n next,worker -c cyan,yellow npm:start:next npm:start:worker",
+    "start:next": "next start",
+    "start:worker": "tsx src/workers/material-processing.worker.ts",
     "lint": "eslint",
     "worker:materials": "tsx src/workers/material-processing.worker.ts",
     "worker:materials:once": "tsx src/workers/material-processing.worker.ts --once"
