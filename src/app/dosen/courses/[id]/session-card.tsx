@@ -365,7 +365,7 @@ export function SessionCard({
         <div className="border-t px-5 pb-5">
           {session.description && (
             <div className="border-b py-4">
-              <p className={`text-sm leading-relaxed text-muted-foreground ${!descExpanded ? "line-clamp-1" : ""}`}>
+              <p className={`text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap break-words ${!descExpanded ? "line-clamp-1" : ""}`}>
                 {session.description}
               </p>
               {session.description.length > 100 && (

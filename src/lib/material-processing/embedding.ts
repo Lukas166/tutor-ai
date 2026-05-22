@@ -8,10 +8,10 @@ let client: GoogleGenAI | null = null;
 let embeddingModelConfirmed = false;
 
 function getGeminiClient() {
-  const apiKey = process.env.GEMINI_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    throw new Error("GEMINI_KEY belum diatur di .env.");
+    throw new Error("GEMINI_API_KEY belum diatur di .env.");
   }
 
   client ??= new GoogleGenAI({ apiKey });
@@ -43,7 +43,7 @@ export async function embedMaterialChunk(title: string, content: string) {
     outputDimensionality: MATERIAL_EMBEDDING_DIMENSIONS,
   };
 
-  if (MATERIAL_EMBEDDING_MODEL.includes("embedding-001")) {
+  if (MATERIAL_EMBEDDING_MODEL.includes("embedding")) {
     config.taskType = "RETRIEVAL_DOCUMENT";
   }
 

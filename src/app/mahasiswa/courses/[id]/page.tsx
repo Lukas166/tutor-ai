@@ -13,6 +13,7 @@ import {
   GraduationCap,
   Users,
 } from "lucide-react";
+import { TutorFloatingButton } from "@/components/tutor/tutor-floating-button";
 import { MahasiswaSessionCard } from "./session-card";
 import type { MahasiswaCourseDetail, SessionItem } from "./types";
 import { formatDate } from "./types";
@@ -223,6 +224,8 @@ export default function MahasiswaCourseDetailPage() {
           </div>
         )}
       </div>
+
+      <TutorFloatingButton href={`/courses/${courseId}/tutor`} />
     </div>
   );
 }
