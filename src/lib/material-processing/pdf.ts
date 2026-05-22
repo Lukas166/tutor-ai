@@ -1,6 +1,5 @@
 import { tmpdir } from "os";
 import { join } from "path";
-import { createCanvas, DOMMatrix, ImageData } from "canvas";
 import { createWorker, type Worker as TesseractWorker } from "tesseract.js";
 import {
   PDF_OCR_ENABLED,
@@ -22,12 +21,19 @@ type ExtractionCallbacks = {
   onOcrPage?: (pageNumber: number, pageCount: number) => Promise<void>;
 };
 
-function installCanvasGlobals() {
-  const target = globalThis as Record<string, unknown>;
+type CanvasAndContext = {
+  canvas: {
+    width: number;
+    height: number;
+    toBuffer: (mimeType: "image/png") => Buffer;
+  } | null;
+  context: unknown;
+};
 
-  target.DOMMatrix ??= DOMMatrix;
-  target.ImageData ??= ImageData;
-}
+type PdfCanvasFactory = {
+  create: (width: number, height: number) => CanvasAndContext;
+  destroy: (canvasAndContext: CanvasAndContext) => void;
+};
 
 export function cleanExtractedText(text: string) {
   return text
@@ -65,30 +71,41 @@ async function createOcrWorker() {
 async function renderPageToPngBuffer(page: {
   getViewport: (options: { scale: number }) => { width: number; height: number };
   render: (options: Record<string, unknown>) => { promise: Promise<void> };
-}) {
+}, canvasFactory: PdfCanvasFactory) {
   const viewport = page.getViewport({ scale: PDF_RENDER_SCALE });
-  const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
-  const context = canvas.getContext("2d");
+  const canvasAndContext = canvasFactory.create(
+    Math.ceil(viewport.width),
+    Math.ceil(viewport.height)
+  );
 
-  await page.render({
-    canvasContext: context,
-    canvas,
-    viewport,
-  }).promise;
+  try {
+    await page.render({
+      canvasContext: canvasAndContext.context,
+      canvas: canvasAndContext.canvas,
+      viewport,
+    }).promise;
 
-  return canvas.toBuffer("image/png");
+    if (!canvasAndContext.canvas) {
+      throw new Error("Canvas is not specified");
+    }
+
+    return canvasAndContext.canvas.toBuffer("image/png");
+  } finally {
+    canvasFactory.destroy(canvasAndContext);
+  }
 }
 
 async function recognizePage(
   worker: TesseractWorker | null,
-  page: Parameters<typeof renderPageToPngBuffer>[0]
+  page: Parameters<typeof renderPageToPngBuffer>[0],
+  canvasFactory: PdfCanvasFactory
 ) {
   if (!worker) {
     return { text: "", attempted: false, error: null as string | null };
   }
 
   try {
-    const image = await renderPageToPngBuffer(page);
+    const image = await renderPageToPngBuffer(page, canvasFactory);
     const result = await worker.recognize(image);
     return {
       text: cleanExtractedText(result.data.text ?? ""),
@@ -108,8 +125,6 @@ export async function extractPdfPages(
   buffer: Buffer,
   callbacks: ExtractionCallbacks = {}
 ): Promise<ExtractedPdfPage[]> {
-  installCanvasGlobals();
-
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const document = await pdfjs.getDocument({
     data: new Uint8Array(buffer),
@@ -117,6 +132,7 @@ export async function extractPdfPages(
   } as unknown as Parameters<typeof pdfjs.getDocument>[0]).promise;
 
   const pageCount = document.numPages;
+  const canvasFactory = document.canvasFactory as PdfCanvasFactory;
   const pages: ExtractedPdfPage[] = [];
   let worker: TesseractWorker | null = null;
   let workerError: string | null = null;
@@ -134,7 +150,11 @@ export async function extractPdfPages(
       const embeddedText = extractTextItems(textContent.items as unknown[]);
       await callbacks.onExtractedText?.(pageNumber, pageCount);
 
-      const ocr = await recognizePage(worker, page as unknown as Parameters<typeof recognizePage>[1]);
+      const ocr = await recognizePage(
+        worker,
+        page as unknown as Parameters<typeof recognizePage>[1],
+        canvasFactory
+      );
       await callbacks.onOcrPage?.(pageNumber, pageCount);
 
       const finalText = cleanExtractedText(

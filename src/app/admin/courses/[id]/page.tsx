@@ -325,7 +325,7 @@ export default function CourseDetailPage() {
             </Badge>
           </div>
           {course.description && (
-            <p className="text-muted-foreground whitespace-pre-wrap break-all mt-2 text-sm leading-relaxed max-w-3xl">
+            <p className="text-muted-foreground whitespace-pre-wrap break-words mt-2 text-sm leading-relaxed max-w-3xl">
               {course.description}
             </p>
           )}

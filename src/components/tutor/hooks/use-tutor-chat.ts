@@ -1,0 +1,488 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import type {
+  TutorChatSessionSummary,
+  TutorMessage,
+  TutorChatSession,
+  TutorOverview,
+} from "../tutor-chat-types";
+
+type UseTutorChatProps = {
+  courseId: string;
+  input: string;
+  setInput: (value: string) => void;
+};
+
+export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
+  const [overview, setOverview] = useState<TutorOverview | null>(null);
+  const [chatSessions, setChatSessions] = useState<TutorChatSessionSummary[]>([]);
+  const [activeSession, setActiveSession] = useState<TutorChatSession | null>(null);
+
+  const activeSessionIdRef = useRef<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    activeSessionIdRef.current = activeSession?.id ?? null;
+  }, [activeSession?.id]);
+
+  const [loadingOverview, setLoadingOverview] = useState(true);
+  const [loadingSession, setLoadingSession] = useState(false);
+  const [creatingChat] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [savingContext, setSavingContext] = useState(false);
+
+  const sendingRef = useRef(false);
+  useEffect(() => {
+    sendingRef.current = sending;
+  }, [sending]);
+
+  // Rename state
+  const [renamingSessionId, setRenamingSessionId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [savingRename, setSavingRename] = useState(false);
+
+  // Delete state
+  const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
+  const [deletingSession, setDeletingSession] = useState(false);
+
+  const readyMaterials = overview?.readyMaterials ?? [];
+  const selectedMaterialIds = useMemo(
+    () => activeSession?.selectedMaterialIds ?? [],
+    [activeSession]
+  );
+  const selectedMaterialSet = useMemo(
+    () => new Set(selectedMaterialIds),
+    [selectedMaterialIds]
+  );
+
+  const isNewChatDisabled =
+    creatingChat || sending || activeSession === null || activeSession.messages.length === 0;
+
+  const loadSession = useCallback(
+    async (sessionId: string) => {
+      if (sendingRef.current) {
+        toast("Harap tunggu Tutor AI membalas sebelum pindah chat");
+        return;
+      }
+      if (activeSessionIdRef.current === sessionId) return;
+      setLoadingSession(true);
+      try {
+        const response = await fetch(`/api/courses/${courseId}/tutor/sessions/${sessionId}`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Gagal memuat chat");
+        setActiveSession(data);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Gagal memuat chat");
+      } finally {
+        setLoadingSession(false);
+      }
+    },
+    [courseId]
+  );
+
+  const loadOverview = useCallback(async () => {
+    setLoadingOverview(true);
+    try {
+      const response = await fetch(`/api/courses/${courseId}/tutor`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Gagal memuat Tutor AI");
+
+      setOverview(data);
+      setChatSessions(data.chatSessions);
+
+      if (data.chatSessions.length > 0 && !activeSessionIdRef.current) {
+        await loadSession(data.chatSessions[0].id);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal memuat Tutor AI");
+      setOverview(null);
+    } finally {
+      setLoadingOverview(false);
+    }
+  }, [courseId, loadSession]);
+
+  async function createNewChat() {
+    if (activeSession && activeSession.messages.length === 0) {
+      return activeSession;
+    }
+
+    const dummyId = `new-${Date.now()}`;
+    const newSession: TutorChatSession = {
+      id: dummyId,
+      courseId: courseId as string,
+      startedAt: new Date().toISOString(),
+      lastActiveAt: new Date().toISOString(),
+      messages: [],
+      selectedMaterialIds: overview?.readyMaterials.map((m) => m.id) || [],
+    };
+    setActiveSession(newSession);
+
+    setChatSessions((prev) => prev.filter((s) => !s.id.startsWith("new-")));
+
+    return newSession;
+  }
+
+  async function updateContext(nextSelectedMaterialIds: string[]) {
+    if (!activeSession) return;
+
+    const previousSession = activeSession;
+    setActiveSession({
+      ...activeSession,
+      selectedMaterialIds: nextSelectedMaterialIds,
+    });
+
+    if (activeSession.id.startsWith("new-")) {
+      return;
+    }
+
+    setSavingContext(true);
+
+    try {
+      const response = await fetch(
+        `/api/courses/${courseId}/tutor/sessions/${activeSession.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ selectedMaterialIds: nextSelectedMaterialIds }),
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Gagal menyimpan konteks");
+      setActiveSession(data);
+    } catch (err) {
+      setActiveSession(previousSession);
+      toast.error(err instanceof Error ? err.message : "Gagal menyimpan konteks");
+    } finally {
+      setSavingContext(false);
+    }
+  }
+
+  async function handleMaterialToggle(materialId: string, checked: boolean) {
+    const nextIds = checked
+      ? Array.from(new Set([...selectedMaterialIds, materialId]))
+      : selectedMaterialIds.filter((id) => id !== materialId);
+
+    await updateContext(nextIds);
+  }
+
+  async function handleRenameSession() {
+    if (!renamingSessionId || savingRename) return;
+    const trimmed = renameValue.trim();
+    if (!trimmed) {
+      setRenamingSessionId(null);
+      return;
+    }
+
+    setSavingRename(true);
+    try {
+      const response = await fetch(
+        `/api/courses/${courseId}/tutor/sessions/${renamingSessionId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: trimmed }),
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Gagal mengubah nama");
+
+      setChatSessions((sessions) =>
+        sessions.map((s) =>
+          s.id === renamingSessionId ? { ...s, title: trimmed } : s
+        )
+      );
+      toast.success("Nama chat berhasil diubah");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal mengubah nama");
+    } finally {
+      setSavingRename(false);
+      setRenamingSessionId(null);
+    }
+  }
+
+  async function handleDeleteSession() {
+    if (!deleteSessionId || deletingSession) return;
+
+    setDeletingSession(true);
+    try {
+      const response = await fetch(
+        `/api/courses/${courseId}/tutor/sessions/${deleteSessionId}`,
+        { method: "DELETE" }
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Gagal menghapus chat");
+
+      setChatSessions((sessions) => sessions.filter((s) => s.id !== deleteSessionId));
+
+      if (activeSession?.id === deleteSessionId) {
+        const remaining = chatSessions.filter((s) => s.id !== deleteSessionId);
+        if (remaining.length > 0) {
+          await loadSession(remaining[0].id);
+        } else {
+          await createNewChat();
+        }
+      }
+
+      toast.success("Chat berhasil dihapus");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menghapus chat");
+    } finally {
+      setDeletingSession(false);
+      setDeleteSessionId(null);
+    }
+  }
+
+  function handleStop() {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }
+
+  async function handleSend() {
+    const question = input.trim();
+    if (!question || sending) return;
+
+    let session = activeSession;
+    if (!session) {
+      session = await createNewChat();
+      if (!session) return;
+    }
+
+    setInput("");
+    setSending(true);
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    const pendingMessage: TutorMessage = {
+      id: `pending-${Date.now()}`,
+      senderType: "user",
+      content: question,
+      ragSources: null,
+      responseTimeMs: null,
+      createdAt: new Date().toISOString(),
+    };
+
+    const streamingAiMessage: TutorMessage = {
+      id: `streaming-${Date.now()}`,
+      senderType: "ai",
+      content: "",
+      ragSources: null,
+      responseTimeMs: null,
+      createdAt: new Date().toISOString(),
+    };
+
+    setActiveSession({
+      ...session,
+      messages: [...session.messages, pendingMessage, streamingAiMessage],
+    });
+
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`msg-${pendingMessage.id}`);
+      if (el) {
+        el.scrollIntoView({ block: "start", behavior: "smooth" });
+      }
+    });
+
+    let realSessionId = session.id;
+    const isNewSession = session.id.startsWith("new-");
+
+    if (isNewSession) {
+      try {
+        const response = await fetch(`/api/courses/${courseId}/tutor/sessions`, {
+          method: "POST",
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Gagal membuat sesi baru");
+        
+        realSessionId = data.id;
+        
+        if (session.selectedMaterialIds.length > 0) {
+          await fetch(`/api/courses/${courseId}/tutor/sessions/${realSessionId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ selectedMaterialIds: session.selectedMaterialIds }),
+          });
+        }
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Gagal membuat sesi baru");
+        setInput(question);
+        setSending(false);
+        setActiveSession(session);
+        return;
+      }
+    }
+
+    try {
+      const response = await fetch(
+        `/api/courses/${courseId}/tutor/sessions/${realSessionId}/messages`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: question }),
+          signal: abortController.signal,
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error ?? "Tutor AI gagal menjawab");
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("Stream tidak tersedia");
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let accumulatedText = "";
+      let ragSources: unknown = null;
+      let responseTimeMs: number | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        let eventType = "";
+        for (const line of lines) {
+          if (line.startsWith("event: ")) {
+            eventType = line.slice(7).trim();
+          } else if (line.startsWith("data: ") && eventType) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (eventType === "text") {
+                accumulatedText += data.text;
+                setActiveSession((prev) => {
+                  if (!prev) return prev;
+                  const messages = [...prev.messages];
+                  const lastMsg = messages[messages.length - 1];
+                  if (lastMsg && lastMsg.id === streamingAiMessage.id) {
+                    messages[messages.length - 1] = {
+                      ...lastMsg,
+                      content: accumulatedText,
+                    };
+                  }
+                  return { ...prev, messages };
+                });
+              } else if (eventType === "metadata") {
+                ragSources = data.ragSources;
+                responseTimeMs = data.responseTimeMs;
+              } else if (eventType === "done") {
+                setActiveSession((prev) => {
+                  if (!prev) return prev;
+                  const sessionId = isNewSession ? realSessionId : prev.id;
+                  const messages = prev.messages.map((msg) => {
+                    if (msg.id === pendingMessage.id) {
+                      return { ...msg, id: `user-${Date.now()}` };
+                    }
+                    if (msg.id === streamingAiMessage.id) {
+                      return {
+                        ...msg,
+                        id: `ai-${Date.now()}`,
+                        content: accumulatedText.trim(),
+                        ragSources,
+                        responseTimeMs,
+                      };
+                    }
+                    return msg;
+                  });
+                  return { ...prev, id: sessionId, messages };
+                });
+                setChatSessions((sessions) => {
+                  const sid = isNewSession ? realSessionId : session.id;
+                  const summary: TutorChatSessionSummary = {
+                    id: sid,
+                    title: question.slice(0, 72),
+                    messageCount: (session.messages.length || 0) + 2,
+                    startedAt: session.startedAt,
+                    lastActiveAt: new Date().toISOString(),
+                  };
+                  const others = sessions.filter(
+                    (item) => item.id !== sid && item.id !== session.id
+                  );
+                  return [summary, ...others];
+                });
+              } else if (eventType === "error") {
+                throw new Error(data.error ?? "Tutor AI gagal menjawab");
+              }
+            } catch (parseError) {
+              if (parseError instanceof Error && parseError.message !== "Tutor AI gagal menjawab") {
+                // Ignore
+              } else {
+                throw parseError;
+              }
+            }
+            eventType = "";
+          }
+        }
+      }
+    } catch (err) {
+      const isAborted = err instanceof DOMException && err.name === "AbortError";
+      setActiveSession((prev) => {
+        if (!prev) return prev;
+        if (isAborted) {
+          const messages = prev.messages.map((msg) => {
+            if (msg.id === streamingAiMessage.id) {
+              return msg.content
+                ? { ...msg, id: `ai-stopped-${Date.now()}` }
+                : null;
+            }
+            return msg;
+          }).filter((msg): msg is TutorMessage => msg !== null);
+          return { ...prev, id: isNewSession ? realSessionId : prev.id, messages };
+        }
+        const messages = prev.messages.filter(
+          (msg) => msg.id !== streamingAiMessage.id
+        );
+        return { ...prev, id: isNewSession ? realSessionId : prev.id, messages };
+      });
+      if (!isAborted) {
+        setInput(question);
+        toast.error(err instanceof Error ? err.message : "Tutor AI gagal menjawab");
+      }
+    } finally {
+      abortControllerRef.current = null;
+      setSending(false);
+    }
+  }
+
+  return {
+    overview,
+    chatSessions,
+    activeSession,
+    loadingOverview,
+    loadingSession,
+    creatingChat,
+    sending,
+    savingContext,
+    
+    renamingSessionId,
+    setRenamingSessionId,
+    renameValue,
+    setRenameValue,
+    savingRename,
+    
+    deleteSessionId,
+    setDeleteSessionId,
+    deletingSession,
+
+    readyMaterials,
+    selectedMaterialSet,
+    isNewChatDisabled,
+
+    loadOverview,
+    loadSession,
+    createNewChat,
+    handleMaterialToggle,
+    handleRenameSession,
+    handleDeleteSession,
+    handleStop,
+    handleSend,
+  };
+}

@@ -17,6 +17,7 @@ import {
   FileText,
   Link2,
   Type,
+  CalendarDays,
 } from "lucide-react";
 import type { MaterialItem, SessionItem } from "./types";
 import { formatDate, formatFileSize } from "./types";
@@ -66,8 +67,8 @@ export function MahasiswaSessionCard({ session }: { session: SessionItem }) {
         className="flex w-full items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-muted/30"
       >
         <div className="flex min-w-0 items-center gap-4">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand text-sm font-bold text-black">
-            {session.orderNumber}
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+            <CalendarDays className="size-5" />
           </div>
           <div className="min-w-0">
             <h3 className="truncate text-base font-bold">{session.title}</h3>
@@ -91,7 +92,7 @@ export function MahasiswaSessionCard({ session }: { session: SessionItem }) {
         <div className="border-t px-5 pb-5">
           {session.description && (
             <div className="border-b py-4">
-              <p className={`text-sm leading-relaxed text-muted-foreground ${!descExpanded ? "line-clamp-1" : ""}`}>
+              <p className={`text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap break-words ${!descExpanded ? "line-clamp-1" : ""}`}>
                 {session.description}
               </p>
               {session.description.length > 100 && (

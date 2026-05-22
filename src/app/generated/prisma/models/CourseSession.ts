@@ -252,7 +252,6 @@ export type CourseSessionWhereInput = {
   creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   materials?: Prisma.MaterialListRelationFilter
   materialChunks?: Prisma.MaterialChunkListRelationFilter
-  progress?: Prisma.EnrollmentProgressListRelationFilter
   aiChatSessions?: Prisma.AiChatSessionListRelationFilter
 }
 
@@ -270,7 +269,6 @@ export type CourseSessionOrderByWithRelationInput = {
   creator?: Prisma.UserOrderByWithRelationInput
   materials?: Prisma.MaterialOrderByRelationAggregateInput
   materialChunks?: Prisma.MaterialChunkOrderByRelationAggregateInput
-  progress?: Prisma.EnrollmentProgressOrderByRelationAggregateInput
   aiChatSessions?: Prisma.AiChatSessionOrderByRelationAggregateInput
 }
 
@@ -292,7 +290,6 @@ export type CourseSessionWhereUniqueInput = Prisma.AtLeast<{
   creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   materials?: Prisma.MaterialListRelationFilter
   materialChunks?: Prisma.MaterialChunkListRelationFilter
-  progress?: Prisma.EnrollmentProgressListRelationFilter
   aiChatSessions?: Prisma.AiChatSessionListRelationFilter
 }, "id" | "courseId_orderNumber">
 
@@ -340,7 +337,6 @@ export type CourseSessionCreateInput = {
   creator: Prisma.UserCreateNestedOneWithoutCourseSessionsMadeInput
   materials?: Prisma.MaterialCreateNestedManyWithoutCourseSessionInput
   materialChunks?: Prisma.MaterialChunkCreateNestedManyWithoutCourseSessionInput
-  progress?: Prisma.EnrollmentProgressCreateNestedManyWithoutCourseSessionInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutCourseSessionInput
 }
 
@@ -356,7 +352,6 @@ export type CourseSessionUncheckedCreateInput = {
   updatedAt?: Date | string
   materials?: Prisma.MaterialUncheckedCreateNestedManyWithoutCourseSessionInput
   materialChunks?: Prisma.MaterialChunkUncheckedCreateNestedManyWithoutCourseSessionInput
-  progress?: Prisma.EnrollmentProgressUncheckedCreateNestedManyWithoutCourseSessionInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutCourseSessionInput
 }
 
@@ -372,7 +367,6 @@ export type CourseSessionUpdateInput = {
   creator?: Prisma.UserUpdateOneRequiredWithoutCourseSessionsMadeNestedInput
   materials?: Prisma.MaterialUpdateManyWithoutCourseSessionNestedInput
   materialChunks?: Prisma.MaterialChunkUpdateManyWithoutCourseSessionNestedInput
-  progress?: Prisma.EnrollmentProgressUpdateManyWithoutCourseSessionNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutCourseSessionNestedInput
 }
 
@@ -388,7 +382,6 @@ export type CourseSessionUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   materials?: Prisma.MaterialUncheckedUpdateManyWithoutCourseSessionNestedInput
   materialChunks?: Prisma.MaterialChunkUncheckedUpdateManyWithoutCourseSessionNestedInput
-  progress?: Prisma.EnrollmentProgressUncheckedUpdateManyWithoutCourseSessionNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutCourseSessionNestedInput
 }
 
@@ -582,20 +575,6 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type CourseSessionCreateNestedOneWithoutProgressInput = {
-  create?: Prisma.XOR<Prisma.CourseSessionCreateWithoutProgressInput, Prisma.CourseSessionUncheckedCreateWithoutProgressInput>
-  connectOrCreate?: Prisma.CourseSessionCreateOrConnectWithoutProgressInput
-  connect?: Prisma.CourseSessionWhereUniqueInput
-}
-
-export type CourseSessionUpdateOneRequiredWithoutProgressNestedInput = {
-  create?: Prisma.XOR<Prisma.CourseSessionCreateWithoutProgressInput, Prisma.CourseSessionUncheckedCreateWithoutProgressInput>
-  connectOrCreate?: Prisma.CourseSessionCreateOrConnectWithoutProgressInput
-  upsert?: Prisma.CourseSessionUpsertWithoutProgressInput
-  connect?: Prisma.CourseSessionWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.CourseSessionUpdateToOneWithWhereWithoutProgressInput, Prisma.CourseSessionUpdateWithoutProgressInput>, Prisma.CourseSessionUncheckedUpdateWithoutProgressInput>
-}
-
 export type CourseSessionCreateNestedOneWithoutMaterialsInput = {
   create?: Prisma.XOR<Prisma.CourseSessionCreateWithoutMaterialsInput, Prisma.CourseSessionUncheckedCreateWithoutMaterialsInput>
   connectOrCreate?: Prisma.CourseSessionCreateOrConnectWithoutMaterialsInput
@@ -649,7 +628,6 @@ export type CourseSessionCreateWithoutCreatorInput = {
   course: Prisma.CourseCreateNestedOneWithoutSessionsInput
   materials?: Prisma.MaterialCreateNestedManyWithoutCourseSessionInput
   materialChunks?: Prisma.MaterialChunkCreateNestedManyWithoutCourseSessionInput
-  progress?: Prisma.EnrollmentProgressCreateNestedManyWithoutCourseSessionInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutCourseSessionInput
 }
 
@@ -664,7 +642,6 @@ export type CourseSessionUncheckedCreateWithoutCreatorInput = {
   updatedAt?: Date | string
   materials?: Prisma.MaterialUncheckedCreateNestedManyWithoutCourseSessionInput
   materialChunks?: Prisma.MaterialChunkUncheckedCreateNestedManyWithoutCourseSessionInput
-  progress?: Prisma.EnrollmentProgressUncheckedCreateNestedManyWithoutCourseSessionInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutCourseSessionInput
 }
 
@@ -720,7 +697,6 @@ export type CourseSessionCreateWithoutCourseInput = {
   creator: Prisma.UserCreateNestedOneWithoutCourseSessionsMadeInput
   materials?: Prisma.MaterialCreateNestedManyWithoutCourseSessionInput
   materialChunks?: Prisma.MaterialChunkCreateNestedManyWithoutCourseSessionInput
-  progress?: Prisma.EnrollmentProgressCreateNestedManyWithoutCourseSessionInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutCourseSessionInput
 }
 
@@ -735,7 +711,6 @@ export type CourseSessionUncheckedCreateWithoutCourseInput = {
   updatedAt?: Date | string
   materials?: Prisma.MaterialUncheckedCreateNestedManyWithoutCourseSessionInput
   materialChunks?: Prisma.MaterialChunkUncheckedCreateNestedManyWithoutCourseSessionInput
-  progress?: Prisma.EnrollmentProgressUncheckedCreateNestedManyWithoutCourseSessionInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutCourseSessionInput
 }
 
@@ -765,82 +740,6 @@ export type CourseSessionUpdateManyWithWhereWithoutCourseInput = {
   data: Prisma.XOR<Prisma.CourseSessionUpdateManyMutationInput, Prisma.CourseSessionUncheckedUpdateManyWithoutCourseInput>
 }
 
-export type CourseSessionCreateWithoutProgressInput = {
-  id: string
-  title: string
-  description?: string | null
-  orderNumber?: number
-  isActive?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  course: Prisma.CourseCreateNestedOneWithoutSessionsInput
-  creator: Prisma.UserCreateNestedOneWithoutCourseSessionsMadeInput
-  materials?: Prisma.MaterialCreateNestedManyWithoutCourseSessionInput
-  materialChunks?: Prisma.MaterialChunkCreateNestedManyWithoutCourseSessionInput
-  aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutCourseSessionInput
-}
-
-export type CourseSessionUncheckedCreateWithoutProgressInput = {
-  id: string
-  courseId: string
-  createdBy: string
-  title: string
-  description?: string | null
-  orderNumber?: number
-  isActive?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  materials?: Prisma.MaterialUncheckedCreateNestedManyWithoutCourseSessionInput
-  materialChunks?: Prisma.MaterialChunkUncheckedCreateNestedManyWithoutCourseSessionInput
-  aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutCourseSessionInput
-}
-
-export type CourseSessionCreateOrConnectWithoutProgressInput = {
-  where: Prisma.CourseSessionWhereUniqueInput
-  create: Prisma.XOR<Prisma.CourseSessionCreateWithoutProgressInput, Prisma.CourseSessionUncheckedCreateWithoutProgressInput>
-}
-
-export type CourseSessionUpsertWithoutProgressInput = {
-  update: Prisma.XOR<Prisma.CourseSessionUpdateWithoutProgressInput, Prisma.CourseSessionUncheckedUpdateWithoutProgressInput>
-  create: Prisma.XOR<Prisma.CourseSessionCreateWithoutProgressInput, Prisma.CourseSessionUncheckedCreateWithoutProgressInput>
-  where?: Prisma.CourseSessionWhereInput
-}
-
-export type CourseSessionUpdateToOneWithWhereWithoutProgressInput = {
-  where?: Prisma.CourseSessionWhereInput
-  data: Prisma.XOR<Prisma.CourseSessionUpdateWithoutProgressInput, Prisma.CourseSessionUncheckedUpdateWithoutProgressInput>
-}
-
-export type CourseSessionUpdateWithoutProgressInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  orderNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  course?: Prisma.CourseUpdateOneRequiredWithoutSessionsNestedInput
-  creator?: Prisma.UserUpdateOneRequiredWithoutCourseSessionsMadeNestedInput
-  materials?: Prisma.MaterialUpdateManyWithoutCourseSessionNestedInput
-  materialChunks?: Prisma.MaterialChunkUpdateManyWithoutCourseSessionNestedInput
-  aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutCourseSessionNestedInput
-}
-
-export type CourseSessionUncheckedUpdateWithoutProgressInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  courseId?: Prisma.StringFieldUpdateOperationsInput | string
-  createdBy?: Prisma.StringFieldUpdateOperationsInput | string
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  orderNumber?: Prisma.IntFieldUpdateOperationsInput | number
-  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  materials?: Prisma.MaterialUncheckedUpdateManyWithoutCourseSessionNestedInput
-  materialChunks?: Prisma.MaterialChunkUncheckedUpdateManyWithoutCourseSessionNestedInput
-  aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutCourseSessionNestedInput
-}
-
 export type CourseSessionCreateWithoutMaterialsInput = {
   id: string
   title: string
@@ -852,7 +751,6 @@ export type CourseSessionCreateWithoutMaterialsInput = {
   course: Prisma.CourseCreateNestedOneWithoutSessionsInput
   creator: Prisma.UserCreateNestedOneWithoutCourseSessionsMadeInput
   materialChunks?: Prisma.MaterialChunkCreateNestedManyWithoutCourseSessionInput
-  progress?: Prisma.EnrollmentProgressCreateNestedManyWithoutCourseSessionInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutCourseSessionInput
 }
 
@@ -867,7 +765,6 @@ export type CourseSessionUncheckedCreateWithoutMaterialsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   materialChunks?: Prisma.MaterialChunkUncheckedCreateNestedManyWithoutCourseSessionInput
-  progress?: Prisma.EnrollmentProgressUncheckedCreateNestedManyWithoutCourseSessionInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutCourseSessionInput
 }
 
@@ -898,7 +795,6 @@ export type CourseSessionUpdateWithoutMaterialsInput = {
   course?: Prisma.CourseUpdateOneRequiredWithoutSessionsNestedInput
   creator?: Prisma.UserUpdateOneRequiredWithoutCourseSessionsMadeNestedInput
   materialChunks?: Prisma.MaterialChunkUpdateManyWithoutCourseSessionNestedInput
-  progress?: Prisma.EnrollmentProgressUpdateManyWithoutCourseSessionNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutCourseSessionNestedInput
 }
 
@@ -913,7 +809,6 @@ export type CourseSessionUncheckedUpdateWithoutMaterialsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   materialChunks?: Prisma.MaterialChunkUncheckedUpdateManyWithoutCourseSessionNestedInput
-  progress?: Prisma.EnrollmentProgressUncheckedUpdateManyWithoutCourseSessionNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutCourseSessionNestedInput
 }
 
@@ -928,7 +823,6 @@ export type CourseSessionCreateWithoutMaterialChunksInput = {
   course: Prisma.CourseCreateNestedOneWithoutSessionsInput
   creator: Prisma.UserCreateNestedOneWithoutCourseSessionsMadeInput
   materials?: Prisma.MaterialCreateNestedManyWithoutCourseSessionInput
-  progress?: Prisma.EnrollmentProgressCreateNestedManyWithoutCourseSessionInput
   aiChatSessions?: Prisma.AiChatSessionCreateNestedManyWithoutCourseSessionInput
 }
 
@@ -943,7 +837,6 @@ export type CourseSessionUncheckedCreateWithoutMaterialChunksInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   materials?: Prisma.MaterialUncheckedCreateNestedManyWithoutCourseSessionInput
-  progress?: Prisma.EnrollmentProgressUncheckedCreateNestedManyWithoutCourseSessionInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedCreateNestedManyWithoutCourseSessionInput
 }
 
@@ -974,7 +867,6 @@ export type CourseSessionUpdateWithoutMaterialChunksInput = {
   course?: Prisma.CourseUpdateOneRequiredWithoutSessionsNestedInput
   creator?: Prisma.UserUpdateOneRequiredWithoutCourseSessionsMadeNestedInput
   materials?: Prisma.MaterialUpdateManyWithoutCourseSessionNestedInput
-  progress?: Prisma.EnrollmentProgressUpdateManyWithoutCourseSessionNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutCourseSessionNestedInput
 }
 
@@ -989,7 +881,6 @@ export type CourseSessionUncheckedUpdateWithoutMaterialChunksInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   materials?: Prisma.MaterialUncheckedUpdateManyWithoutCourseSessionNestedInput
-  progress?: Prisma.EnrollmentProgressUncheckedUpdateManyWithoutCourseSessionNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutCourseSessionNestedInput
 }
 
@@ -1005,7 +896,6 @@ export type CourseSessionCreateWithoutAiChatSessionsInput = {
   creator: Prisma.UserCreateNestedOneWithoutCourseSessionsMadeInput
   materials?: Prisma.MaterialCreateNestedManyWithoutCourseSessionInput
   materialChunks?: Prisma.MaterialChunkCreateNestedManyWithoutCourseSessionInput
-  progress?: Prisma.EnrollmentProgressCreateNestedManyWithoutCourseSessionInput
 }
 
 export type CourseSessionUncheckedCreateWithoutAiChatSessionsInput = {
@@ -1020,7 +910,6 @@ export type CourseSessionUncheckedCreateWithoutAiChatSessionsInput = {
   updatedAt?: Date | string
   materials?: Prisma.MaterialUncheckedCreateNestedManyWithoutCourseSessionInput
   materialChunks?: Prisma.MaterialChunkUncheckedCreateNestedManyWithoutCourseSessionInput
-  progress?: Prisma.EnrollmentProgressUncheckedCreateNestedManyWithoutCourseSessionInput
 }
 
 export type CourseSessionCreateOrConnectWithoutAiChatSessionsInput = {
@@ -1051,7 +940,6 @@ export type CourseSessionUpdateWithoutAiChatSessionsInput = {
   creator?: Prisma.UserUpdateOneRequiredWithoutCourseSessionsMadeNestedInput
   materials?: Prisma.MaterialUpdateManyWithoutCourseSessionNestedInput
   materialChunks?: Prisma.MaterialChunkUpdateManyWithoutCourseSessionNestedInput
-  progress?: Prisma.EnrollmentProgressUpdateManyWithoutCourseSessionNestedInput
 }
 
 export type CourseSessionUncheckedUpdateWithoutAiChatSessionsInput = {
@@ -1066,7 +954,6 @@ export type CourseSessionUncheckedUpdateWithoutAiChatSessionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   materials?: Prisma.MaterialUncheckedUpdateManyWithoutCourseSessionNestedInput
   materialChunks?: Prisma.MaterialChunkUncheckedUpdateManyWithoutCourseSessionNestedInput
-  progress?: Prisma.EnrollmentProgressUncheckedUpdateManyWithoutCourseSessionNestedInput
 }
 
 export type CourseSessionCreateManyCreatorInput = {
@@ -1091,7 +978,6 @@ export type CourseSessionUpdateWithoutCreatorInput = {
   course?: Prisma.CourseUpdateOneRequiredWithoutSessionsNestedInput
   materials?: Prisma.MaterialUpdateManyWithoutCourseSessionNestedInput
   materialChunks?: Prisma.MaterialChunkUpdateManyWithoutCourseSessionNestedInput
-  progress?: Prisma.EnrollmentProgressUpdateManyWithoutCourseSessionNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutCourseSessionNestedInput
 }
 
@@ -1106,7 +992,6 @@ export type CourseSessionUncheckedUpdateWithoutCreatorInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   materials?: Prisma.MaterialUncheckedUpdateManyWithoutCourseSessionNestedInput
   materialChunks?: Prisma.MaterialChunkUncheckedUpdateManyWithoutCourseSessionNestedInput
-  progress?: Prisma.EnrollmentProgressUncheckedUpdateManyWithoutCourseSessionNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutCourseSessionNestedInput
 }
 
@@ -1143,7 +1028,6 @@ export type CourseSessionUpdateWithoutCourseInput = {
   creator?: Prisma.UserUpdateOneRequiredWithoutCourseSessionsMadeNestedInput
   materials?: Prisma.MaterialUpdateManyWithoutCourseSessionNestedInput
   materialChunks?: Prisma.MaterialChunkUpdateManyWithoutCourseSessionNestedInput
-  progress?: Prisma.EnrollmentProgressUpdateManyWithoutCourseSessionNestedInput
   aiChatSessions?: Prisma.AiChatSessionUpdateManyWithoutCourseSessionNestedInput
 }
 
@@ -1158,7 +1042,6 @@ export type CourseSessionUncheckedUpdateWithoutCourseInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   materials?: Prisma.MaterialUncheckedUpdateManyWithoutCourseSessionNestedInput
   materialChunks?: Prisma.MaterialChunkUncheckedUpdateManyWithoutCourseSessionNestedInput
-  progress?: Prisma.EnrollmentProgressUncheckedUpdateManyWithoutCourseSessionNestedInput
   aiChatSessions?: Prisma.AiChatSessionUncheckedUpdateManyWithoutCourseSessionNestedInput
 }
 
@@ -1181,14 +1064,12 @@ export type CourseSessionUncheckedUpdateManyWithoutCourseInput = {
 export type CourseSessionCountOutputType = {
   materials: number
   materialChunks: number
-  progress: number
   aiChatSessions: number
 }
 
 export type CourseSessionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   materials?: boolean | CourseSessionCountOutputTypeCountMaterialsArgs
   materialChunks?: boolean | CourseSessionCountOutputTypeCountMaterialChunksArgs
-  progress?: boolean | CourseSessionCountOutputTypeCountProgressArgs
   aiChatSessions?: boolean | CourseSessionCountOutputTypeCountAiChatSessionsArgs
 }
 
@@ -1219,13 +1100,6 @@ export type CourseSessionCountOutputTypeCountMaterialChunksArgs<ExtArgs extends 
 /**
  * CourseSessionCountOutputType without action
  */
-export type CourseSessionCountOutputTypeCountProgressArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.EnrollmentProgressWhereInput
-}
-
-/**
- * CourseSessionCountOutputType without action
- */
 export type CourseSessionCountOutputTypeCountAiChatSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AiChatSessionWhereInput
 }
@@ -1245,7 +1119,6 @@ export type CourseSessionSelect<ExtArgs extends runtime.Types.Extensions.Interna
   creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   materials?: boolean | Prisma.CourseSession$materialsArgs<ExtArgs>
   materialChunks?: boolean | Prisma.CourseSession$materialChunksArgs<ExtArgs>
-  progress?: boolean | Prisma.CourseSession$progressArgs<ExtArgs>
   aiChatSessions?: boolean | Prisma.CourseSession$aiChatSessionsArgs<ExtArgs>
   _count?: boolean | Prisma.CourseSessionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["courseSession"]>
@@ -1296,7 +1169,6 @@ export type CourseSessionInclude<ExtArgs extends runtime.Types.Extensions.Intern
   creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   materials?: boolean | Prisma.CourseSession$materialsArgs<ExtArgs>
   materialChunks?: boolean | Prisma.CourseSession$materialChunksArgs<ExtArgs>
-  progress?: boolean | Prisma.CourseSession$progressArgs<ExtArgs>
   aiChatSessions?: boolean | Prisma.CourseSession$aiChatSessionsArgs<ExtArgs>
   _count?: boolean | Prisma.CourseSessionCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1316,7 +1188,6 @@ export type $CourseSessionPayload<ExtArgs extends runtime.Types.Extensions.Inter
     creator: Prisma.$UserPayload<ExtArgs>
     materials: Prisma.$MaterialPayload<ExtArgs>[]
     materialChunks: Prisma.$MaterialChunkPayload<ExtArgs>[]
-    progress: Prisma.$EnrollmentProgressPayload<ExtArgs>[]
     aiChatSessions: Prisma.$AiChatSessionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1727,7 +1598,6 @@ export interface Prisma__CourseSessionClient<T, Null = never, ExtArgs extends ru
   creator<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   materials<T extends Prisma.CourseSession$materialsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CourseSession$materialsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   materialChunks<T extends Prisma.CourseSession$materialChunksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CourseSession$materialChunksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MaterialChunkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  progress<T extends Prisma.CourseSession$progressArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CourseSession$progressArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EnrollmentProgressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   aiChatSessions<T extends Prisma.CourseSession$aiChatSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CourseSession$aiChatSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AiChatSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2213,30 +2083,6 @@ export type CourseSession$materialChunksArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.MaterialChunkScalarFieldEnum | Prisma.MaterialChunkScalarFieldEnum[]
-}
-
-/**
- * CourseSession.progress
- */
-export type CourseSession$progressArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the EnrollmentProgress
-   */
-  select?: Prisma.EnrollmentProgressSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the EnrollmentProgress
-   */
-  omit?: Prisma.EnrollmentProgressOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.EnrollmentProgressInclude<ExtArgs> | null
-  where?: Prisma.EnrollmentProgressWhereInput
-  orderBy?: Prisma.EnrollmentProgressOrderByWithRelationInput | Prisma.EnrollmentProgressOrderByWithRelationInput[]
-  cursor?: Prisma.EnrollmentProgressWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.EnrollmentProgressScalarFieldEnum | Prisma.EnrollmentProgressScalarFieldEnum[]
 }
 
 /**
