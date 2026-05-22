@@ -1,7 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronRight, FileText, Loader2, MessageCircle, Square, Volume2 } from "lucide-react";
+import {
+  Check,
+  ChevronRight,
+  Copy,
+  FileText,
+  Loader2,
+  MessageCircle,
+  Square,
+  Volume2,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -12,6 +21,11 @@ import { toast } from "sonner";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { RagSource, TutorChatSession, TutorMessage } from "./tutor-chat-types";
 
@@ -298,9 +312,11 @@ export function TutorChatMessages({
 }: TutorChatMessagesProps) {
   const speechUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const speechRequestIdRef = useRef(0);
+  const copiedTimeoutRef = useRef<number | null>(null);
   const lastMessage = activeSession?.messages[activeSession.messages.length - 1];
   const isStreamingEmpty = sending && lastMessage?.senderType === "ai" && !lastMessage.content;
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
 
   const cancelCurrentSpeech = useCallback(() => {
     if (!("speechSynthesis" in window)) return;
@@ -324,8 +340,56 @@ export function TutorChatMessages({
     return () => {
       speechRequestIdRef.current += 1;
       cancelCurrentSpeech();
+      if (copiedTimeoutRef.current !== null) {
+        window.clearTimeout(copiedTimeoutRef.current);
+      }
     };
   }, [cancelCurrentSpeech]);
+
+  async function handleCopyMessage(message: TutorMessage) {
+    try {
+      const plainText = message.content;
+      let htmlContent = "";
+
+      const element = document.getElementById(`markdown-content-${message.id}`);
+      if (element) {
+        const clone = element.cloneNode(true) as HTMLElement;
+        // Remove streaming cursor from copied HTML if present
+        const cursor = clone.querySelector(".animate-pulse");
+        if (cursor) cursor.remove();
+        
+        // Wrap in a div to ensure it's a valid HTML block when pasted
+        htmlContent = `<div>${clone.innerHTML}</div>`;
+      }
+
+      if (htmlContent && typeof ClipboardItem !== "undefined" && navigator.clipboard.write) {
+        try {
+          const clipboardItem = new ClipboardItem({
+            "text/plain": new Blob([plainText], { type: "text/plain" }),
+            "text/html": new Blob([htmlContent], { type: "text/html" }),
+          });
+          await navigator.clipboard.write([clipboardItem]);
+        } catch (err) {
+          // Fallback if writing multiple formats fails
+          await navigator.clipboard.writeText(plainText);
+        }
+      } else {
+        await navigator.clipboard.writeText(plainText);
+      }
+
+      setCopiedMessageId(message.id);
+
+      if (copiedTimeoutRef.current !== null) {
+        window.clearTimeout(copiedTimeoutRef.current);
+      }
+      copiedTimeoutRef.current = window.setTimeout(() => {
+        setCopiedMessageId(null);
+        copiedTimeoutRef.current = null;
+      }, 1500);
+    } catch {
+      toast.error("Gagal menyalin jawaban Tutor AI.");
+    }
+  }
 
   async function handleSpeakMessage(message: TutorMessage) {
     if (speakingMessageId === message.id) {
@@ -435,7 +499,10 @@ export function TutorChatMessages({
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>
                   ) : (
                     <>
-                      <div className="prose prose-base max-w-none break-words dark:prose-invert">
+                      <div 
+                        id={`markdown-content-${message.id}`}
+                        className="prose prose-base max-w-none break-words dark:prose-invert"
+                      >
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]}
                           rehypePlugins={[rehypeKatex]}
@@ -448,28 +515,60 @@ export function TutorChatMessages({
                       </div>
 
                       {!isStreaming && message.content.trim() && (
-                        <div className="mt-3 flex items-center">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            className={cn(
-                              "size-8 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
-                              speakingMessageId === message.id && "bg-muted text-foreground"
-                            )}
-                            onClick={() => void handleSpeakMessage(message)}
-                            aria-label={
-                              speakingMessageId === message.id
-                                ? "Hentikan audio Tutor AI"
-                                : "Dengarkan jawaban Tutor AI"
-                            }
-                          >
-                            {speakingMessageId === message.id ? (
-                              <Square className="size-3.5 fill-current" />
-                            ) : (
-                              <Volume2 className="size-4" />
-                            )}
-                          </Button>
+                        <div className="mt-3 flex items-center gap-1">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                className={cn(
+                                  "size-8 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
+                                  speakingMessageId === message.id && "bg-muted text-foreground"
+                                )}
+                                onClick={() => void handleSpeakMessage(message)}
+                                aria-label={
+                                  speakingMessageId === message.id
+                                    ? "Hentikan audio Tutor AI"
+                                    : "Dengarkan jawaban Tutor AI"
+                                }
+                              >
+                                {speakingMessageId === message.id ? (
+                                  <Square className="size-3.5 fill-current" />
+                                ) : (
+                                  <Volume2 className="size-4" />
+                                )}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {speakingMessageId === message.id ? "Stop" : "Speak"}
+                            </TooltipContent>
+                          </Tooltip>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                className={cn(
+                                  "size-8 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
+                                  copiedMessageId === message.id && "text-foreground"
+                                )}
+                                onClick={() => void handleCopyMessage(message)}
+                                aria-label="Salin jawaban Tutor AI"
+                              >
+                                {copiedMessageId === message.id ? (
+                                  <Check className="size-4" />
+                                ) : (
+                                  <Copy className="size-4" />
+                                )}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {copiedMessageId === message.id ? "Copied" : "Copy Response"}
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       )}
                     </>
