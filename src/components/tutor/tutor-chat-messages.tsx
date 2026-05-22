@@ -295,6 +295,157 @@ function MessageSources({ sources }: { sources: RagSource[] }) {
   );
 }
 
+function extractTextFromReactNode(node: any): string {
+  if (typeof node === "string" || typeof node === "number") {
+    return String(node);
+  }
+  if (Array.isArray(node)) {
+    return node.map(extractTextFromReactNode).join("");
+  }
+  if (node && typeof node === "object" && node.props && node.props.children) {
+    return extractTextFromReactNode(node.props.children);
+  }
+  return "";
+}
+
+function CopyBlockButton({
+  content,
+  label = "Copy",
+  copiedLabel = "Copied!",
+  className,
+}: {
+  content: string;
+  label?: string;
+  copiedLabel?: string;
+  className?: string;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Gagal menyalin");
+    }
+  };
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className={cn("size-7", className)}
+          onClick={handleCopy}
+          aria-label={copied ? copiedLabel : label}
+        >
+          {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{copied ? copiedLabel : label}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+function MarkdownPre({ node, children, ...props }: any) {
+  const codeElement = Array.isArray(children) ? children[0] : children;
+  let codeString = "";
+  let language = "";
+  if (codeElement && codeElement.props) {
+    codeString = extractTextFromReactNode(codeElement.props.children).replace(/\n$/, "");
+    const match = /language-(\w+)/.exec(codeElement.props.className || "");
+    if (match) language = match[1];
+  }
+
+  return (
+    <div className="my-5 overflow-hidden rounded-xl bg-zinc-950 dark:bg-zinc-900 border border-border">
+      <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 dark:bg-zinc-950 border-b border-border/50">
+        <span className="text-xs font-mono font-medium text-zinc-400">{language || "text"}</span>
+        <CopyBlockButton 
+          content={codeString} 
+          label="Copy code" 
+          copiedLabel="Copied!" 
+          className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+        />
+      </div>
+      <div className="overflow-x-auto p-4 text-[13px] leading-relaxed">
+        <pre {...props} className={cn(props.className, "!m-0 !bg-transparent !p-0 font-mono text-zinc-50")}>
+          {children}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+function MarkdownTable({ node, children, ...props }: any) {
+  const tableRef = useRef<HTMLTableElement>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    if (!tableRef.current) return;
+    try {
+      const html = tableRef.current.outerHTML;
+      let tsv = "";
+      const rows = tableRef.current.querySelectorAll("tr");
+      rows.forEach((row) => {
+        const cols = row.querySelectorAll("td, th");
+        const rowData = Array.from(cols).map((col) => {
+          return (col as HTMLElement).innerText.replace(/\n/g, " ").trim();
+        });
+        tsv += rowData.join("\t") + "\n";
+      });
+
+      if (typeof ClipboardItem !== "undefined" && navigator.clipboard.write) {
+        try {
+          const item = new ClipboardItem({
+            "text/plain": new Blob([tsv], { type: "text/plain" }),
+            "text/html": new Blob([html], { type: "text/html" }),
+          });
+          await navigator.clipboard.write([item]);
+        } catch {
+          await navigator.clipboard.writeText(tsv);
+        }
+      } else {
+        await navigator.clipboard.writeText(tsv);
+      }
+      
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Gagal menyalin tabel");
+    }
+  };
+
+  return (
+    <div className="group relative my-6">
+      <div className="absolute right-2 top-2 z-10 opacity-0 transition-opacity group-hover:opacity-100">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="size-8 bg-background/50 backdrop-blur-sm text-muted-foreground hover:bg-muted hover:text-foreground border-none"
+              onClick={handleCopy}
+            >
+              {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{copied ? "Copied!" : "Copy table"}</TooltipContent>
+        </Tooltip>
+      </div>
+      <div className="w-full overflow-x-auto">
+        <table ref={tableRef} {...props} className={cn(props.className, "w-full")}>
+          {children}
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export type TutorChatMessagesProps = {
   activeSession: TutorChatSession | null;
   loadingSession: boolean;
@@ -506,6 +657,10 @@ export function TutorChatMessages({
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]}
                           rehypePlugins={[rehypeKatex]}
+                          components={{
+                            pre: MarkdownPre,
+                            table: MarkdownTable,
+                          }}
                         >
                           {message.content}
                         </ReactMarkdown>
