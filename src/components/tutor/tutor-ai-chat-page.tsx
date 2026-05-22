@@ -155,7 +155,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
 
   // Check if new chat should be disabled (active session has 0 messages)
   const isNewChatDisabled =
-    creatingChat || sending || (activeSession !== null && activeSession.messages.length === 0);
+    creatingChat || sending || activeSession === null || activeSession.messages.length === 0;
 
   // Search-filtered sessions
   const filteredSessions = useMemo(() => {
@@ -364,6 +364,10 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
   }, [activeSession?.id, stopRecording]);
 
   async function createNewChat() {
+    if (activeSession && activeSession.messages.length === 0) {
+      return activeSession;
+    }
+
     const dummyId = `new-${Date.now()}`;
     const newSession: TutorChatSession = {
       id: dummyId,
@@ -375,20 +379,8 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
     };
     setActiveSession(newSession);
 
-    // Add dummy to list so it's focused in the sidebar
-    setChatSessions((prev) => {
-      const cleaned = prev.filter((s) => !s.id.startsWith("new-"));
-      return [
-        {
-          id: dummyId,
-          title: "Chat baru",
-          messageCount: 0,
-          startedAt: newSession.startedAt,
-          lastActiveAt: newSession.lastActiveAt,
-        },
-        ...cleaned,
-      ];
-    });
+    // Keep the blank draft out of the sidebar until it has a real message.
+    setChatSessions((prev) => prev.filter((s) => !s.id.startsWith("new-")));
 
     return newSession;
   }
