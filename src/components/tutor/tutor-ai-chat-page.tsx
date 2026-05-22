@@ -393,6 +393,11 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
       ...activeSession,
       selectedMaterialIds: nextSelectedMaterialIds,
     });
+
+    if (activeSession.id.startsWith("new-")) {
+      return;
+    }
+
     setSavingContext(true);
 
     try {
