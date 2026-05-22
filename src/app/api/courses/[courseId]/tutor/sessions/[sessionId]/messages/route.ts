@@ -27,6 +27,7 @@ export async function POST(request: NextRequest, context: TutorMessagesRouteCont
       sessionId,
       userId: userId!,
       content: parsed.data.content,
+      signal: request.signal,
     });
 
     return new Response(stream, {

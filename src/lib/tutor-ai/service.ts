@@ -721,7 +721,7 @@ export async function askTutor(input: {
 
 
   let answer: string;
-  let chunks: any[];
+  let chunks: RetrievedChunkRow[];
   
   try {
     const questionEmbedding = await embedTutorQuestion(question);
@@ -779,6 +779,7 @@ export async function askTutorStream(input: {
   userId: string;
   sessionId: string;
   content: string;
+  signal?: AbortSignal;
 }): Promise<ReadableStream<Uint8Array>> {
   const startTime = Date.now();
   const question = input.content.trim();
@@ -810,12 +811,30 @@ export async function askTutorStream(input: {
     return encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   }
 
+  function throwIfAborted() {
+    if (input.signal?.aborted) {
+      throw new DOMException("Tutor AI request aborted", "AbortError");
+    }
+  }
+
+  function isAbortError(error: unknown) {
+    return (
+      input.signal?.aborted ||
+      (error instanceof DOMException && error.name === "AbortError")
+    );
+  }
+
   const insufficientContextAnswer =
     readyMaterials.length === 0
       ? "Belum ada materi PDF yang sudah ready untuk course ini, jadi materi yang tersedia belum cukup untuk menjawab dengan pasti."
       : "Materi yang dipilih sebagai konteks belum cukup untuk menjawab dengan pasti. Aktifkan materi PDF yang relevan atau unggah materi yang sudah diproses.";
 
   if (readyMaterials.length === 0 || selectedMaterialIds.length === 0) {
+    if (input.signal?.aborted) {
+      await prisma.aiChatMessage.delete({ where: { id: userMessage.id } }).catch(() => {});
+      return new ReadableStream({ start(controller) { controller.close(); } });
+    }
+
     const ragSources = buildRagSources([], "no_selected_materials");
     const responseTimeMs = Date.now() - startTime;
 
@@ -846,12 +865,15 @@ export async function askTutorStream(input: {
   let prompt: string;
 
   try {
+    throwIfAborted();
     const questionEmbedding = await embedTutorQuestion(question);
+    throwIfAborted();
     chunks = await retrieveRelevantChunks({
       courseId: input.courseId,
       selectedMaterialIds,
       questionEmbedding,
     });
+    throwIfAborted();
 
     const history = await prisma.aiChatMessage.findMany({
       where: {
@@ -874,6 +896,7 @@ export async function askTutorStream(input: {
       chunks,
       activeMaterials,
     });
+    throwIfAborted();
   } catch (error) {
     await prisma.aiChatMessage.delete({ where: { id: userMessage.id } });
     throw error;
@@ -884,12 +907,29 @@ export async function askTutorStream(input: {
   return new ReadableStream({
     async start(controller) {
       let fullAnswer = "";
+      let closed = false;
+      const closeStream = () => {
+        if (!closed) {
+          controller.close();
+          closed = true;
+        }
+      };
+      const abortHandler = () => {
+        closeStream();
+      };
+      input.signal?.addEventListener("abort", abortHandler, { once: true });
+
       try {
+        throwIfAborted();
         const stream = streamTutorAnswer({ systemInstruction, prompt });
         for await (const textChunk of stream) {
+          throwIfAborted();
           fullAnswer += textChunk;
-          controller.enqueue(sseEvent("text", { text: textChunk }));
+          if (!closed) {
+            controller.enqueue(sseEvent("text", { text: textChunk }));
+          }
         }
+        throwIfAborted();
 
         if (!fullAnswer.trim()) {
           fullAnswer = "Materi yang tersedia belum cukup untuk menjawab dengan pasti.";
@@ -909,17 +949,27 @@ export async function askTutorStream(input: {
           data: { lastActiveAt: new Date() },
         });
 
-        controller.enqueue(sseEvent("metadata", { ragSources, responseTimeMs }));
-        controller.enqueue(sseEvent("done", { sessionId: input.sessionId }));
+        if (!closed) {
+          controller.enqueue(sseEvent("metadata", { ragSources, responseTimeMs }));
+          controller.enqueue(sseEvent("done", { sessionId: input.sessionId }));
+        }
       } catch (err) {
+        if (isAbortError(err)) {
+          await prisma.aiChatMessage.delete({ where: { id: userMessage.id } }).catch(() => {});
+          return;
+        }
+
         const errorMessage = err instanceof Error ? err.message : "Streaming gagal";
-        controller.enqueue(sseEvent("error", { error: errorMessage }));
+        if (!closed) {
+          controller.enqueue(sseEvent("error", { error: errorMessage }));
+        }
         // Cleanup: delete user message if streaming failed and no AI answer was saved
         if (!fullAnswer.trim()) {
           await prisma.aiChatMessage.delete({ where: { id: userMessage.id } }).catch(() => {});
         }
       } finally {
-        controller.close();
+        input.signal?.removeEventListener("abort", abortHandler);
+        closeStream();
       }
     },
   });
