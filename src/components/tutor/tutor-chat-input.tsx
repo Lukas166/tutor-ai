@@ -134,7 +134,7 @@ export function TutorChatInput({
                 }}
                 placeholder="Tulis pertanyaan..."
                 rows={1}
-                className="block box-border h-11 min-h-11 max-h-40 w-full resize-none overflow-hidden bg-transparent px-4 py-[11px] text-sm leading-[22px] outline-none placeholder:text-muted-foreground"
+                className="block box-border h-11 min-h-11 max-h-40 w-full resize-none overflow-y-auto bg-transparent px-4 py-[11px] text-sm leading-[22px] outline-none placeholder:text-muted-foreground"
               />
             )}
           </div>
