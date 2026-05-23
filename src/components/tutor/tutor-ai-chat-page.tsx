@@ -163,6 +163,7 @@ export function TutorAiChatPage({
     loadSession,
     createNewChat,
     handleMaterialToggle,
+    handleMaterialToggleAll,
     handleRenameSession,
     handleDeleteSession,
     handleStop,
@@ -501,6 +502,7 @@ export function TutorAiChatPage({
         activeSession={activeSession}
         savingContext={savingContext}
         handleMaterialToggle={handleMaterialToggle}
+        handleMaterialToggleAll={handleMaterialToggleAll}
       />
 
       {/* ==================== DELETE CONFIRMATION ==================== */}

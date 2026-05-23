@@ -226,6 +226,11 @@ export function useTutorChat({
     await updateContext(nextIds);
   }
 
+  async function handleMaterialToggleAll(checked: boolean) {
+    const nextIds = checked ? readyMaterialsRef.current.map((m) => m.id) : [];
+    await updateContext(nextIds);
+  }
+
   async function handleRenameSession() {
     if (!renamingSessionId || savingRename) return;
     const trimmed = renameValue.trim();
@@ -542,6 +547,7 @@ export function useTutorChat({
     loadSession,
     createNewChat,
     handleMaterialToggle,
+    handleMaterialToggleAll,
     handleRenameSession,
     handleDeleteSession,
     handleStop,

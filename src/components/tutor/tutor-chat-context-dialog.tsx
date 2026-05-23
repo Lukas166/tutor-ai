@@ -20,6 +20,7 @@ export type TutorChatContextDialogProps = {
   activeSession: TutorChatSession | null;
   savingContext: boolean;
   handleMaterialToggle: (materialId: string, checked: boolean) => Promise<void>;
+  handleMaterialToggleAll: (checked: boolean) => Promise<void>;
 };
 
 export function TutorChatContextDialog({
@@ -30,6 +31,7 @@ export function TutorChatContextDialog({
   activeSession,
   savingContext,
   handleMaterialToggle,
+  handleMaterialToggleAll,
 }: TutorChatContextDialogProps) {
   return (
     <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
@@ -40,6 +42,25 @@ export function TutorChatContextDialog({
             Pilih dokumen PDF yang akan dijadikan sumber pengetahuan Tutor AI untuk menjawab pertanyaan di sesi chat ini.
           </DialogDescription>
         </DialogHeader>
+
+        {readyMaterials.length > 0 && (
+          <div className="mt-4 flex items-center gap-3 px-1">
+            <Checkbox
+              id="select-all-materials"
+              checked={selectedMaterialSet.size === readyMaterials.length}
+              disabled={!activeSession || savingContext}
+              onCheckedChange={(checked: boolean | "indeterminate") =>
+                void handleMaterialToggleAll(checked === true)
+              }
+            />
+            <label
+              htmlFor="select-all-materials"
+              className="cursor-pointer text-sm font-medium leading-none text-foreground"
+            >
+              Pilih Semua Materi
+            </label>
+          </div>
+        )}
 
         <div className="mt-2 flex max-h-[60vh] flex-col gap-3.5 overflow-y-auto pr-2">
           {readyMaterials.length === 0 ? (
