@@ -224,9 +224,10 @@ export function TutorAiChatPage({
     messagesEndRef.current?.scrollIntoView({ block: "end", behavior });
   }, []);
 
-  // Scroll to latest messages when session loads or changes
+  // Scroll to latest messages when session loads
+  const previousLoadingRef = useRef(loadingSession);
   useEffect(() => {
-    if (!loadingSession && activeSessionId) {
+    if (previousLoadingRef.current && !loadingSession && activeSessionId) {
       scrollToMessages("auto");
 
       const timer1 = setTimeout(() => scrollToMessages("auto"), 50);
@@ -238,6 +239,7 @@ export function TutorAiChatPage({
         clearTimeout(timer3);
       };
     }
+    previousLoadingRef.current = loadingSession;
   }, [activeSessionId, loadingSession, scrollToMessages]);
 
   const handleSendWithScroll = async () => {

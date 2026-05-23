@@ -452,7 +452,7 @@ export function useTutorChat({
                       return {
                         ...msg,
                         id: `ai-${Date.now()}`,
-                        content: accumulatedText.trim(),
+                        content: accumulatedText,
                         ragSources,
                         responseTimeMs,
                       };
