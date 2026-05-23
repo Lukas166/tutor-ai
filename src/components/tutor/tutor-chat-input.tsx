@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { ArrowUp, Check, ChevronDown, Mic, Square, X } from "lucide-react";
+import { ArrowUp, Check, ChevronDown, Loader2, Mic, Square, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -28,12 +28,13 @@ export type TutorChatInputProps = {
   placement?: "floating" | "inline";
   sending: boolean;
   recording: boolean;
+  transcribing: boolean;
   recordingLevels: number[];
   handleSend: () => void | Promise<void>;
   handleStop: () => void;
   handleStartRecording: () => void | Promise<void>;
   handleCancelRecording: () => void;
-  handleConfirmRecording: () => void;
+  handleConfirmRecording: () => void | Promise<void>;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 };
 
@@ -79,6 +80,7 @@ export function TutorChatInput({
   placement = "floating",
   sending,
   recording,
+  transcribing,
   recordingLevels,
   handleSend,
   handleStop,
@@ -87,13 +89,13 @@ export function TutorChatInput({
   handleConfirmRecording,
   textareaRef,
 }: TutorChatInputProps) {
-  const submitDisabled = !input.trim() && !recording;
+  const submitDisabled = (!input.trim() && !recording) || transcribing;
   const visualLevels =
     recordingLevels.length === RECORDING_BAR_COUNT ? recordingLevels : EMPTY_RECORDING_LEVELS;
 
   useEffect(() => {
     function handleInputShortcut(event: KeyboardEvent) {
-      if (event.isComposing) return;
+      if (event.isComposing || transcribing) return;
 
       if (recording && event.key === "Escape") {
         event.preventDefault();
@@ -103,7 +105,7 @@ export function TutorChatInput({
 
       if (recording && event.key === "Enter") {
         event.preventDefault();
-        handleConfirmRecording();
+        void handleConfirmRecording();
         return;
       }
 
@@ -115,7 +117,7 @@ export function TutorChatInput({
 
     window.addEventListener("keydown", handleInputShortcut);
     return () => window.removeEventListener("keydown", handleInputShortcut);
-  }, [handleCancelRecording, handleConfirmRecording, handleStop, recording, sending]);
+  }, [handleCancelRecording, handleConfirmRecording, handleStop, recording, sending, transcribing]);
 
   const isFloating = placement === "floating";
 
@@ -211,7 +213,7 @@ export function TutorChatInput({
               </DropdownMenuContent>
             </DropdownMenu>
             <InputButtonTooltip
-              label={recording ? "Cancel" : "Voice input"}
+              label={transcribing ? "Memproses..." : recording ? "Cancel" : "Voice input"}
               shortcut={recording ? "Esc" : undefined}
             >
               <Button
@@ -220,10 +222,16 @@ export function TutorChatInput({
                 variant="ghost"
                 className="size-10 shrink-0 rounded-xl border-0 bg-transparent text-black shadow-none hover:bg-muted hover:text-black"
                 onClick={recording ? handleCancelRecording : () => void handleStartRecording()}
-                disabled={sending}
-                aria-label={recording ? "Cancel" : "Voice input"}
+                disabled={sending || transcribing}
+                aria-label={transcribing ? "Memproses rekaman" : recording ? "Cancel" : "Voice input"}
               >
-                {recording ? <X className="size-5" /> : <Mic className="size-5" />}
+                {transcribing ? (
+                  <Loader2 className="size-5 animate-spin" />
+                ) : recording ? (
+                  <X className="size-5" />
+                ) : (
+                  <Mic className="size-5" />
+                )}
               </Button>
             </InputButtonTooltip>
             {sending ? (
@@ -251,7 +259,7 @@ export function TutorChatInput({
                       ? "border-0 bg-transparent shadow-none hover:bg-muted hover:text-black"
                       : "bg-brand hover:bg-brand/90"
                   )}
-                  onClick={recording ? handleConfirmRecording : () => void handleSend()}
+                  onClick={recording ? () => void handleConfirmRecording() : () => void handleSend()}
                   disabled={submitDisabled}
                   aria-label={recording ? "Finish recording" : "Send Prompt"}
                 >

@@ -1,79 +1,98 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-type SpeechRecognitionResultLike = {
-  isFinal: boolean;
-  0: { transcript: string };
-};
+// ── Audio visualization helpers ─────────────────────────────────────
 
-type SpeechRecognitionEventLike = {
-  resultIndex: number;
-  results: {
-    length: number;
-    [index: number]: SpeechRecognitionResultLike;
-  };
-};
-
-type SpeechRecognitionErrorEventLike = {
-  error: string;
-};
-
-type SpeechRecognitionLike = {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-  stop: () => void;
-  abort: () => void;
-};
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
-
-type SpeechRecognitionWindow = Window & {
-  SpeechRecognition?: SpeechRecognitionConstructor;
-  webkitSpeechRecognition?: SpeechRecognitionConstructor;
+type WebkitWindow = Window & {
   webkitAudioContext?: typeof AudioContext;
 };
 
 const RECORDING_LEVEL_COUNT = 96;
-const EMPTY_RECORDING_LEVELS = Array.from({ length: RECORDING_LEVEL_COUNT }, () => 0);
+const EMPTY_RECORDING_LEVELS = Array.from(
+  { length: RECORDING_LEVEL_COUNT },
+  () => 0
+);
+
+// ── MediaRecorder MIME type detection ───────────────────────────────
+// Prioritized list — pick the first one the browser supports.
+// Chrome/Edge → webm, Safari → mp4, Firefox → ogg/webm.
+const PREFERRED_MIME_TYPES = [
+  "audio/webm;codecs=opus",
+  "audio/webm",
+  "audio/mp4",
+  "audio/ogg",
+];
+
+function detectSupportedMimeType(): string {
+  if (typeof MediaRecorder === "undefined") return "";
+
+  for (const mimeType of PREFERRED_MIME_TYPES) {
+    if (MediaRecorder.isTypeSupported(mimeType)) {
+      return mimeType;
+    }
+  }
+
+  return "";
+}
+
+function getFileExtension(mimeType: string): string {
+  if (mimeType.includes("webm")) return "webm";
+  if (mimeType.includes("mp4")) return "mp4";
+  if (mimeType.includes("ogg")) return "ogg";
+  if (mimeType.includes("wav")) return "wav";
+  return "webm";
+}
+
+function shouldSkipRecordingMeter() {
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
+
+// ── Hook ────────────────────────────────────────────────────────────
 
 type UseTutorSpeechProps = {
   input: string;
   setInput: (value: string) => void;
   sending: boolean;
+  courseId: string;
 };
 
-export function useTutorSpeech({ input, setInput, sending }: UseTutorSpeechProps) {
-  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+export function useTutorSpeech({
+  input,
+  setInput,
+  sending,
+  courseId,
+}: UseTutorSpeechProps) {
+  // ── MediaRecorder refs ──
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const recordingBaseInputRef = useRef("");
-  const recordingFinalTranscriptRef = useRef("");
-  const recordingConfirmedRef = useRef(false);
-  const recordingRef = useRef(false);
-  
+  const recordingStreamRef = useRef<MediaStream | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // ── Audio visualization refs ──
   const recordingAudioContextRef = useRef<AudioContext | null>(null);
   const recordingAnalyserRef = useRef<AnalyserNode | null>(null);
   const recordingAnimationFrameRef = useRef<number | null>(null);
-  const recordingStreamRef = useRef<MediaStream | null>(null);
 
+  // ── State ──
   const [recording, setRecording] = useState(false);
-  const [recordingLevels, setRecordingLevels] = useState<number[]>(EMPTY_RECORDING_LEVELS);
+  const [transcribing, setTranscribing] = useState(false);
+  const [recordingLevels, setRecordingLevels] =
+    useState<number[]>(EMPTY_RECORDING_LEVELS);
 
-  useEffect(() => {
-    recordingRef.current = recording;
-  }, [recording]);
+  // ── Release mic stream ──
+  const releaseStream = useCallback(() => {
+    recordingStreamRef.current?.getTracks().forEach((track) => track.stop());
+    recordingStreamRef.current = null;
+  }, []);
 
+  // ── Meter cleanup (does NOT release mic — that's separate) ──
   const stopRecordingMeter = useCallback(() => {
     if (recordingAnimationFrameRef.current !== null) {
       cancelAnimationFrame(recordingAnimationFrameRef.current);
       recordingAnimationFrameRef.current = null;
     }
 
-    recordingStreamRef.current?.getTracks().forEach((track) => track.stop());
-    recordingStreamRef.current = null;
     recordingAnalyserRef.current = null;
 
     void recordingAudioContextRef.current?.close();
@@ -81,183 +100,237 @@ export function useTutorSpeech({ input, setInput, sending }: UseTutorSpeechProps
     setRecordingLevels(EMPTY_RECORDING_LEVELS);
   }, []);
 
-  const startRecordingMeter = useCallback(async () => {
-    if (!navigator.mediaDevices?.getUserMedia) {
-      throw new Error("Browser belum mendukung akses mikrofon.");
-    }
-
-    stopRecordingMeter();
-
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const AudioContextConstructor =
-      window.AudioContext ?? (window as SpeechRecognitionWindow).webkitAudioContext;
-
-    if (!AudioContextConstructor) {
-      stream.getTracks().forEach((track) => track.stop());
-      throw new Error("Browser belum mendukung visualisasi audio.");
-    }
-
-    const audioContext = new AudioContextConstructor();
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 512;
-    analyser.smoothingTimeConstant = 0.82;
-
-    const source = audioContext.createMediaStreamSource(stream);
-    source.connect(analyser);
-
-    const timeData = new Uint8Array(analyser.fftSize);
-    let lastLevelPushAt = 0;
-
-    recordingStreamRef.current = stream;
-    recordingAudioContextRef.current = audioContext;
-    recordingAnalyserRef.current = analyser;
-
-    const updateLevels = () => {
-      const currentAnalyser = recordingAnalyserRef.current;
-      if (!currentAnalyser) return;
-
-      currentAnalyser.getByteTimeDomainData(timeData);
-
-      let rmsTotal = 0;
-      for (let index = 0; index < timeData.length; index += 1) {
-        const centeredValue = (timeData[index] - 128) / 128;
-        rmsTotal += centeredValue * centeredValue;
-      }
-
-      const rms = Math.sqrt(rmsTotal / timeData.length);
-      const nextLevel = rms < 0.006 ? 0 : Math.min(1, (rms - 0.006) / 0.11);
-      const now = performance.now();
-
-      if (now - lastLevelPushAt >= 90) {
-        lastLevelPushAt = now;
-        setRecordingLevels((previousLevels) => {
-          const levels =
-            previousLevels.length === RECORDING_LEVEL_COUNT
-              ? previousLevels
-              : EMPTY_RECORDING_LEVELS;
-          return [...levels.slice(1), nextLevel];
-        });
-      }
-
-      recordingAnimationFrameRef.current = requestAnimationFrame(updateLevels);
-    };
-
-    updateLevels();
-  }, [stopRecordingMeter]);
-
-  const stopRecording = useCallback(
-    (keepTranscript: boolean) => {
-      recordingConfirmedRef.current = keepTranscript;
-      recognitionRef.current?.stop();
-      recognitionRef.current = null;
-      setRecording(false);
+  // ── Start audio level visualization from an existing stream ──
+  const startRecordingMeter = useCallback(
+    (stream: MediaStream) => {
       stopRecordingMeter();
 
-      if (!keepTranscript) {
-        setInput(recordingBaseInputRef.current);
-      }
+      const AudioContextCtor =
+        window.AudioContext ?? (window as WebkitWindow).webkitAudioContext;
+      if (!AudioContextCtor) return;
+
+      const audioContext = new AudioContextCtor();
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.82;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+
+      const timeData = new Uint8Array(analyser.fftSize);
+      let lastLevelPushAt = 0;
+
+      recordingAudioContextRef.current = audioContext;
+      recordingAnalyserRef.current = analyser;
+
+      const updateLevels = () => {
+        const currentAnalyser = recordingAnalyserRef.current;
+        if (!currentAnalyser) return;
+
+        currentAnalyser.getByteTimeDomainData(timeData);
+
+        let rmsTotal = 0;
+        for (let index = 0; index < timeData.length; index += 1) {
+          const centeredValue = (timeData[index] - 128) / 128;
+          rmsTotal += centeredValue * centeredValue;
+        }
+
+        const rms = Math.sqrt(rmsTotal / timeData.length);
+        const nextLevel =
+          rms < 0.006 ? 0 : Math.min(1, (rms - 0.006) / 0.11);
+        const now = performance.now();
+
+        if (now - lastLevelPushAt >= 90) {
+          lastLevelPushAt = now;
+          setRecordingLevels((previousLevels) => {
+            const levels =
+              previousLevels.length === RECORDING_LEVEL_COUNT
+                ? previousLevels
+                : EMPTY_RECORDING_LEVELS;
+            return [...levels.slice(1), nextLevel];
+          });
+        }
+
+        recordingAnimationFrameRef.current =
+          requestAnimationFrame(updateLevels);
+      };
+
+      updateLevels();
     },
-    [stopRecordingMeter, setInput]
+    [stopRecordingMeter]
   );
 
+  // ── Cleanup on unmount ──
   useEffect(() => {
     return () => {
-      recognitionRef.current?.abort();
-      recognitionRef.current = null;
+      abortControllerRef.current?.abort();
+      if (
+        mediaRecorderRef.current &&
+        mediaRecorderRef.current.state !== "inactive"
+      ) {
+        mediaRecorderRef.current.stop();
+      }
+      mediaRecorderRef.current = null;
+      releaseStream();
       stopRecordingMeter();
     };
-  }, [stopRecordingMeter]);
+  }, [releaseStream, stopRecordingMeter]);
 
+  // ── Start recording ──────────────────────────────────────────────
   async function handleStartRecording() {
-    if (sending || recording) return;
+    if (sending || recording || transcribing) return;
 
-    const SpeechRecognition =
-      (window as SpeechRecognitionWindow).SpeechRecognition ??
-      (window as SpeechRecognitionWindow).webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      toast.error("Speech to text belum didukung di browser ini. Coba gunakan Chrome atau Edge.");
+    if (typeof MediaRecorder === "undefined") {
+      toast.error(
+        "Browser ini tidak mendukung perekaman suara. Coba gunakan Chrome atau Edge."
+      );
       return;
     }
 
-    recordingBaseInputRef.current = input;
-    recordingFinalTranscriptRef.current = "";
-    recordingConfirmedRef.current = false;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      toast.error("Browser belum mendukung akses mikrofon.");
+      return;
+    }
 
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = "id-ID";
-
-    recognition.onresult = (event) => {
-      let interimTranscript = "";
-      let finalTranscript = recordingFinalTranscriptRef.current;
-
-      for (let index = event.resultIndex; index < event.results.length; index += 1) {
-        const result = event.results[index];
-        const transcript = result[0].transcript;
-
-        if (result.isFinal) {
-          finalTranscript = `${finalTranscript} ${transcript}`.trim();
-        } else {
-          interimTranscript = `${interimTranscript} ${transcript}`.trim();
-        }
-      }
-
-      recordingFinalTranscriptRef.current = finalTranscript;
-      const baseInput = recordingBaseInputRef.current.trim();
-      const spokenText = `${finalTranscript} ${interimTranscript}`.trim();
-      setInput([baseInput, spokenText].filter(Boolean).join(" "));
-    };
-
-    recognition.onerror = (event) => {
-      if (event.error === "not-allowed") {
-        toast.error("Izin mikrofon ditolak. Aktifkan izin mic di browser.");
-      } else if (event.error !== "aborted" && event.error !== "no-speech") {
-        toast.error("Rekaman suara gagal diproses.");
-      }
-      stopRecording(false);
-    };
-
-    recognition.onend = () => {
-      recognitionRef.current = null;
-      setRecording(false);
-      stopRecordingMeter();
-      if (!recordingConfirmedRef.current && !recordingFinalTranscriptRef.current.trim()) {
-        setInput(recordingBaseInputRef.current);
-      }
-    };
+    const mimeType = detectSupportedMimeType();
 
     try {
-      await startRecordingMeter();
-      recognitionRef.current = recognition;
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      const recorderOptions: MediaRecorderOptions = {};
+      if (mimeType) recorderOptions.mimeType = mimeType;
+
+      const recorder = new MediaRecorder(stream, recorderOptions);
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorderRef.current = recorder;
+      recordingStreamRef.current = stream;
+      recordingBaseInputRef.current = input;
+
+      // Collect chunks every second — stable on mobile and long recordings
+      recorder.start(1000);
       setRecording(true);
-      recognition.start();
+
+      // Waveform visualization (skipped on mobile for performance)
+      if (!shouldSkipRecordingMeter()) {
+        try {
+          startRecordingMeter(stream);
+        } catch {
+          setRecordingLevels(EMPTY_RECORDING_LEVELS);
+        }
+      }
     } catch (err) {
-      recognitionRef.current = null;
-      setRecording(false);
-      stopRecordingMeter();
-      toast.error(err instanceof Error ? err.message : "Gagal memulai mikrofon");
+      releaseStream();
+      toast.error(
+        err instanceof Error && err.name === "NotAllowedError"
+          ? "Izin mikrofon ditolak. Aktifkan izin mic di browser."
+          : "Gagal memulai mikrofon."
+      );
     }
   }
 
+  // ── Cancel recording ─────────────────────────────────────────────
   function handleCancelRecording() {
-    recordingFinalTranscriptRef.current = "";
-    recognitionRef.current?.abort();
-    recognitionRef.current = null;
-    setRecording(false);
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.onstop = null;
+      recorder.ondataavailable = null;
+      recorder.stop();
+    }
+
+    mediaRecorderRef.current = null;
+    audioChunksRef.current = [];
     stopRecordingMeter();
+    releaseStream();
+    setRecording(false);
     setInput(recordingBaseInputRef.current);
   }
 
-  function handleConfirmRecording() {
-    stopRecording(true);
+  // ── Confirm recording → send to server for transcription ─────────
+  async function handleConfirmRecording() {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder || recorder.state === "inactive") return;
+
+    // Stop recorder and wait for final data chunk
+    const audioBlob = await new Promise<Blob>((resolve) => {
+      recorder.onstop = () => {
+        const type = recorder.mimeType || "audio/webm";
+        resolve(new Blob(audioChunksRef.current, { type }));
+      };
+      recorder.stop();
+    });
+
+    mediaRecorderRef.current = null;
+    stopRecordingMeter();
+    releaseStream();
+    setRecording(false);
+
+    // Validate minimum audio content
+    if (audioBlob.size < 100) {
+      toast.error("Rekaman terlalu pendek. Coba bicara lebih lama.");
+      return;
+    }
+
+    // ── Upload to server for Groq Whisper transcription ──
+    setTranscribing(true);
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      const ext = getFileExtension(audioBlob.type);
+      const formData = new FormData();
+      formData.append("file", audioBlob, `recording.${ext}`);
+
+      const response = await fetch(
+        `/api/courses/${courseId}/tutor/transcribe`,
+        {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        }
+      );
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(
+          body?.error || "Gagal memproses rekaman suara."
+        );
+      }
+
+      const { text } = await response.json();
+
+      if (!text || !text.trim()) {
+        toast.info("Tidak terdeteksi suara. Coba bicara lebih jelas.");
+        return;
+      }
+
+      const baseInput = recordingBaseInputRef.current.trim();
+      setInput([baseInput, text.trim()].filter(Boolean).join(" "));
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Gagal memproses rekaman suara."
+      );
+      setInput(recordingBaseInputRef.current);
+    } finally {
+      setTranscribing(false);
+      audioChunksRef.current = [];
+      abortControllerRef.current = null;
+    }
   }
 
   return {
     recording,
+    transcribing,
     recordingLevels,
-    stopRecording,
     handleStartRecording,
     handleCancelRecording,
     handleConfirmRecording,

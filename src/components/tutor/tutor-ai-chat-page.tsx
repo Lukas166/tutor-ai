@@ -178,11 +178,12 @@ export function TutorAiChatPage({
 
   const {
     recording,
+    transcribing,
     recordingLevels,
     handleStartRecording,
     handleCancelRecording,
     handleConfirmRecording,
-  } = useTutorSpeech({ input, setInput, sending });
+  } = useTutorSpeech({ input, setInput, sending, courseId });
 
   const userFirstName = getFirstName(overview?.user.name);
   const chatLandingMessage = useMemo(
@@ -379,6 +380,7 @@ export function TutorAiChatPage({
                 placement="inline"
                 sending={sending}
                 recording={recording}
+                transcribing={transcribing}
                 recordingLevels={recordingLevels}
                 handleSend={handleSend}
                 handleStop={handleStop}
@@ -410,6 +412,7 @@ export function TutorAiChatPage({
             setPanelMode={setPanelMode}
             sending={sending}
             recording={recording}
+            transcribing={transcribing}
             recordingLevels={recordingLevels}
             handleSend={handleSend}
             handleStop={handleStop}

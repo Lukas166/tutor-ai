@@ -123,12 +123,79 @@ const ENGLISH_WORD_HINTS = [
 const TUTOR_SPEECH_RATE = 1.15;
 const TUTOR_SPEECH_PITCH = 1;
 
+function isEdgeBrowser() {
+  return /EdgA|EdgiOS|Edg\//i.test(navigator.userAgent);
+}
+
+function looksLikeMarkdownTableRow(line: string) {
+  const trimmedLine = line.trim();
+  if (!trimmedLine.includes("|")) return false;
+
+  const cells = trimmedLine
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((cell) => cell.trim());
+
+  return cells.length > 1 && cells.some(Boolean);
+}
+
+function looksLikeMarkdownTableDivider(line: string) {
+  const trimmedLine = line.trim();
+  if (!trimmedLine.includes("|")) return false;
+
+  return /^:?-{3,}:?$/.test(trimmedLine)
+    ? false
+    : trimmedLine
+        .replace(/^\|/, "")
+        .replace(/\|$/, "")
+        .split("|")
+        .every((cell) => /^:?-{3,}:?$/.test(cell.trim()));
+}
+
+function replaceMarkdownTablesForSpeech(value: string) {
+  const lines = value.split(/\r?\n/);
+  const speechLines: string[] = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const currentLine = lines[index];
+    const nextLine = lines[index + 1] ?? "";
+
+    if (looksLikeMarkdownTableRow(currentLine) && looksLikeMarkdownTableDivider(nextLine)) {
+      speechLines.push("Ada tabel yang bisa dilihat di bawah ini.");
+      index += 2;
+
+      while (index < lines.length && looksLikeMarkdownTableRow(lines[index])) {
+        index += 1;
+      }
+
+      index -= 1;
+      continue;
+    }
+
+    speechLines.push(currentLine);
+  }
+
+  return speechLines.join("\n");
+}
+
 function prepareSpeechText(value: string) {
-  return value
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/`([^`]+)`/g, "$1")
+  const contentWithReadableBlocks = replaceMarkdownTablesForSpeech(value).replace(
+    /```([a-zA-Z0-9_-]+)?[\s\S]*?```/g,
+    (_, language: string | undefined) => {
+      const languageText = language ? ` ${language}` : "";
+      return ` Bagian kode${languageText} bisa dilihat di bawah ini. `;
+    }
+  );
+
+  return contentWithReadableBlocks
+    .replace(/`([^`]+)`/g, "kode $1")
+    .replace(/!\[(.*?)\]\((.*?)\)/g, "Ada gambar yang bisa dilihat di bawah ini.")
     .replace(/\[(.*?)\]\((.*?)\)/g, "$1")
+    .replace(/\$\$[\s\S]*?\$\$/g, " Ada rumus yang bisa dilihat di bawah ini. ")
+    .replace(/\$([^$]+)\$/g, "rumus $1")
     .replace(/[*_#>~|]/g, " ")
+    .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -239,20 +306,6 @@ function chooseTutorVoice(voices: SpeechSynthesisVoice[], language: TutorSpeechL
     scoredVoices.find(({ score }) => score.language > 0)?.voice ??
     scoredVoices[0]?.voice ??
     null;
-
-  console.table(
-    scoredVoices.map(({ voice, score }) => ({
-      selected: voice === selectedVoice ? "yes" : "",
-      name: voice.name,
-      lang: voice.lang,
-      local: voice.localService,
-      default: voice.default,
-      score: score.total,
-      language: score.language,
-      natural: score.natural,
-      tone: score.tone,
-    }))
-  );
 
   return selectedVoice;
 }
@@ -580,25 +633,15 @@ export function TutorChatMessages({
     cancelCurrentSpeech();
     setSpeakingMessageId(message.id);
 
-    const voices = await getBrowserVoices();
-    if (speechRequestIdRef.current !== requestId) return;
-    if (voices.length === 0) {
-      stopSpeech();
-      toast.error("Browser ini tidak menyediakan voice TTS.");
-      return;
-    }
-
     const speechLanguage = detectSpeechLanguage(text);
-    const selectedVoice = chooseTutorVoice(voices, speechLanguage);
-    if (!selectedVoice) {
-      stopSpeech();
-      toast.error("Tidak ada voice TTS yang bisa dipakai di browser ini.");
-      return;
-    }
+    const selectedVoice = isEdgeBrowser()
+      ? null
+      : chooseTutorVoice(await getBrowserVoices(), speechLanguage);
+    if (speechRequestIdRef.current !== requestId) return;
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.voice = selectedVoice;
-    utterance.lang = selectedVoice.lang || TUTOR_SPEECH_LANGS[speechLanguage];
+    utterance.lang = selectedVoice?.lang || TUTOR_SPEECH_LANGS[speechLanguage];
     utterance.rate = TUTOR_SPEECH_RATE;
     utterance.pitch = TUTOR_SPEECH_PITCH;
     utterance.volume = 1;
