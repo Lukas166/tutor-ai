@@ -63,65 +63,8 @@ function getUniqueSources(sources: RagSource[]) {
   });
 }
 
-type TutorSpeechLanguage = "id" | "en";
 
-const TUTOR_SPEECH_LANGS: Record<TutorSpeechLanguage, string> = {
-  id: "id-ID",
-  en: "en-US",
-};
-const AVAILABLE_TUTOR_VOICE_ORDER: Record<TutorSpeechLanguage, string[]> = {
-  id: ["Google Bahasa Indonesia"],
-  en: ["Google UK English Female", "Microsoft Zira - English (United States)"],
-};
-const NATURAL_VOICE_HINTS = ["natural", "neural", "online", "premium", "enhanced"];
-const FEMALE_VOICE_HINTS: Record<TutorSpeechLanguage, string[]> = {
-  id: ["siti", "damayanti", "gadis"],
-  en: ["jenny", "samantha", "zira", "aria", "victoria"],
-};
-const MALE_VOICE_HINTS = ["ardi", "david", "mark"];
-const INDONESIAN_WORD_HINTS = [
-  "adalah",
-  "akan",
-  "atau",
-  "dalam",
-  "dan",
-  "dengan",
-  "dari",
-  "di",
-  "ini",
-  "itu",
-  "jika",
-  "karena",
-  "ke",
-  "pada",
-  "sebagai",
-  "tidak",
-  "untuk",
-  "yang",
-];
-const ENGLISH_WORD_HINTS = [
-  "a",
-  "an",
-  "and",
-  "are",
-  "as",
-  "because",
-  "for",
-  "from",
-  "if",
-  "in",
-  "is",
-  "not",
-  "of",
-  "or",
-  "that",
-  "the",
-  "then",
-  "this",
-  "to",
-  "with",
-];
-const TUTOR_SPEECH_RATE = 1.15;
+const TUTOR_SPEECH_RATE = 1.2;
 const TUTOR_SPEECH_PITCH = 1;
 
 function isEdgeBrowser() {
@@ -221,94 +164,53 @@ function getBrowserVoices() {
   });
 }
 
+const INDONESIAN_WORD_HINTS = ["adalah", "akan", "atau", "dalam", "dan", "dengan", "dari", "di", "ini", "itu", "jika", "karena", "ke", "pada", "sebagai", "tidak", "untuk", "yang"];
+const ENGLISH_WORD_HINTS = ["a", "an", "and", "are", "as", "because", "for", "from", "if", "in", "is", "not", "of", "or", "that", "the", "then", "this", "to", "with"];
+
 function countWordHints(words: string[], hints: string[]) {
   const hintSet = new Set(hints);
   return words.reduce((total, word) => total + (hintSet.has(word) ? 1 : 0), 0);
 }
 
-function detectSpeechLanguage(text: string): TutorSpeechLanguage {
+function detectSpeechLanguage(text: string): "id" | "en" {
   const words = text.toLowerCase().match(/[a-z]+/g) ?? [];
   const englishScore = countWordHints(words, ENGLISH_WORD_HINTS);
   const indonesianScore = countWordHints(words, INDONESIAN_WORD_HINTS);
-
   return englishScore > indonesianScore ? "en" : "id";
 }
 
-function getLanguageScore(voice: SpeechSynthesisVoice, language: TutorSpeechLanguage) {
-  const name = voice.name.toLowerCase();
-  const voiceLang = voice.lang.toLowerCase();
+const TARGET_VOICES = {
+  id: ["Google Bahasa Indonesia", "Microsoft Gadis Online", "Microsoft Gadis", "Damayanti", "Siti"],
+  en: ["Google UK English Female", "Google US English Female", "Microsoft Aria Online", "Microsoft Jenny Online", "Microsoft Zira", "Samantha", "Victoria", "Jenny", "Aria"]
+};
 
-  if (language === "id") {
-    if (voiceLang.startsWith("id")) return 80;
-    if (name.includes("indonesia") || name.includes("bahasa indonesia")) return 60;
-    return 0;
+function chooseTutorVoice(voices: SpeechSynthesisVoice[], lang: "id" | "en") {
+  const targets = TARGET_VOICES[lang];
+
+  for (const target of targets) {
+    const exactMatch = voices.find((v) => v.name.toLowerCase() === target.toLowerCase());
+    if (exactMatch) return exactMatch;
+    
+    const partialMatch = voices.find((v) => v.name.toLowerCase().includes(target.toLowerCase()));
+    if (partialMatch) return partialMatch;
   }
 
-  if (voiceLang.startsWith("en")) return 80;
-  if (name.includes("english")) return 60;
-  return 0;
-}
-
-function getNaturalScore(voice: SpeechSynthesisVoice) {
-  const name = voice.name.toLowerCase();
-  const keywordScore = NATURAL_VOICE_HINTS.reduce(
-    (total, hint) => total + (name.includes(hint) ? 18 : 0),
-    0
+  const genericFemale = voices.find((v) => 
+    v.lang.startsWith(lang) && 
+    (v.name.toLowerCase().includes("female") || 
+     v.name.toLowerCase().includes("woman") || 
+     v.name.toLowerCase().includes("girl"))
   );
+  if (genericFemale) return genericFemale;
 
-  return keywordScore + (voice.localService ? 0 : 8) + (voice.default ? 2 : 0);
-}
+  const anyFemale = voices.find((v) => 
+    v.name.toLowerCase().includes("female") || 
+    v.name.toLowerCase().includes("woman") || 
+    v.name.toLowerCase().includes("girl")
+  );
+  if (anyFemale) return anyFemale;
 
-function getVoiceToneScore(voice: SpeechSynthesisVoice, language: TutorSpeechLanguage) {
-  const name = voice.name.toLowerCase();
-  const femaleScore = FEMALE_VOICE_HINTS[language].some((hint) => name.includes(hint)) ? 30 : 0;
-  const malePenalty = MALE_VOICE_HINTS.some((hint) => name.includes(hint)) ? -50 : 0;
-
-  return femaleScore + malePenalty;
-}
-
-function chooseAvailableTutorVoice(voices: SpeechSynthesisVoice[], language: TutorSpeechLanguage) {
-  const voiceNames = AVAILABLE_TUTOR_VOICE_ORDER[language].map((name) => name.toLowerCase());
-
-  for (const voiceName of voiceNames) {
-    const voice =
-      voices.find((candidate) => candidate.name.toLowerCase() === voiceName) ??
-      voices.find((candidate) => candidate.name.toLowerCase().includes(voiceName));
-
-    if (voice) return voice;
-  }
-
-  return null;
-}
-
-function scoreTutorVoice(voice: SpeechSynthesisVoice, language: TutorSpeechLanguage) {
-  const languageScore = getLanguageScore(voice, language);
-  const naturalScore = getNaturalScore(voice);
-  const toneScore = getVoiceToneScore(voice, language);
-
-  return {
-    language: languageScore,
-    natural: naturalScore,
-    tone: toneScore,
-    total: languageScore + naturalScore + toneScore,
-  };
-}
-
-function chooseTutorVoice(voices: SpeechSynthesisVoice[], language: TutorSpeechLanguage) {
-  const scoredVoices = voices
-    .map((voice) => ({
-      voice,
-      score: scoreTutorVoice(voice, language),
-    }))
-    .sort((a, b) => b.score.total - a.score.total);
-
-  const selectedVoice =
-    chooseAvailableTutorVoice(voices, language) ??
-    scoredVoices.find(({ score }) => score.language > 0)?.voice ??
-    scoredVoices[0]?.voice ??
-    null;
-
-  return selectedVoice;
+  return voices.find(v => v.lang.startsWith(lang)) || voices[0] || null;
 }
 
 function MessageSources({ sources }: { sources: RagSource[] }) {
@@ -635,14 +537,12 @@ export const TutorChatMessages = memo(function TutorChatMessages({
     setSpeakingMessageId(message.id);
 
     const speechLanguage = detectSpeechLanguage(text);
-    const selectedVoice = isEdgeBrowser()
-      ? null
-      : chooseTutorVoice(await getBrowserVoices(), speechLanguage);
+    const selectedVoice = chooseTutorVoice(await getBrowserVoices(), speechLanguage);
     if (speechRequestIdRef.current !== requestId) return;
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.voice = selectedVoice;
-    utterance.lang = selectedVoice?.lang || TUTOR_SPEECH_LANGS[speechLanguage];
+    utterance.lang = selectedVoice?.lang || (speechLanguage === "en" ? "en-US" : "id-ID");
     utterance.rate = TUTOR_SPEECH_RATE;
     utterance.pitch = TUTOR_SPEECH_PITCH;
     utterance.volume = 1;
