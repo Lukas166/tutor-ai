@@ -9,11 +9,21 @@ import type {
 
 type UseTutorChatProps = {
   courseId: string;
+  initialSessionId?: string;
+  onNewChat?: () => void;
+  onSessionChange?: (sessionId: string) => void;
   input: string;
   setInput: (value: string) => void;
 };
 
-export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
+export function useTutorChat({
+  courseId,
+  initialSessionId,
+  onNewChat,
+  onSessionChange,
+  input,
+  setInput,
+}: UseTutorChatProps) {
   const [overview, setOverview] = useState<TutorOverview | null>(null);
   const [chatSessions, setChatSessions] = useState<TutorChatSessionSummary[]>([]);
   const [activeSession, setActiveSession] = useState<TutorChatSession | null>(null);
@@ -68,16 +78,17 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
       setLoadingSession(true);
       try {
         const response = await fetch(`/api/courses/${courseId}/tutor/sessions/${sessionId}`);
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error ?? "Gagal memuat chat");
-        setActiveSession(data);
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Gagal memuat chat");
-      } finally {
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Gagal memuat chat");
+      setActiveSession(data);
+      onSessionChange?.(sessionId);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal memuat chat");
+    } finally {
         setLoadingSession(false);
       }
     },
-    [courseId]
+    [courseId, onSessionChange]
   );
 
   const loadOverview = useCallback(async () => {
@@ -90,8 +101,8 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
       setOverview(data);
       setChatSessions(data.chatSessions);
 
-      if (data.chatSessions.length > 0 && !activeSessionIdRef.current) {
-        await loadSession(data.chatSessions[0].id);
+      if (initialSessionId && activeSessionIdRef.current !== initialSessionId) {
+        await loadSession(initialSessionId);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Gagal memuat Tutor AI");
@@ -99,9 +110,11 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
     } finally {
       setLoadingOverview(false);
     }
-  }, [courseId, loadSession]);
+  }, [courseId, initialSessionId, loadSession]);
 
   async function createNewChat() {
+    onNewChat?.();
+
     if (activeSession && activeSession.messages.length === 0) {
       return activeSession;
     }
@@ -297,6 +310,7 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
         if (!response.ok) throw new Error(data.error ?? "Gagal membuat sesi baru");
         
         realSessionId = data.id;
+        onSessionChange?.(realSessionId);
         
         if (session.selectedMaterialIds.length > 0) {
           await fetch(`/api/courses/${courseId}/tutor/sessions/${realSessionId}`, {

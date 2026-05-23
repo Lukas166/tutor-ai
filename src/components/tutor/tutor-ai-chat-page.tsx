@@ -9,6 +9,7 @@ import {
   Settings2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -43,8 +44,63 @@ import { useTutorChat } from "./hooks/use-tutor-chat";
 import { useTutorSpeech } from "./hooks/use-tutor-speech";
 
 const CHAT_INPUT_MIN_HEIGHT = 44;
+const CHAT_LANDING_MESSAGES = [
+  "Siap belajar hari ini, {name}?",
+  "Hai, {name}. Mau mulai dari mana hari ini?",
+  "Halo, {name}. Ada yang ingin kamu pahami?",
+  "Selamat datang, {name}. Kita belajar bareng yuk.",
+  "Apa kabar, {name}? Siap bahas materi hari ini?",
+  "Yuk mulai pelan-pelan, {name}.",
+  "{name}, ada materi yang mau kita bahas?",
+  "Hai, {name}. Aku bantu pahami materinya ya.",
+  "Siap lanjut belajar, {name}?",
+  "Kita bahas bareng-bareng, {name}.",
+  "{name}, mau kupandu memahami materi ini?",
+  "Halo, {name}. Yuk pahami materinya bersama.",
+  "Tenang, {name}. Kita bahas sampai jelas.",
+  "Ada yang bikin bingung, {name}?",
+  "Yuk, {name}. Mulai dari bagian yang kamu mau.",
+  "Aku siap bantu kamu belajar, {name}.",
+  "Mau bahas materi hari ini, {name}?",
+  "Hai, {name}. Kita mulai dari yang paling penting.",
+  "{name}, siap memahami materi ini lebih dalam?",
+  "Yuk lanjutkan belajarmu, {name}.",
+  "Ada bagian yang ingin dibahas dulu, {name}?",
+  "Santai saja, {name}. Kita pelajari bersama.",
+  "Halo, {name}. Aku bantu jelaskan dengan mudah.",
+  "Siap memperjelas materi hari ini, {name}?",
+  "{name}, mau kita uraikan materinya pelan-pelan?",
+  "Yuk pahami konsepnya bersama, {name}.",
+  "Hai, {name}. Ada yang perlu dijelaskan lagi?",
+  "Aku temani belajarmu hari ini, {name}.",
+  "Kita mulai dari pertanyaanmu, {name}.",
+  "{name}, siap belajar dengan lebih mudah?",
+  "Mau kupersingkat penjelasannya, {name}?",
+  "Yuk bahas materi yang sedang kamu pelajari.",
+  "Halo, {name}. Apa yang mau kita pahami dulu?",
+  "Tenang, kita cari jawabannya bareng, {name}.",
+  "Siap menggali materi hari ini, {name}?",
+  "Hai, {name}. Mau lanjut dari materi terakhir?",
+  "{name}, aku bantu sederhanakan materinya.",
+  "Yuk mulai belajar dengan santai, {name}.",
+  "Ada materi yang ingin kamu dalami, {name}?",
+  "Kita pahami satu per satu, {name}.",
+];
 
-export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
+function getFirstName(name: string | null | undefined) {
+  return name?.trim().split(/\s+/)[0] || "Mahasiswa";
+}
+
+function getLandingMessage(name: string, index: number) {
+  return CHAT_LANDING_MESSAGES[index].replace("{name}", name);
+}
+
+export function TutorAiChatPage({
+  courseId,
+  backHref,
+  tutorHref = `/courses/${courseId}/tutor`,
+  initialSessionId,
+}: TutorAiChatPageProps) {
   const router = useRouter();
   
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -57,6 +113,27 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [panelMode, setPanelMode] = useState<TutorPanelMode>("chat");
+  const [landingMessageIndex] = useState(() =>
+    Math.floor(Math.random() * CHAT_LANDING_MESSAGES.length)
+  );
+
+  const updateTutorUrl = useCallback((nextHref: string) => {
+    if (typeof window === "undefined") return;
+    if (window.location.pathname === nextHref) return;
+
+    window.history.pushState(null, "", nextHref);
+  }, []);
+
+  const handleNewChatRoute = useCallback(() => {
+    updateTutorUrl(tutorHref);
+  }, [tutorHref, updateTutorUrl]);
+
+  const handleSessionRouteChange = useCallback(
+    (sessionId: string) => {
+      updateTutorUrl(`${tutorHref}/${sessionId}`);
+    },
+    [tutorHref, updateTutorUrl]
+  );
 
   const {
     overview,
@@ -90,7 +167,14 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
     handleDeleteSession,
     handleStop,
     handleSend,
-  } = useTutorChat({ courseId, input, setInput });
+  } = useTutorChat({
+    courseId,
+    initialSessionId,
+    onNewChat: handleNewChatRoute,
+    onSessionChange: handleSessionRouteChange,
+    input,
+    setInput,
+  });
 
   const {
     recording,
@@ -99,6 +183,18 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
     handleCancelRecording,
     handleConfirmRecording,
   } = useTutorSpeech({ input, setInput, sending });
+
+  const userFirstName = getFirstName(overview?.user.name);
+  const chatLandingMessage = useMemo(
+    () => getLandingMessage(userFirstName, landingMessageIndex),
+    [landingMessageIndex, userFirstName]
+  );
+  const isChatLanding =
+    panelMode === "chat" &&
+    !loadingOverview &&
+    !loadingSession &&
+    !sending &&
+    (!activeSession || activeSession.messages.length === 0);
 
   useEffect(() => {
     void loadOverview();
@@ -113,10 +209,16 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
 
   // Helper to scroll to the latest messages
   const scrollToMessages = useCallback((behavior: ScrollBehavior = "auto") => {
-    messagesEndRef.current?.scrollIntoView({
-      block: "end",
-      behavior: behavior === "smooth" ? "smooth" : "instant",
-    });
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior,
+      });
+      return;
+    }
+
+    messagesEndRef.current?.scrollIntoView({ block: "end", behavior });
   }, []);
 
   // Scroll to latest messages when session loads or changes
@@ -156,18 +258,8 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
   }, [input]);
 
 
-  // ==================== LOADING STATE ====================
-  if (loadingOverview) {
-    return (
-      <div className="flex h-svh flex-col items-center justify-center gap-4 bg-background">
-        <Loader2 className="size-8 animate-spin text-brand" />
-        <p className="text-sm font-medium text-muted-foreground">Memuat Tutor AI...</p>
-      </div>
-    );
-  }
-
   // ==================== ERROR STATE ====================
-  if (!overview) {
+  if (!loadingOverview && !overview) {
     return (
       <div className="flex h-svh flex-col items-center justify-center gap-4 bg-background p-8 text-center text-muted-foreground">
         <MessageCircle className="size-12 text-muted-foreground/50" strokeWidth={1.5} />
@@ -188,7 +280,8 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
         chatSessions={chatSessions}
         activeSession={activeSession}
         creatingChat={creatingChat}
-        isNewChatDisabled={isNewChatDisabled}
+        isNewChatDisabled={loadingOverview || isNewChatDisabled}
+        loadingSessions={loadingOverview}
         setSearchOpen={setSearchOpen}
         setSearchQuery={setSearchQuery}
         createNewChat={createNewChat}
@@ -227,9 +320,13 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
           )}
 
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-muted-foreground">
-              {overview.course.title}
-            </p>
+            {overview ? (
+              <p className="truncate text-sm font-medium text-muted-foreground">
+                {overview.course.title}
+              </p>
+            ) : (
+              <Skeleton className="h-4 w-56 max-w-full" />
+            )}
           </div>
 
           <Tooltip>
@@ -244,7 +341,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
                   }
                   setSettingsOpen(true);
                 }}
-                disabled={creatingChat}
+                disabled={loadingOverview || creatingChat}
                 className="text-muted-foreground hover:text-foreground"
                 aria-label="Context Materi"
               >
@@ -259,7 +356,39 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
         </header>
 
         {/* Messages area */}
-        {panelMode === "chat" ? (
+        {loadingOverview ? (
+          <TutorChatMessages
+            activeSession={null}
+            loadingSession
+            sending={false}
+            scrollContainerRef={scrollContainerRef}
+            messagesEndRef={messagesEndRef}
+          />
+        ) : isChatLanding ? (
+          <div className="relative flex-1 px-5">
+            <div className="absolute left-5 right-5 top-[43%] flex -translate-y-1/2 flex-col items-center gap-10 text-center">
+              <p className="max-w-2xl text-balance text-xl font-semibold leading-tight text-foreground sm:text-2xl">
+                {chatLandingMessage}
+              </p>
+              <TutorChatInput
+                input={input}
+                setInput={setInput}
+                panelMode={panelMode}
+                setPanelMode={setPanelMode}
+                placement="inline"
+                sending={sending}
+                recording={recording}
+                recordingLevels={recordingLevels}
+                handleSend={handleSend}
+                handleStop={handleStop}
+                handleStartRecording={handleStartRecording}
+                handleCancelRecording={handleCancelRecording}
+                handleConfirmRecording={handleConfirmRecording}
+                textareaRef={textareaRef}
+              />
+            </div>
+          </div>
+        ) : panelMode === "chat" ? (
           <TutorChatMessages
             activeSession={activeSession}
             loadingSession={loadingSession}
@@ -272,21 +401,23 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
         )}
 
         {/* ==================== FLOATING INPUT AREA ==================== */}
-        <TutorChatInput
-          input={input}
-          setInput={setInput}
-          panelMode={panelMode}
-          setPanelMode={setPanelMode}
-          sending={sending}
-          recording={recording}
-          recordingLevels={recordingLevels}
-          handleSend={handleSend}
-          handleStop={handleStop}
-          handleStartRecording={handleStartRecording}
-          handleCancelRecording={handleCancelRecording}
-          handleConfirmRecording={handleConfirmRecording}
-          textareaRef={textareaRef}
-        />
+        {!loadingOverview && !isChatLanding && (
+          <TutorChatInput
+            input={input}
+            setInput={setInput}
+            panelMode={panelMode}
+            setPanelMode={setPanelMode}
+            sending={sending}
+            recording={recording}
+            recordingLevels={recordingLevels}
+            handleSend={handleSend}
+            handleStop={handleStop}
+            handleStartRecording={handleStartRecording}
+            handleCancelRecording={handleCancelRecording}
+            handleConfirmRecording={handleConfirmRecording}
+            textareaRef={textareaRef}
+          />
+        )}
       </main>
 
       {/* ==================== SEARCH DIALOG ==================== */}

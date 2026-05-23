@@ -25,6 +25,7 @@ export type TutorChatInputProps = {
   setInput: (value: string) => void;
   panelMode: TutorPanelMode;
   setPanelMode: (mode: TutorPanelMode) => void;
+  placement?: "floating" | "inline";
   sending: boolean;
   recording: boolean;
   recordingLevels: number[];
@@ -75,6 +76,7 @@ export function TutorChatInput({
   setInput,
   panelMode,
   setPanelMode,
+  placement = "floating",
   sending,
   recording,
   recordingLevels,
@@ -115,13 +117,22 @@ export function TutorChatInput({
     return () => window.removeEventListener("keydown", handleInputShortcut);
   }, [handleCancelRecording, handleConfirmRecording, handleStop, recording, sending]);
 
+  const isFloating = placement === "floating";
+
   return (
-    <div className="absolute inset-x-0 bottom-0 flex flex-col items-center">
+    <div
+      className={cn(
+        "flex flex-col items-center",
+        isFloating ? "absolute inset-x-0 bottom-0" : "w-full"
+      )}
+    >
       {/* Gradient fade */}
-      <div className="pointer-events-none h-10 w-full bg-gradient-to-t from-background to-transparent" />
+      {isFloating && (
+        <div className="pointer-events-none h-10 w-full bg-gradient-to-t from-background to-transparent" />
+      )}
 
       {/* Input container */}
-      <div className="w-full bg-background px-5 pb-4 pt-0">
+      <div className={cn("w-full", isFloating ? "bg-background px-5 pb-4 pt-0" : "px-0")}>
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-1.5 rounded-2xl border bg-card p-1.5 shadow-lg shadow-black/5">
           <div className="min-h-11 w-full">
             {recording ? (
@@ -251,10 +262,11 @@ export function TutorChatInput({
           </div>
         </div>
 
-        {/* Disclaimer */}
-        <p className="mt-2.5 text-center text-xs text-muted-foreground">
-          Tutor AI bisa saja melakukan kesalahan. Cek kembali materimu.
-        </p>
+        {isFloating && (
+          <p className="mt-2.5 text-center text-xs text-muted-foreground">
+            Tutor AI bisa saja melakukan kesalahan. Cek kembali materimu.
+          </p>
+        )}
       </div>
     </div>
   );

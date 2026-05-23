@@ -1,13 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  isValidElement,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from "react";
 import {
   Check,
   ChevronRight,
   Copy,
   FileText,
   Loader2,
-  MessageCircle,
   Square,
   Volume2,
 } from "lucide-react";
@@ -296,14 +303,14 @@ function MessageSources({ sources }: { sources: RagSource[] }) {
   );
 }
 
-function extractTextFromReactNode(node: any): string {
+function extractTextFromReactNode(node: ReactNode): string {
   if (typeof node === "string" || typeof node === "number") {
     return String(node);
   }
   if (Array.isArray(node)) {
     return node.map(extractTextFromReactNode).join("");
   }
-  if (node && typeof node === "object" && node.props && node.props.children) {
+  if (isValidElement<{ children?: ReactNode }>(node)) {
     return extractTextFromReactNode(node.props.children);
   }
   return "";
@@ -351,11 +358,17 @@ function CopyBlockButton({
   );
 }
 
-function MarkdownPre({ node, children, ...props }: any) {
+type MarkdownPreProps = ComponentPropsWithoutRef<"pre"> & {
+  node?: unknown;
+  children?: ReactNode;
+};
+
+function MarkdownPre({ node, children, ...props }: MarkdownPreProps) {
+  void node;
   const codeElement = Array.isArray(children) ? children[0] : children;
   let codeString = "";
   let language = "";
-  if (codeElement && codeElement.props) {
+  if (isValidElement<{ children?: ReactNode; className?: string }>(codeElement)) {
     codeString = extractTextFromReactNode(codeElement.props.children).replace(/\n$/, "");
     const match = /language-(\w+)/.exec(codeElement.props.className || "");
     if (match) language = match[1];
@@ -381,7 +394,13 @@ function MarkdownPre({ node, children, ...props }: any) {
   );
 }
 
-function MarkdownTable({ node, children, ...props }: any) {
+type MarkdownTableProps = ComponentPropsWithoutRef<"table"> & {
+  node?: unknown;
+  children?: ReactNode;
+};
+
+function MarkdownTable({ node, children, ...props }: MarkdownTableProps) {
+  void node;
   const tableRef = useRef<HTMLTableElement>(null);
   const [copied, setCopied] = useState(false);
 
@@ -521,7 +540,7 @@ export function TutorChatMessages({
             "text/html": new Blob([htmlContent], { type: "text/html" }),
           });
           await navigator.clipboard.write([clipboardItem]);
-        } catch (err) {
+        } catch {
           // Fallback if writing multiple formats fails
           await navigator.clipboard.writeText(plainText);
         }
@@ -596,7 +615,7 @@ export function TutorChatMessages({
 
   return (
     <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 pb-8 pt-4">
+      <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-end gap-6 px-5 pb-8 pt-4">
         {loadingSession ? (
           <div className="flex flex-col gap-5">
             <Skeleton className="h-20 w-2/3 rounded-2xl" />
@@ -604,26 +623,9 @@ export function TutorChatMessages({
             <Skeleton className="h-28 w-3/4 rounded-2xl" />
           </div>
         ) : !activeSession ? (
-          <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 text-center text-muted-foreground">
-            <div className="flex size-16 items-center justify-center rounded-full bg-brand/10">
-              <MessageCircle className="size-8 text-brand" strokeWidth={1.5} />
-            </div>
-            <div>
-              <p className="text-base font-medium text-foreground">
-                Mulai bertanya tentang materi course.
-              </p>
-              <p className="mt-1.5 text-sm">
-                Chat baru akan memakai semua PDF ready sebagai konteks default.
-              </p>
-            </div>
-          </div>
+          <div className="min-h-[60vh]" aria-hidden="true" />
         ) : activeSession.messages.length === 0 ? (
-          <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 text-center text-muted-foreground">
-            <div className="flex size-16 items-center justify-center rounded-full bg-brand/10">
-              <MessageCircle className="size-8 text-brand" strokeWidth={1.5} />
-            </div>
-            <p className="text-sm">Ajukan pertanyaan tentang materi PDF course ini.</p>
-          </div>
+          <div className="min-h-[60vh]" aria-hidden="true" />
         ) : (
           activeSession.messages.map((message) => {
             const isUser = message.senderType === "user";
