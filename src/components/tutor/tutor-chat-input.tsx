@@ -158,17 +158,19 @@ export function TutorChatInput({
           </div>
           <div className="flex w-full items-center justify-end gap-1 px-1 py-1">
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-10 shrink-0 rounded-xl border-0 bg-transparent px-3 text-sm font-normal text-black shadow-none hover:bg-muted hover:text-black data-[state=open]:bg-muted data-[state=open]:text-black"
-                  aria-label="Pilih mode panel"
-                >
-                  {PANEL_MODE_LABEL[panelMode]}
-                  <ChevronDown className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
+              <InputButtonTooltip label="Switch Mode">
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-10 shrink-0 rounded-xl border-0 bg-transparent px-3 text-sm font-normal text-black shadow-none hover:bg-muted hover:text-black data-[state=open]:bg-muted data-[state=open]:text-black"
+                    aria-label="Switch Mode"
+                  >
+                    {PANEL_MODE_LABEL[panelMode]}
+                    <ChevronDown className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </InputButtonTooltip>
               <DropdownMenuContent
                 align="end"
                 side="top"
