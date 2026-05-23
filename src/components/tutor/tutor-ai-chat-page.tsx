@@ -195,6 +195,7 @@ export function TutorAiChatPage({
     !loadingSession &&
     !sending &&
     (!activeSession || activeSession.messages.length === 0);
+  const activeSessionId = activeSession?.id;
 
   useEffect(() => {
     void loadOverview();
@@ -223,7 +224,7 @@ export function TutorAiChatPage({
 
   // Scroll to latest messages when session loads or changes
   useEffect(() => {
-    if (!loadingSession && activeSession) {
+    if (!loadingSession && !sending && activeSessionId) {
       scrollToMessages("auto");
 
       const timer1 = setTimeout(() => scrollToMessages("auto"), 50);
@@ -235,7 +236,7 @@ export function TutorAiChatPage({
         clearTimeout(timer3);
       };
     }
-  }, [activeSession, loadingSession, scrollToMessages]);
+  }, [activeSessionId, loadingSession, sending, scrollToMessages]);
 
   // Auto-resize textarea
   useEffect(() => {

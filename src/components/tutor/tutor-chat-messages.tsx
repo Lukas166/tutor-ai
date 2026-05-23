@@ -615,7 +615,12 @@ export function TutorChatMessages({
 
   return (
     <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
-      <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-end gap-6 px-5 pb-8 pt-4">
+      <div
+        className={cn(
+          "mx-auto flex min-h-full w-full max-w-3xl flex-col gap-6 px-5 pb-8 pt-4",
+          sending ? "justify-start" : "justify-end"
+        )}
+      >
         {loadingSession ? (
           <div className="flex flex-col gap-5">
             <Skeleton className="h-20 w-2/3 rounded-2xl" />
