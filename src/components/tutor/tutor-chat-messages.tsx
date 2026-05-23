@@ -2,6 +2,7 @@
 
 import {
   isValidElement,
+  memo,
   useCallback,
   useEffect,
   useRef,
@@ -527,7 +528,7 @@ export type TutorChatMessagesProps = {
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
 };
 
-export function TutorChatMessages({
+export const TutorChatMessages = memo(function TutorChatMessages({
   activeSession,
   loadingSession,
   sending,
@@ -804,4 +805,4 @@ export function TutorChatMessages({
       </div>
     </div>
   );
-}
+});

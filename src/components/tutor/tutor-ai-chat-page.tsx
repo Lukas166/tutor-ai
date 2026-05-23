@@ -225,7 +225,7 @@ export function TutorAiChatPage({
 
   // Scroll to latest messages when session loads or changes
   useEffect(() => {
-    if (!loadingSession && !sending && activeSessionId) {
+    if (!loadingSession && activeSessionId) {
       scrollToMessages("auto");
 
       const timer1 = setTimeout(() => scrollToMessages("auto"), 50);
@@ -237,7 +237,25 @@ export function TutorAiChatPage({
         clearTimeout(timer3);
       };
     }
-  }, [activeSessionId, loadingSession, sending, scrollToMessages]);
+  }, [activeSessionId, loadingSession, scrollToMessages]);
+
+  const handleSendWithScroll = async () => {
+    // First, let handleSend execute to add the new message to the state and set sending=true
+    await handleSend();
+    
+    // Wait a tick for React to render the new user message in the DOM
+    setTimeout(() => {
+      const messageEls = document.querySelectorAll('[id^="msg-"]');
+      const lastMessageEl = messageEls[messageEls.length - 1];
+      
+      if (lastMessageEl) {
+        // Scroll the user's new message to the top of the viewport (ala ChatGPT)
+        lastMessageEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        scrollToMessages("smooth");
+      }
+    }, 50);
+  };
 
   // Auto-resize textarea
   useEffect(() => {
@@ -382,7 +400,7 @@ export function TutorAiChatPage({
                 recording={recording}
                 transcribing={transcribing}
                 recordingLevels={recordingLevels}
-                handleSend={handleSend}
+                handleSend={handleSendWithScroll}
                 handleStop={handleStop}
                 handleStartRecording={handleStartRecording}
                 handleCancelRecording={handleCancelRecording}
@@ -414,7 +432,7 @@ export function TutorAiChatPage({
             recording={recording}
             transcribing={transcribing}
             recordingLevels={recordingLevels}
-            handleSend={handleSend}
+            handleSend={handleSendWithScroll}
             handleStop={handleStop}
             handleStartRecording={handleStartRecording}
             handleCancelRecording={handleCancelRecording}

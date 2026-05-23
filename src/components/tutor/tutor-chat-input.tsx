@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { ArrowUp, Check, ChevronDown, Loader2, Mic, Square, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -118,6 +118,25 @@ export function TutorChatInput({
     window.addEventListener("keydown", handleInputShortcut);
     return () => window.removeEventListener("keydown", handleInputShortcut);
   }, [handleCancelRecording, handleConfirmRecording, handleStop, recording, sending, transcribing]);
+
+  const wasTranscribingRef = useRef(transcribing);
+  const wasRecordingRef = useRef(recording);
+
+  useEffect(() => {
+    if (wasTranscribingRef.current && !transcribing && textareaRef.current) {
+      // Focus the textarea right after transcription finishes
+      textareaRef.current.focus();
+    }
+    wasTranscribingRef.current = transcribing;
+  }, [transcribing, textareaRef]);
+
+  useEffect(() => {
+    if (wasRecordingRef.current && !recording && !transcribing && textareaRef.current) {
+      // Focus the textarea if recording is cancelled (via Esc or Cancel button)
+      textareaRef.current.focus();
+    }
+    wasRecordingRef.current = recording;
+  }, [recording, transcribing, textareaRef]);
 
   const isFloating = placement === "floating";
 
