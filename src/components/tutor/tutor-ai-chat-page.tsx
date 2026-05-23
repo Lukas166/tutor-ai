@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 
 import { TutorChatSidebar, SidebarToggleIcon } from "./tutor-chat-sidebar";
 import { TutorChatMessages } from "./tutor-chat-messages";
-import { TutorChatInput } from "./tutor-chat-input";
+import { TutorChatInput, type TutorPanelMode } from "./tutor-chat-input";
 import { TutorChatContextDialog } from "./tutor-chat-context-dialog";
 
 import type { TutorAiChatPageProps } from "./tutor-chat-types";
@@ -56,6 +56,7 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [panelMode, setPanelMode] = useState<TutorPanelMode>("chat");
 
   const {
     overview,
@@ -258,18 +259,24 @@ export function TutorAiChatPage({ courseId, backHref }: TutorAiChatPageProps) {
         </header>
 
         {/* Messages area */}
-        <TutorChatMessages
-          activeSession={activeSession}
-          loadingSession={loadingSession}
-          sending={sending}
-          scrollContainerRef={scrollContainerRef}
-          messagesEndRef={messagesEndRef}
-        />
+        {panelMode === "chat" ? (
+          <TutorChatMessages
+            activeSession={activeSession}
+            loadingSession={loadingSession}
+            sending={sending}
+            scrollContainerRef={scrollContainerRef}
+            messagesEndRef={messagesEndRef}
+          />
+        ) : (
+          <div className="flex-1 bg-white" aria-label="Area avatar kosong" />
+        )}
 
         {/* ==================== FLOATING INPUT AREA ==================== */}
         <TutorChatInput
           input={input}
           setInput={setInput}
+          panelMode={panelMode}
+          setPanelMode={setPanelMode}
           sending={sending}
           recording={recording}
           recordingLevels={recordingLevels}
