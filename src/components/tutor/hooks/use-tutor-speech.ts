@@ -43,10 +43,6 @@ function getFileExtension(mimeType: string): string {
   return "webm";
 }
 
-function shouldSkipRecordingMeter() {
-  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-}
-
 // ── Hook ────────────────────────────────────────────────────────────
 
 type UseTutorSpeechProps = {
@@ -110,9 +106,15 @@ export function useTutorSpeech({
       if (!AudioContextCtor) return;
 
       const audioContext = new AudioContextCtor();
+      
+      // Prevent mobile Safari from suspending the context
+      if (audioContext.state === "suspended") {
+        void audioContext.resume();
+      }
+
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.82;
+      analyser.smoothingTimeConstant = 0.5; // Lower = faster reaction to voice
 
       const source = audioContext.createMediaStreamSource(stream);
       source.connect(analyser);
@@ -140,7 +142,8 @@ export function useTutorSpeech({
           rms < 0.006 ? 0 : Math.min(1, (rms - 0.006) / 0.11);
         const now = performance.now();
 
-        if (now - lastLevelPushAt >= 90) {
+        // 50ms interval = ~20 FPS for smoother, more responsive animation
+        if (now - lastLevelPushAt >= 50) {
           lastLevelPushAt = now;
           setRecordingLevels((previousLevels) => {
             const levels =
@@ -217,13 +220,11 @@ export function useTutorSpeech({
       recorder.start(1000);
       setRecording(true);
 
-      // Waveform visualization (skipped on mobile for performance)
-      if (!shouldSkipRecordingMeter()) {
-        try {
-          startRecordingMeter(stream);
-        } catch {
-          setRecordingLevels(EMPTY_RECORDING_LEVELS);
-        }
+      // Waveform visualization (enabled on all devices)
+      try {
+        startRecordingMeter(stream);
+      } catch {
+        setRecordingLevels(EMPTY_RECORDING_LEVELS);
       }
     } catch (err) {
       releaseStream();
