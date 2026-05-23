@@ -29,11 +29,17 @@ export function useTutorChat({
   const [activeSession, setActiveSession] = useState<TutorChatSession | null>(null);
 
   const activeSessionIdRef = useRef<string | null>(null);
+  const activeSessionRef = useRef<TutorChatSession | null>(null);
+  const chatSessionsRef = useRef<TutorChatSessionSummary[]>([]);
+  const readyMaterialsRef = useRef<TutorOverview["readyMaterials"]>([]);
+  const loadingSessionRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const loadSessionRequestIdRef = useRef(0);
 
   useEffect(() => {
     activeSessionIdRef.current = activeSession?.id ?? null;
-  }, [activeSession?.id]);
+    activeSessionRef.current = activeSession;
+  }, [activeSession]);
 
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [loadingSession, setLoadingSession] = useState(false);
@@ -55,7 +61,19 @@ export function useTutorChat({
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
   const [deletingSession, setDeletingSession] = useState(false);
 
-  const readyMaterials = overview?.readyMaterials ?? [];
+  const readyMaterials = useMemo(() => overview?.readyMaterials ?? [], [overview?.readyMaterials]);
+  useEffect(() => {
+    chatSessionsRef.current = chatSessions;
+  }, [chatSessions]);
+
+  useEffect(() => {
+    readyMaterialsRef.current = readyMaterials;
+  }, [readyMaterials]);
+
+  useEffect(() => {
+    loadingSessionRef.current = loadingSession;
+  }, [loadingSession]);
+
   const selectedMaterialIds = useMemo(
     () => activeSession?.selectedMaterialIds ?? [],
     [activeSession]
@@ -74,21 +92,49 @@ export function useTutorChat({
         toast("Harap tunggu Tutor AI membalas sebelum pindah chat");
         return;
       }
-      if (activeSessionIdRef.current === sessionId) return;
+
+      if (activeSessionIdRef.current === sessionId && !loadingSessionRef.current) return;
+
+      const requestId = loadSessionRequestIdRef.current + 1;
+      loadSessionRequestIdRef.current = requestId;
+      const previousSession = activeSessionRef.current;
+      const sessionSummary = chatSessionsRef.current.find((session) => session.id === sessionId);
+
+      onSessionChange?.(sessionId);
+      setActiveSession({
+        id: sessionId,
+        courseId,
+        selectedMaterialIds: readyMaterialsRef.current.map((material) => material.id),
+        startedAt: sessionSummary?.startedAt ?? new Date().toISOString(),
+        lastActiveAt: sessionSummary?.lastActiveAt ?? new Date().toISOString(),
+        messages: [],
+      });
       setLoadingSession(true);
+
       try {
         const response = await fetch(`/api/courses/${courseId}/tutor/sessions/${sessionId}`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Gagal memuat chat");
-      setActiveSession(data);
-      onSessionChange?.(sessionId);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Gagal memuat chat");
-    } finally {
-        setLoadingSession(false);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Gagal memuat chat");
+        if (loadSessionRequestIdRef.current === requestId) {
+          setActiveSession(data);
+        }
+      } catch (err) {
+        if (loadSessionRequestIdRef.current === requestId) {
+          setActiveSession(previousSession);
+          toast.error(err instanceof Error ? err.message : "Gagal memuat chat");
+          if (previousSession) {
+            onSessionChange?.(previousSession.id);
+          } else {
+            onNewChat?.();
+          }
+        }
+      } finally {
+        if (loadSessionRequestIdRef.current === requestId) {
+          setLoadingSession(false);
+        }
       }
     },
-    [courseId, onSessionChange]
+    [courseId, onNewChat, onSessionChange]
   );
 
   const loadOverview = useCallback(async () => {
@@ -98,11 +144,13 @@ export function useTutorChat({
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Gagal memuat Tutor AI");
 
+      chatSessionsRef.current = data.chatSessions;
+      readyMaterialsRef.current = data.readyMaterials;
       setOverview(data);
       setChatSessions(data.chatSessions);
 
       if (initialSessionId && activeSessionIdRef.current !== initialSessionId) {
-        await loadSession(initialSessionId);
+        void loadSession(initialSessionId);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Gagal memuat Tutor AI");
