@@ -1,13 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  isValidElement,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from "react";
 import {
   Check,
   ChevronRight,
   Copy,
   FileText,
   Loader2,
-  MessageCircle,
   Square,
   Volume2,
 } from "lucide-react";
@@ -55,73 +63,83 @@ function getUniqueSources(sources: RagSource[]) {
   });
 }
 
-type TutorSpeechLanguage = "id" | "en";
 
-const TUTOR_SPEECH_LANGS: Record<TutorSpeechLanguage, string> = {
-  id: "id-ID",
-  en: "en-US",
-};
-const AVAILABLE_TUTOR_VOICE_ORDER: Record<TutorSpeechLanguage, string[]> = {
-  id: ["Google Bahasa Indonesia"],
-  en: ["Google UK English Female", "Microsoft Zira - English (United States)"],
-};
-const NATURAL_VOICE_HINTS = ["natural", "neural", "online", "premium", "enhanced"];
-const FEMALE_VOICE_HINTS: Record<TutorSpeechLanguage, string[]> = {
-  id: ["siti", "damayanti", "gadis"],
-  en: ["jenny", "samantha", "zira", "aria", "victoria"],
-};
-const MALE_VOICE_HINTS = ["ardi", "david", "mark"];
-const INDONESIAN_WORD_HINTS = [
-  "adalah",
-  "akan",
-  "atau",
-  "dalam",
-  "dan",
-  "dengan",
-  "dari",
-  "di",
-  "ini",
-  "itu",
-  "jika",
-  "karena",
-  "ke",
-  "pada",
-  "sebagai",
-  "tidak",
-  "untuk",
-  "yang",
-];
-const ENGLISH_WORD_HINTS = [
-  "a",
-  "an",
-  "and",
-  "are",
-  "as",
-  "because",
-  "for",
-  "from",
-  "if",
-  "in",
-  "is",
-  "not",
-  "of",
-  "or",
-  "that",
-  "the",
-  "then",
-  "this",
-  "to",
-  "with",
-];
-const TUTOR_SPEECH_RATE = 1.15;
+const TUTOR_SPEECH_RATE = 1.2;
 const TUTOR_SPEECH_PITCH = 1;
 
+function isEdgeBrowser() {
+  return /EdgA|EdgiOS|Edg\//i.test(navigator.userAgent);
+}
+
+function looksLikeMarkdownTableRow(line: string) {
+  const trimmedLine = line.trim();
+  if (!trimmedLine.includes("|")) return false;
+
+  const cells = trimmedLine
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((cell) => cell.trim());
+
+  return cells.length > 1 && cells.some(Boolean);
+}
+
+function looksLikeMarkdownTableDivider(line: string) {
+  const trimmedLine = line.trim();
+  if (!trimmedLine.includes("|")) return false;
+
+  return /^:?-{3,}:?$/.test(trimmedLine)
+    ? false
+    : trimmedLine
+        .replace(/^\|/, "")
+        .replace(/\|$/, "")
+        .split("|")
+        .every((cell) => /^:?-{3,}:?$/.test(cell.trim()));
+}
+
+function replaceMarkdownTablesForSpeech(value: string) {
+  const lines = value.split(/\r?\n/);
+  const speechLines: string[] = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const currentLine = lines[index];
+    const nextLine = lines[index + 1] ?? "";
+
+    if (looksLikeMarkdownTableRow(currentLine) && looksLikeMarkdownTableDivider(nextLine)) {
+      speechLines.push("Ada tabel yang bisa dilihat di bawah ini.");
+      index += 2;
+
+      while (index < lines.length && looksLikeMarkdownTableRow(lines[index])) {
+        index += 1;
+      }
+
+      index -= 1;
+      continue;
+    }
+
+    speechLines.push(currentLine);
+  }
+
+  return speechLines.join("\n");
+}
+
 function prepareSpeechText(value: string) {
-  return value
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/`([^`]+)`/g, "$1")
+  const contentWithReadableBlocks = replaceMarkdownTablesForSpeech(value).replace(
+    /```([a-zA-Z0-9_-]+)?[\s\S]*?```/g,
+    (_, language: string | undefined) => {
+      const languageText = language ? ` ${language}` : "";
+      return ` Bagian kode${languageText} bisa dilihat di bawah ini. `;
+    }
+  );
+
+  return contentWithReadableBlocks
+    .replace(/`([^`]+)`/g, "kode $1")
+    .replace(/!\[(.*?)\]\((.*?)\)/g, "Ada gambar yang bisa dilihat di bawah ini.")
     .replace(/\[(.*?)\]\((.*?)\)/g, "$1")
+    .replace(/\$\$[\s\S]*?\$\$/g, " Ada rumus yang bisa dilihat di bawah ini. ")
+    .replace(/\$([^$]+)\$/g, "rumus $1")
     .replace(/[*_#>~|]/g, " ")
+    .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -146,108 +164,53 @@ function getBrowserVoices() {
   });
 }
 
+const INDONESIAN_WORD_HINTS = ["adalah", "akan", "atau", "dalam", "dan", "dengan", "dari", "di", "ini", "itu", "jika", "karena", "ke", "pada", "sebagai", "tidak", "untuk", "yang"];
+const ENGLISH_WORD_HINTS = ["a", "an", "and", "are", "as", "because", "for", "from", "if", "in", "is", "not", "of", "or", "that", "the", "then", "this", "to", "with"];
+
 function countWordHints(words: string[], hints: string[]) {
   const hintSet = new Set(hints);
   return words.reduce((total, word) => total + (hintSet.has(word) ? 1 : 0), 0);
 }
 
-function detectSpeechLanguage(text: string): TutorSpeechLanguage {
+function detectSpeechLanguage(text: string): "id" | "en" {
   const words = text.toLowerCase().match(/[a-z]+/g) ?? [];
   const englishScore = countWordHints(words, ENGLISH_WORD_HINTS);
   const indonesianScore = countWordHints(words, INDONESIAN_WORD_HINTS);
-
   return englishScore > indonesianScore ? "en" : "id";
 }
 
-function getLanguageScore(voice: SpeechSynthesisVoice, language: TutorSpeechLanguage) {
-  const name = voice.name.toLowerCase();
-  const voiceLang = voice.lang.toLowerCase();
+const TARGET_VOICES = {
+  id: ["Google Bahasa Indonesia", "Microsoft Gadis Online", "Microsoft Gadis", "Damayanti", "Siti"],
+  en: ["Google UK English Female", "Google US English Female", "Microsoft Aria Online", "Microsoft Jenny Online", "Microsoft Zira", "Samantha", "Victoria", "Jenny", "Aria"]
+};
 
-  if (language === "id") {
-    if (voiceLang.startsWith("id")) return 80;
-    if (name.includes("indonesia") || name.includes("bahasa indonesia")) return 60;
-    return 0;
+function chooseTutorVoice(voices: SpeechSynthesisVoice[], lang: "id" | "en") {
+  const targets = TARGET_VOICES[lang];
+
+  for (const target of targets) {
+    const exactMatch = voices.find((v) => v.name.toLowerCase() === target.toLowerCase());
+    if (exactMatch) return exactMatch;
+    
+    const partialMatch = voices.find((v) => v.name.toLowerCase().includes(target.toLowerCase()));
+    if (partialMatch) return partialMatch;
   }
 
-  if (voiceLang.startsWith("en")) return 80;
-  if (name.includes("english")) return 60;
-  return 0;
-}
-
-function getNaturalScore(voice: SpeechSynthesisVoice) {
-  const name = voice.name.toLowerCase();
-  const keywordScore = NATURAL_VOICE_HINTS.reduce(
-    (total, hint) => total + (name.includes(hint) ? 18 : 0),
-    0
+  const genericFemale = voices.find((v) => 
+    v.lang.startsWith(lang) && 
+    (v.name.toLowerCase().includes("female") || 
+     v.name.toLowerCase().includes("woman") || 
+     v.name.toLowerCase().includes("girl"))
   );
+  if (genericFemale) return genericFemale;
 
-  return keywordScore + (voice.localService ? 0 : 8) + (voice.default ? 2 : 0);
-}
-
-function getVoiceToneScore(voice: SpeechSynthesisVoice, language: TutorSpeechLanguage) {
-  const name = voice.name.toLowerCase();
-  const femaleScore = FEMALE_VOICE_HINTS[language].some((hint) => name.includes(hint)) ? 30 : 0;
-  const malePenalty = MALE_VOICE_HINTS.some((hint) => name.includes(hint)) ? -50 : 0;
-
-  return femaleScore + malePenalty;
-}
-
-function chooseAvailableTutorVoice(voices: SpeechSynthesisVoice[], language: TutorSpeechLanguage) {
-  const voiceNames = AVAILABLE_TUTOR_VOICE_ORDER[language].map((name) => name.toLowerCase());
-
-  for (const voiceName of voiceNames) {
-    const voice =
-      voices.find((candidate) => candidate.name.toLowerCase() === voiceName) ??
-      voices.find((candidate) => candidate.name.toLowerCase().includes(voiceName));
-
-    if (voice) return voice;
-  }
-
-  return null;
-}
-
-function scoreTutorVoice(voice: SpeechSynthesisVoice, language: TutorSpeechLanguage) {
-  const languageScore = getLanguageScore(voice, language);
-  const naturalScore = getNaturalScore(voice);
-  const toneScore = getVoiceToneScore(voice, language);
-
-  return {
-    language: languageScore,
-    natural: naturalScore,
-    tone: toneScore,
-    total: languageScore + naturalScore + toneScore,
-  };
-}
-
-function chooseTutorVoice(voices: SpeechSynthesisVoice[], language: TutorSpeechLanguage) {
-  const scoredVoices = voices
-    .map((voice) => ({
-      voice,
-      score: scoreTutorVoice(voice, language),
-    }))
-    .sort((a, b) => b.score.total - a.score.total);
-
-  const selectedVoice =
-    chooseAvailableTutorVoice(voices, language) ??
-    scoredVoices.find(({ score }) => score.language > 0)?.voice ??
-    scoredVoices[0]?.voice ??
-    null;
-
-  console.table(
-    scoredVoices.map(({ voice, score }) => ({
-      selected: voice === selectedVoice ? "yes" : "",
-      name: voice.name,
-      lang: voice.lang,
-      local: voice.localService,
-      default: voice.default,
-      score: score.total,
-      language: score.language,
-      natural: score.natural,
-      tone: score.tone,
-    }))
+  const anyFemale = voices.find((v) => 
+    v.name.toLowerCase().includes("female") || 
+    v.name.toLowerCase().includes("woman") || 
+    v.name.toLowerCase().includes("girl")
   );
+  if (anyFemale) return anyFemale;
 
-  return selectedVoice;
+  return voices.find(v => v.lang.startsWith(lang)) || voices[0] || null;
 }
 
 function MessageSources({ sources }: { sources: RagSource[] }) {
@@ -296,14 +259,14 @@ function MessageSources({ sources }: { sources: RagSource[] }) {
   );
 }
 
-function extractTextFromReactNode(node: any): string {
+function extractTextFromReactNode(node: ReactNode): string {
   if (typeof node === "string" || typeof node === "number") {
     return String(node);
   }
   if (Array.isArray(node)) {
     return node.map(extractTextFromReactNode).join("");
   }
-  if (node && typeof node === "object" && node.props && node.props.children) {
+  if (isValidElement<{ children?: ReactNode }>(node)) {
     return extractTextFromReactNode(node.props.children);
   }
   return "";
@@ -351,11 +314,17 @@ function CopyBlockButton({
   );
 }
 
-function MarkdownPre({ node, children, ...props }: any) {
+type MarkdownPreProps = ComponentPropsWithoutRef<"pre"> & {
+  node?: unknown;
+  children?: ReactNode;
+};
+
+function MarkdownPre({ node, children, ...props }: MarkdownPreProps) {
+  void node;
   const codeElement = Array.isArray(children) ? children[0] : children;
   let codeString = "";
   let language = "";
-  if (codeElement && codeElement.props) {
+  if (isValidElement<{ children?: ReactNode; className?: string }>(codeElement)) {
     codeString = extractTextFromReactNode(codeElement.props.children).replace(/\n$/, "");
     const match = /language-(\w+)/.exec(codeElement.props.className || "");
     if (match) language = match[1];
@@ -381,7 +350,13 @@ function MarkdownPre({ node, children, ...props }: any) {
   );
 }
 
-function MarkdownTable({ node, children, ...props }: any) {
+type MarkdownTableProps = ComponentPropsWithoutRef<"table"> & {
+  node?: unknown;
+  children?: ReactNode;
+};
+
+function MarkdownTable({ node, children, ...props }: MarkdownTableProps) {
+  void node;
   const tableRef = useRef<HTMLTableElement>(null);
   const [copied, setCopied] = useState(false);
 
@@ -455,7 +430,7 @@ export type TutorChatMessagesProps = {
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
 };
 
-export function TutorChatMessages({
+export const TutorChatMessages = memo(function TutorChatMessages({
   activeSession,
   loadingSession,
   sending,
@@ -521,7 +496,7 @@ export function TutorChatMessages({
             "text/html": new Blob([htmlContent], { type: "text/html" }),
           });
           await navigator.clipboard.write([clipboardItem]);
-        } catch (err) {
+        } catch {
           // Fallback if writing multiple formats fails
           await navigator.clipboard.writeText(plainText);
         }
@@ -561,25 +536,13 @@ export function TutorChatMessages({
     cancelCurrentSpeech();
     setSpeakingMessageId(message.id);
 
-    const voices = await getBrowserVoices();
-    if (speechRequestIdRef.current !== requestId) return;
-    if (voices.length === 0) {
-      stopSpeech();
-      toast.error("Browser ini tidak menyediakan voice TTS.");
-      return;
-    }
-
     const speechLanguage = detectSpeechLanguage(text);
-    const selectedVoice = chooseTutorVoice(voices, speechLanguage);
-    if (!selectedVoice) {
-      stopSpeech();
-      toast.error("Tidak ada voice TTS yang bisa dipakai di browser ini.");
-      return;
-    }
+    const selectedVoice = chooseTutorVoice(await getBrowserVoices(), speechLanguage);
+    if (speechRequestIdRef.current !== requestId) return;
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.voice = selectedVoice;
-    utterance.lang = selectedVoice.lang || TUTOR_SPEECH_LANGS[speechLanguage];
+    utterance.lang = selectedVoice?.lang || (speechLanguage === "en" ? "en-US" : "id-ID");
     utterance.rate = TUTOR_SPEECH_RATE;
     utterance.pitch = TUTOR_SPEECH_PITCH;
     utterance.volume = 1;
@@ -596,7 +559,9 @@ export function TutorChatMessages({
 
   return (
     <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 pb-8 pt-4">
+      <div
+        className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-6 px-5 pb-8 pt-4"
+      >
         {loadingSession ? (
           <div className="flex flex-col gap-5">
             <Skeleton className="h-20 w-2/3 rounded-2xl" />
@@ -604,26 +569,9 @@ export function TutorChatMessages({
             <Skeleton className="h-28 w-3/4 rounded-2xl" />
           </div>
         ) : !activeSession ? (
-          <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 text-center text-muted-foreground">
-            <div className="flex size-16 items-center justify-center rounded-full bg-brand/10">
-              <MessageCircle className="size-8 text-brand" strokeWidth={1.5} />
-            </div>
-            <div>
-              <p className="text-base font-medium text-foreground">
-                Mulai bertanya tentang materi course.
-              </p>
-              <p className="mt-1.5 text-sm">
-                Chat baru akan memakai semua PDF ready sebagai konteks default.
-              </p>
-            </div>
-          </div>
+          <div className="min-h-[60vh]" aria-hidden="true" />
         ) : activeSession.messages.length === 0 ? (
-          <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 text-center text-muted-foreground">
-            <div className="flex size-16 items-center justify-center rounded-full bg-brand/10">
-              <MessageCircle className="size-8 text-brand" strokeWidth={1.5} />
-            </div>
-            <p className="text-sm">Ajukan pertanyaan tentang materi PDF course ini.</p>
-          </div>
+          <div className="min-h-[60vh]" aria-hidden="true" />
         ) : (
           activeSession.messages.map((message) => {
             const isUser = message.senderType === "user";
@@ -754,4 +702,4 @@ export function TutorChatMessages({
       </div>
     </div>
   );
-}
+});

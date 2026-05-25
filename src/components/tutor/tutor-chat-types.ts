@@ -43,6 +43,8 @@ export type TutorOverview = {
     isActive: boolean;
   };
   user: {
+    id: string;
+    name: string | null;
     academicLevel: "S1" | "S2" | "S3";
     role: string;
   };
@@ -65,4 +67,6 @@ export type RagSource = {
 export type TutorAiChatPageProps = {
   courseId: string;
   backHref: string;
+  tutorHref?: string;
+  initialSessionId?: string;
 };

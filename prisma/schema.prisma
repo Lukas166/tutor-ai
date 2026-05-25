@@ -106,7 +106,7 @@ model Course {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  creator        User               @relation("CourseCreator", fields: [createdBy], references: [id])
+  creator        User               @relation("CourseCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   instructors    CourseInstructor[]
   enrollments    Enrollment[]
   sessions       CourseSession[]
@@ -164,7 +164,7 @@ model CourseSession {
   updatedAt   DateTime @updatedAt
 
   course         Course               @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  creator        User                 @relation("CourseSessionCreator", fields: [createdBy], references: [id])
+  creator        User                 @relation("CourseSessionCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   materials      Material[]
   materialChunks MaterialChunk[]
   aiChatSessions AiChatSession[]
@@ -205,7 +205,7 @@ model Material {
   updatedAt       DateTime @updatedAt @default(now())
 
   courseSession CourseSession @relation(fields: [courseSessionId], references: [id], onDelete: Cascade)
-  uploader      User          @relation(fields: [uploadedBy], references: [id])
+  uploader      User          @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
   pages         MaterialPage[]
   chunks        MaterialChunk[]
   processingLogs MaterialProcessingLog[]
@@ -296,8 +296,8 @@ model AiChatSession {
   lastActiveAt    DateTime @default(now())
 
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course        Course          @relation(fields: [courseId], references: [id])
-  courseSession CourseSession   @relation(fields: [courseSessionId], references: [id])
+  course        Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseSession CourseSession   @relation(fields: [courseSessionId], references: [id], onDelete: Cascade)
   messages      AiChatMessage[]
 
   @@index([userId, courseSessionId])

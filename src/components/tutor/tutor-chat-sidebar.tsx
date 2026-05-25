@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,6 +54,7 @@ export type TutorChatSidebarProps = {
   activeSession: TutorChatSession | null;
   creatingChat: boolean;
   isNewChatDisabled: boolean;
+  loadingSessions?: boolean;
   setSearchOpen: (open: boolean) => void;
   setSearchQuery: (query: string) => void;
   createNewChat: () => Promise<TutorChatSession | undefined>;
@@ -74,6 +76,7 @@ export function TutorChatSidebar({
   activeSession,
   creatingChat,
   isNewChatDisabled,
+  loadingSessions = false,
   setSearchOpen,
   setSearchQuery,
   createNewChat,
@@ -108,7 +111,7 @@ export function TutorChatSidebar({
         )}
       >
         {/* Sidebar Header */}
-        <div className={cn("flex h-14 shrink-0 items-center", sidebarOpen ? "justify-between px-5" : "justify-center px-0")}>
+        <div className={cn("flex h-14 shrink-0 items-center", sidebarOpen ? "justify-between px-3" : "justify-center px-0")}>
           {sidebarOpen && <span className="truncate text-lg font-bold">Tutor AI Chat</span>}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -188,7 +191,28 @@ export function TutorChatSidebar({
         {/* Session List */}
         <div className="mt-2 flex-1 overflow-y-auto px-3 pb-3">
           <div className="flex flex-col gap-1">
-            {chatSessions.length === 0 ? (
+            {loadingSessions ? (
+              Array.from({ length: 7 }).map((_, index) => (
+                <div
+                  key={index}
+                  className={cn(
+                    "flex h-11 items-center rounded-lg",
+                    sidebarOpen ? "px-4" : "justify-center px-0"
+                  )}
+                >
+                  {sidebarOpen ? (
+                    <Skeleton
+                      className={cn(
+                        "h-4",
+                        index % 3 === 0 ? "w-44" : index % 3 === 1 ? "w-36" : "w-52"
+                      )}
+                    />
+                  ) : (
+                    <Skeleton className="size-4 rounded-full" />
+                  )}
+                </div>
+              ))
+            ) : chatSessions.length === 0 ? (
               <div className="px-2 py-8 text-center text-sm text-muted-foreground">
                 {sidebarOpen ? "Belum ada chat." : "-"}
               </div>
@@ -247,7 +271,7 @@ export function TutorChatSidebar({
                             onClick={() => loadSession(session.id)}
                             className={cn(
                               "flex min-w-0 flex-1 items-center",
-                              sidebarOpen ? "px-4 py-2.5 text-left" : "h-full w-full justify-center"
+                              sidebarOpen ? "py-2.5 pl-4 pr-10 text-left" : "h-full w-full justify-center"
                             )}
                           >
                             {!sidebarOpen ? (
