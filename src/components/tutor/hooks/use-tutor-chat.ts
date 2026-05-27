@@ -6,6 +6,7 @@ import type {
   TutorChatSession,
   TutorOverview,
 } from "../tutor-chat-types";
+import type { TutorPanelMode } from "../tutor-chat-input";
 
 type UseTutorChatProps = {
   courseId: string;
@@ -14,6 +15,7 @@ type UseTutorChatProps = {
   onSessionChange?: (sessionId: string) => void;
   input: string;
   setInput: (value: string) => void;
+  panelMode: TutorPanelMode;
 };
 
 export function useTutorChat({
@@ -23,6 +25,7 @@ export function useTutorChat({
   onSessionChange,
   input,
   setInput,
+  panelMode,
 }: UseTutorChatProps) {
   const [overview, setOverview] = useState<TutorOverview | null>(null);
   const [chatSessions, setChatSessions] = useState<TutorChatSessionSummary[]>([]);
@@ -387,7 +390,7 @@ export function useTutorChat({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: question }),
+          body: JSON.stringify({ content: question, responseMode: panelMode }),
           signal: abortController.signal,
         }
       );

@@ -38,6 +38,7 @@ import { TutorChatSidebar, SidebarToggleIcon } from "./tutor-chat-sidebar";
 import { TutorChatMessages } from "./tutor-chat-messages";
 import { TutorChatInput, type TutorPanelMode } from "./tutor-chat-input";
 import { TutorChatContextDialog } from "./tutor-chat-context-dialog";
+import { TutorAvatarPanel } from "./tutor-avatar-panel";
 
 import type { TutorAiChatPageProps } from "./tutor-chat-types";
 import { useTutorChat } from "./hooks/use-tutor-chat";
@@ -175,6 +176,7 @@ export function TutorAiChatPage({
     onSessionChange: handleSessionRouteChange,
     input,
     setInput,
+    panelMode,
   });
 
   const {
@@ -421,7 +423,14 @@ export function TutorAiChatPage({
             messagesEndRef={messagesEndRef}
           />
         ) : (
-          <div className="flex-1 bg-white" aria-label="Area avatar kosong" />
+          <TutorAvatarPanel
+            activeSession={activeSession}
+            courseId={courseId}
+            loadingSession={loadingSession}
+            sending={sending}
+            recording={recording}
+            transcribing={transcribing}
+          />
         )}
 
         {/* ==================== FLOATING INPUT AREA ==================== */}
