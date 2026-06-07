@@ -370,7 +370,10 @@ function buildResponseModeInstruction(responseMode: TutorResponseMode) {
 - Hindari bullet list kecuali user meminta langkah-langkah.
 - Sebut sumber hanya jika relevan dan ringkas.
 - Jawab jangan kaku, gunakan kata kata yang lebih natural dan komunikatif, seperti sedang ngobrol langsung.
-- Bicara dengan pointual, jangan bertele-tele dan menjadi 1 paragraf panjang.`;
+- Bicara dengan pointual, jangan bertele-tele dan menjadi 1 paragraf panjang.
+- Jika menulis rumus, selalu bungkus rumus dengan delimiter LaTeX $...$ atau $$...$$.
+- Jangan menaruh rumus di dalam code block.
+- Sebelum dan sesudah rumus, gunakan kalimat yang tetap masuk akal ketika dibacakan dengan suara.`;
   }
 
   return `Aturan bicara chat:
@@ -500,15 +503,135 @@ function toRagSource(chunk: RetrievedChunkRow): RagSource {
   };
 }
 
+const LATEX_SPOKEN_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/\\left|\\right/g, ""],
+  [/\\cdot|\\times/g, " kali "],
+  [/\\div/g, " dibagi "],
+  [/\\pm/g, " plus atau minus "],
+  [/\\leq?|≤/g, " kurang dari atau sama dengan "],
+  [/\\geq?|≥/g, " lebih dari atau sama dengan "],
+  [/\\neq|≠/g, " tidak sama dengan "],
+  [/\\approx|≈/g, " kira-kira sama dengan "],
+  [/\\infty|∞/g, " tak hingga "],
+  [/\\pi|π/g, " pi "],
+  [/\\alpha|α/g, " alfa "],
+  [/\\beta|β/g, " beta "],
+  [/\\gamma|γ/g, " gamma "],
+  [/\\delta|δ/g, " delta "],
+  [/\\theta|θ/g, " teta "],
+  [/\\lambda|λ/g, " lambda "],
+  [/\\mu|μ/g, " miu "],
+  [/\\sigma|σ/g, " sigma "],
+  [/\\omega|ω/g, " omega "],
+];
+
+function replaceNestedLatex(
+  value: string,
+  pattern: RegExp,
+  replacement: (...groups: string[]) => string
+) {
+  let result = value;
+
+  for (let index = 0; index < 8; index += 1) {
+    let replaced = false;
+    result = result.replace(pattern, (...args: unknown[]) => {
+      replaced = true;
+      const groups = args.slice(1, -2).map(String);
+      return replacement(...groups);
+    });
+    if (!replaced) break;
+  }
+
+  return result;
+}
+
+function verbalizeMathExpression(expression: string): string {
+  let spoken = expression.trim();
+
+  spoken = replaceNestedLatex(
+    spoken,
+    /\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g,
+    (numerator, denominator) =>
+      `${verbalizeMathExpression(numerator)} dibagi ${verbalizeMathExpression(denominator)}`
+  );
+  spoken = replaceNestedLatex(
+    spoken,
+    /\\sqrt\s*\[([^\[\]]+)\]\s*\{([^{}]*)\}/g,
+    (degree, value) =>
+      `akar pangkat ${verbalizeMathExpression(degree)} dari ${verbalizeMathExpression(value)}`
+  );
+  spoken = replaceNestedLatex(
+    spoken,
+    /\\sqrt\s*\{([^{}]*)\}/g,
+    (value) => `akar dari ${verbalizeMathExpression(value)}`
+  );
+
+  spoken = spoken
+    .replace(
+      /\\sum\s*_\{([^{}]+)\}\s*\^\{([^{}]+)\}/g,
+      (_, from: string, to: string) =>
+        `jumlah dari ${verbalizeMathExpression(from)} sampai ${verbalizeMathExpression(to)}`
+    )
+    .replace(
+      /\\int\s*_\{([^{}]+)\}\s*\^\{([^{}]+)\}/g,
+      (_, from: string, to: string) =>
+        `integral dari ${verbalizeMathExpression(from)} sampai ${verbalizeMathExpression(to)}`
+    )
+    .replace(/\\sum/g, " jumlah ")
+    .replace(/\\int/g, " integral ")
+    .replace(/\\text\s*\{([^{}]*)\}/g, " $1 ")
+    .replace(/\^\{([^{}]+)\}/g, (_, power: string) => ` pangkat ${power} `)
+    .replace(/\^(-?\d+|[a-zA-Z])/g, " pangkat $1 ")
+    .replace(/_\{([^{}]+)\}/g, (_, index: string) => ` indeks ${index} `)
+    .replace(/_(-?\d+|[a-zA-Z])/g, " indeks $1 ");
+
+  for (const [pattern, replacement] of LATEX_SPOKEN_REPLACEMENTS) {
+    spoken = spoken.replace(pattern, replacement);
+  }
+
+  return spoken
+    .replace(/\\[a-zA-Z]+/g, " ")
+    .replace(/[{}]/g, " ")
+    .replace(/\(/g, " buka kurung ")
+    .replace(/\)/g, " tutup kurung ")
+    .replace(/=/g, " sama dengan ")
+    .replace(/\+/g, " ditambah ")
+    .replace(/−|-/g, " dikurangi ")
+    .replace(/\*/g, " kali ")
+    .replace(/\//g, " dibagi ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildAvatarSpokenText(answer: string) {
+  return answer
+    .replace(/```[\s\S]*?```/g, "Bagian kode dapat dilihat pada layar.")
+    .replace(/\$\$([\s\S]*?)\$\$/g, (_, formula: string) =>
+      verbalizeMathExpression(formula)
+    )
+    .replace(/\$([^$\n]+)\$/g, (_, formula: string) =>
+      verbalizeMathExpression(formula)
+    )
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/!\[(.*?)\]\((.*?)\)/g, "Gambar dapat dilihat pada layar.")
+    .replace(/\[(.*?)\]\((.*?)\)/g, "$1")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[*_#>~|]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function buildAvatarRagSources(
   chunks: RetrievedChunkRow[],
   avatarExpression: AvatarExpression,
-  reason?: string
+  reason?: string,
+  spokenText?: string
 ) {
   return {
     avatarExpression,
     reason: reason ?? null,
     sources: chunks.map(toRagSource),
+    spokenText: spokenText ? buildAvatarSpokenText(spokenText) : null,
   };
 }
 
@@ -850,7 +973,12 @@ export async function askTutor(input: {
     await createAiMessage({
       aiChatSessionId: input.sessionId,
       content: insufficientContextAnswer,
-      ragSources: buildAvatarRagSources([], avatarExpression, "no_selected_materials"),
+      ragSources: buildAvatarRagSources(
+        [],
+        avatarExpression,
+        "no_selected_materials",
+        responseMode === "avatar" ? insufficientContextAnswer : undefined
+      ),
       responseTimeMs: Date.now() - startTime,
     });
     await prisma.aiChatSession.update({
@@ -912,7 +1040,12 @@ export async function askTutor(input: {
   await createAiMessage({
     aiChatSessionId: input.sessionId,
     content: answer,
-    ragSources: buildAvatarRagSources(chunks, avatarExpression),
+    ragSources: buildAvatarRagSources(
+      chunks,
+      avatarExpression,
+      undefined,
+      responseMode === "avatar" ? answer : undefined
+    ),
     responseTimeMs: Date.now() - startTime,
   });
   await prisma.aiChatSession.update({
@@ -990,7 +1123,8 @@ export async function askTutorStream(input: {
     const ragSources = buildAvatarRagSources(
       [],
       avatarExpression,
-      "no_selected_materials"
+      "no_selected_materials",
+      responseMode === "avatar" ? insufficientContextAnswer : undefined
     );
     const responseTimeMs = Date.now() - startTime;
 
@@ -1097,7 +1231,12 @@ export async function askTutorStream(input: {
           question,
           responseMode,
         });
-        const ragSources = buildAvatarRagSources(capturedChunks, avatarExpression);
+        const ragSources = buildAvatarRagSources(
+          capturedChunks,
+          avatarExpression,
+          undefined,
+          responseMode === "avatar" ? fullAnswer.trim() : undefined
+        );
         const responseTimeMs = Date.now() - startTime;
 
         await createAiMessage({

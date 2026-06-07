@@ -7,6 +7,7 @@ import {
   MessageCircle,
   Search,
   Settings2,
+  UserPen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -39,6 +40,13 @@ import { TutorChatMessages } from "./tutor-chat-messages";
 import { TutorChatInput, type TutorPanelMode } from "./tutor-chat-input";
 import { TutorChatContextDialog } from "./tutor-chat-context-dialog";
 import { TutorAvatarPanel } from "./tutor-avatar-panel";
+import { TutorAvatarCustomizationDialog } from "./tutor-avatar-customization-dialog";
+import {
+  DEFAULT_TUTOR_AVATAR_CUSTOMIZATION,
+  TUTOR_AVATAR_CUSTOMIZATION_STORAGE_KEY,
+  isTutorAvatarCustomization,
+  type TutorAvatarCustomization,
+} from "./tutor-avatar-customization";
 
 import type { TutorAiChatPageProps } from "./tutor-chat-types";
 import { useTutorChat } from "./hooks/use-tutor-chat";
@@ -109,6 +117,11 @@ export function TutorAiChatPage({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const [input, setInput] = useState("");
+  const [avatarCustomization, setAvatarCustomization] =
+    useState<TutorAvatarCustomization>(DEFAULT_TUTOR_AVATAR_CUSTOMIZATION);
+  const [avatarCustomizationHydrated, setAvatarCustomizationHydrated] =
+    useState(false);
+  const [avatarCustomizationOpen, setAvatarCustomizationOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -204,6 +217,37 @@ export function TutorAiChatPage({
   useEffect(() => {
     void loadOverview();
   }, [loadOverview]);
+
+  useEffect(() => {
+    try {
+      const storedCustomization = window.localStorage.getItem(
+        TUTOR_AVATAR_CUSTOMIZATION_STORAGE_KEY
+      );
+      if (storedCustomization) {
+        const parsedCustomization: unknown = JSON.parse(storedCustomization);
+        if (isTutorAvatarCustomization(parsedCustomization)) {
+          setAvatarCustomization(parsedCustomization);
+        }
+      }
+    } catch {
+      // Keep the default customization if browser storage is unavailable.
+    } finally {
+      setAvatarCustomizationHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!avatarCustomizationHydrated) return;
+
+    try {
+      window.localStorage.setItem(
+        TUTOR_AVATAR_CUSTOMIZATION_STORAGE_KEY,
+        JSON.stringify(avatarCustomization)
+      );
+    } catch {
+      // Customization still works for the current session without persistence.
+    }
+  }, [avatarCustomization, avatarCustomizationHydrated]);
 
   // Search-filtered sessions
   const filteredSessions = useMemo(() => {
@@ -359,6 +403,21 @@ export function TutorAiChatPage({
               <Button
                 variant="ghost"
                 size="icon-sm"
+                onClick={() => setAvatarCustomizationOpen(true)}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Personalisasi Avatar"
+              >
+                <UserPen className="size-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Personalisasi Avatar</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 onClick={async () => {
                   if (!activeSession) {
                     const session = await createNewChat();
@@ -425,6 +484,7 @@ export function TutorAiChatPage({
         ) : (
           <TutorAvatarPanel
             activeSession={activeSession}
+            customization={avatarCustomization}
             courseId={courseId}
             loadingSession={loadingSession}
             sending={sending}
@@ -503,6 +563,12 @@ export function TutorAiChatPage({
         </DialogContent>
       </Dialog>
 
+      <TutorAvatarCustomizationDialog
+        customization={avatarCustomization}
+        onCustomizationChange={setAvatarCustomization}
+        onOpenChange={setAvatarCustomizationOpen}
+        open={avatarCustomizationOpen}
+      />
 
       {/* ==================== CONTEXT MATERI DIALOG ==================== */}
       <TutorChatContextDialog

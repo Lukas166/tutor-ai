@@ -4,12 +4,15 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
+  type AnimationAction,
   AnimationMixer,
   ClampToEdgeWrapping,
   Color,
   DoubleSide,
   LinearFilter,
   LinearMipmapLinearFilter,
+  LoopOnce,
+  LoopRepeat,
   Mesh,
   MeshStandardMaterial,
   Object3D,
@@ -22,9 +25,10 @@ import {
 } from "three";
 import { Loader2 } from "lucide-react";
 
-import type { TutorChatSession } from "./tutor-chat-types";
+import type { TutorAvatarCustomization } from "./tutor-avatar-customization";
+import type { TutorChatSession, TutorMessage } from "./tutor-chat-types";
 
-const AVATAR_ASSET_VERSION = "20260525-1";
+const AVATAR_ASSET_VERSION = "20260607-4";
 
 function avatarAssetPath(path: string) {
   return `${path}?v=${AVATAR_ASSET_VERSION}`;
@@ -32,6 +36,7 @@ function avatarAssetPath(path: string) {
 
 const AVATAR_MODEL_PATH = avatarAssetPath("/modelavatar/ModelMuslim.glb");
 const BODY_TEXTURE_PATH = avatarAssetPath("/modelavatar/BodyTexture.png");
+const HAND_TEXTURE_PATH = avatarAssetPath("/modelavatar/HandTexture.png");
 const FOOT_TEXTURE_PATH = avatarAssetPath("/modelavatar/FootTexture.png");
 const HEADBAND_TEXTURE_PATH = avatarAssetPath("/modelavatar/HeadbandTexture.png");
 const HIJAB_TEXTURE_PATH = avatarAssetPath("/modelavatar/HijabTexture.png");
@@ -39,14 +44,17 @@ const NORMAL_FACE_TEXTURE_PATH = avatarAssetPath("/modelavatar/NormalFaceExpress
 const TALK_FACE_TEXTURE_PATH = avatarAssetPath("/modelavatar/TalkFaceExpressionTexture.png");
 const HAPPY_FACE_TEXTURE_PATH = avatarAssetPath("/modelavatar/HappyFaceExpressionTexture.png");
 const SAD_FACE_TEXTURE_PATH = avatarAssetPath("/modelavatar/SadFaceExpressionTexture.png");
+const THINK_FACE_TEXTURE_PATH = avatarAssetPath("/modelavatar/ThinkFaceExpressionTexture.png");
 const AVATAR_MODEL_SCALE = 0.5;
 const AVATAR_MODEL_POSITION: [number, number, number] = [0, 0.68, 0];
 
-type AvatarExpression = "neutral" | "speaking" | "happy" | "concerned";
+type AvatarExpression = "neutral" | "speaking" | "happy" | "concerned" | "thinking";
+type AvatarAnimationMode = "idle" | "thinking" | "talking";
 type BrowserAudioWindow = Window & { webkitAudioContext?: typeof AudioContext };
 
 type TutorAvatarPanelProps = {
   activeSession: TutorChatSession | null;
+  customization: TutorAvatarCustomization;
   courseId: string;
   loadingSession: boolean;
   sending: boolean;
@@ -58,6 +66,7 @@ type AvatarMaterials = {
   body: MeshStandardMaterial;
   face: MeshStandardMaterial;
   foot: MeshStandardMaterial;
+  hand: MeshStandardMaterial;
   headband: MeshStandardMaterial;
   hijab: MeshStandardMaterial;
   skin: MeshStandardMaterial;
@@ -69,6 +78,7 @@ type LoadedAvatarAssets = {
   bodyTexture: Texture;
   faceTextures: Record<AvatarExpression, Texture>;
   footTexture: Texture;
+  handTexture: Texture;
   headbandTexture: Texture;
   hijabTexture: Texture;
 };
@@ -109,24 +119,21 @@ function pickAvatarMaterial(
   const material = (materialName ?? "").toLowerCase();
 
   if (mesh === "circle" || material === "material.009") return materials.hijab;
-  if (mesh === "cylinder.004" || material === "material.007") return materials.foot;
+  if (mesh === "cylinder.003" || material === "material.007") return materials.foot;
+  if (mesh === "cylinder.004") return materials.hand;
   if (
-    mesh === "sphere.001" ||
     mesh === "sphere.002" ||
-    material === "material" ||
     material === "material.005"
   ) {
     return materials.headband;
   }
-  if (material === "material.006" || material === "material.010") return materials.face;
+  if (mesh === "sphere.003" || material === "material.010") return materials.face;
   if (
-    mesh === "cylinder.003" ||
-    material === "material.008" ||
-    material === "material.003"
+    mesh === "cylinder.002" ||
+    material === "material.008"
   ) {
     return materials.body;
   }
-  if (material === "material.002") return materials.skin;
 
   return materials.skin;
 }
@@ -135,17 +142,26 @@ function getFaceTexture(textures: LoadedAvatarAssets["faceTextures"], expression
   return textures[expression];
 }
 
+function getAnimationClip(animations: AnimationClip[], name: string) {
+  return animations.find((animation) => animation.name === name) ?? null;
+}
+
 function AvatarModel({
+  animationMode,
+  customization,
   expression,
   onReady,
   speaking,
 }: {
+  animationMode: AvatarAnimationMode;
+  customization: TutorAvatarCustomization;
   expression: AvatarExpression;
   onReady: (ready: boolean) => void;
   speaking: boolean;
 }) {
   const groupRef = useRef<Group>(null);
   const animationMixerRef = useRef<AnimationMixer | null>(null);
+  const activeAnimationActionRef = useRef<AnimationAction | null>(null);
   const faceMaterialRef = useRef<MeshStandardMaterial | null>(null);
   const expressionRef = useRef(expression);
   const speakingRef = useRef(speaking);
@@ -160,6 +176,7 @@ function AvatarModel({
     Promise.all([
       loadGltf(gltfLoader, AVATAR_MODEL_PATH),
       loadTexture(textureLoader, BODY_TEXTURE_PATH),
+      loadTexture(textureLoader, HAND_TEXTURE_PATH),
       loadTexture(textureLoader, FOOT_TEXTURE_PATH),
       loadTexture(textureLoader, HEADBAND_TEXTURE_PATH),
       loadTexture(textureLoader, HIJAB_TEXTURE_PATH),
@@ -167,10 +184,12 @@ function AvatarModel({
       loadTexture(textureLoader, TALK_FACE_TEXTURE_PATH),
       loadTexture(textureLoader, HAPPY_FACE_TEXTURE_PATH),
       loadTexture(textureLoader, SAD_FACE_TEXTURE_PATH),
+      loadTexture(textureLoader, THINK_FACE_TEXTURE_PATH),
     ])
       .then(([
         gltf,
         bodyTexture,
+        handTexture,
         footTexture,
         headbandTexture,
         hijabTexture,
@@ -178,6 +197,7 @@ function AvatarModel({
         talkFaceTexture,
         happyFaceTexture,
         sadFaceTexture,
+        thinkFaceTexture,
       ]) => {
         if (cancelled) return;
 
@@ -185,6 +205,7 @@ function AvatarModel({
 
         [
           bodyTexture,
+          handTexture,
           footTexture,
           headbandTexture,
           hijabTexture,
@@ -192,17 +213,20 @@ function AvatarModel({
           talkFaceTexture,
           happyFaceTexture,
           sadFaceTexture,
+          thinkFaceTexture,
         ].forEach((texture) => prepareColorTexture(texture, maxAnisotropy));
 
         setAssets({
           animations: gltf.animations,
           scene: gltf.scene,
           bodyTexture,
+          handTexture,
           faceTextures: {
             neutral: normalFaceTexture,
             speaking: talkFaceTexture,
             happy: happyFaceTexture,
             concerned: sadFaceTexture,
+            thinking: thinkFaceTexture,
           },
           footTexture,
           headbandTexture,
@@ -249,6 +273,12 @@ function AvatarModel({
         roughness: 0.78,
         side: DoubleSide,
       }),
+      hand: new MeshStandardMaterial({
+        map: assets.handTexture,
+        metalness: 0,
+        roughness: 0.86,
+        side: DoubleSide,
+      }),
       headband: new MeshStandardMaterial({
         map: assets.headbandTexture,
         metalness: 0,
@@ -271,6 +301,14 @@ function AvatarModel({
   }, [assets]);
 
   useEffect(() => {
+    if (!materials) return;
+
+    materials.body.color.set(customization.bodyColor);
+    materials.headband.color.set(customization.headbandColor);
+    materials.hijab.color.set(customization.hijabColor);
+  }, [customization, materials]);
+
+  useEffect(() => {
     faceMaterialRef.current = materials?.face ?? null;
   }, [materials]);
 
@@ -281,16 +319,79 @@ function AvatarModel({
     }
 
     const mixer = new AnimationMixer(assets.scene);
-    const action = mixer.clipAction(assets.animations[0]);
-    action.reset().play();
     animationMixerRef.current = mixer;
 
     return () => {
-      action.stop();
       mixer.stopAllAction();
+      activeAnimationActionRef.current = null;
       animationMixerRef.current = null;
     };
   }, [assets]);
+
+  useEffect(() => {
+    const mixer = animationMixerRef.current;
+    if (!assets || !mixer) return;
+
+    const idleClip = getAnimationClip(assets.animations, "IdleAnim");
+    const sequence =
+      animationMode === "thinking"
+        ? {
+            intro: getAnimationClip(assets.animations, "ThinkAnim"),
+            loop: getAnimationClip(assets.animations, "IdleThink"),
+          }
+        : animationMode === "talking"
+          ? {
+              intro: getAnimationClip(assets.animations, "TalkAnim"),
+              loop: getAnimationClip(assets.animations, "TalkIdleAnim"),
+            }
+          : { intro: null, loop: idleClip };
+
+    const loopClip = sequence.loop ?? idleClip;
+    if (!loopClip) {
+      console.warn("[avatar-animation] Clip IdleAnim tidak ditemukan.");
+      return;
+    }
+
+    function playAction(action: AnimationAction, loop: boolean) {
+      const previousAction = activeAnimationActionRef.current;
+      if (previousAction && previousAction !== action) {
+        previousAction.fadeOut(0.18);
+      }
+
+      action.reset();
+      action.enabled = true;
+      action.clampWhenFinished = !loop;
+      action.setLoop(loop ? LoopRepeat : LoopOnce, loop ? Infinity : 1);
+      action.fadeIn(0.18).play();
+      activeAnimationActionRef.current = action;
+    }
+
+    const loopAction = mixer.clipAction(loopClip);
+    const introAction = sequence.intro
+      ? mixer.clipAction(sequence.intro)
+      : null;
+
+    if (!introAction) {
+      playAction(loopAction, true);
+      return () => {
+        loopAction.fadeOut(0.12);
+      };
+    }
+
+    function handleAnimationFinished(event: { action: AnimationAction }) {
+      if (event.action !== introAction) return;
+      playAction(loopAction, true);
+    }
+
+    mixer.addEventListener("finished", handleAnimationFinished);
+    playAction(introAction, false);
+
+    return () => {
+      mixer.removeEventListener("finished", handleAnimationFinished);
+      introAction.fadeOut(0.12);
+      loopAction.fadeOut(0.12);
+    };
+  }, [animationMode, assets]);
 
   useLayoutEffect(() => {
     if (!assets || !materials) return;
@@ -351,10 +452,14 @@ function AvatarModel({
 }
 
 function AvatarStage({
+  animationMode,
+  customization,
   expression,
   onReady,
   speaking,
 }: {
+  animationMode: AvatarAnimationMode;
+  customization: TutorAvatarCustomization;
   expression: AvatarExpression;
   onReady: (ready: boolean) => void;
   speaking: boolean;
@@ -365,7 +470,13 @@ function AvatarStage({
       <directionalLight intensity={2} position={[3.5, 10, 4]} />
       <directionalLight intensity={2} position={[-4, 2.5, -2]} />
       <group position={[0, 0, 0]}>
-        <AvatarModel expression={expression} onReady={onReady} speaking={speaking} />
+        <AvatarModel
+          animationMode={animationMode}
+          customization={customization}
+          expression={expression}
+          onReady={onReady}
+          speaking={speaking}
+        />
       </group>
     </>
   );
@@ -376,7 +487,8 @@ function getAvatarExpression({
   loadingSession,
   recording,
   transcribing,
-}: TutorAvatarPanelProps): AvatarExpression {
+}: TutorAvatarPanelProps, animationMode: AvatarAnimationMode): AvatarExpression {
+  if (animationMode === "thinking") return "thinking";
   if (recording) return "happy";
   if (transcribing || loadingSession) return "concerned";
 
@@ -390,11 +502,81 @@ function getLatestAiMessage(session: TutorChatSession | null) {
     .find((message) => message.senderType === "ai" && message.content.trim());
 }
 
-function getLatestSpeakableAvatarAnswer(session: TutorChatSession | null) {
-  const latestAiMessage = getLatestAiMessage(session);
-  if (!latestAiMessage?.ragSources) return "";
+function getLatestAvatarExchange(session: TutorChatSession | null) {
+  const messages = session?.messages ?? [];
+  const latestUserIndex = messages.findLastIndex(
+    (message) => message.senderType === "user" && message.content.trim()
+  );
 
-  return latestAiMessage.content.trim();
+  if (latestUserIndex < 0) {
+    return { aiMessage: null, userMessage: null };
+  }
+
+  const userMessage = messages[latestUserIndex];
+  const aiMessage =
+    messages
+      .slice(latestUserIndex + 1)
+      .find((message) => message.senderType === "ai") ?? null;
+
+  return { aiMessage, userMessage };
+}
+
+function LatestAvatarExchange({
+  aiMessage,
+  sending,
+  userMessage,
+}: {
+  aiMessage: TutorMessage | null;
+  sending: boolean;
+  userMessage: TutorMessage | null;
+}) {
+  if (!userMessage) return null;
+
+  const aiContent = getAvatarSpokenText(aiMessage);
+
+  return (
+    <div className="pointer-events-none absolute right-4 top-4 z-10 flex w-[min(26rem,calc(100%-2rem))] flex-col items-end gap-3">
+      <div className="pointer-events-auto max-w-[88%]">
+        <div className="max-h-[22vh] overflow-y-auto rounded-2xl bg-primary px-4 py-3 text-sm leading-relaxed text-primary-foreground shadow-lg">
+          <p className="whitespace-pre-wrap break-words">{userMessage.content}</p>
+        </div>
+      </div>
+
+      {(aiContent || sending) && (
+        <div className="pointer-events-auto w-full">
+          <div className="max-h-[34vh] overflow-y-auto rounded-2xl border bg-card/95 px-4 py-3 text-sm leading-relaxed text-card-foreground shadow-lg backdrop-blur-md">
+            {sending ? (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+                Tutor AI sedang menjawab...
+              </div>
+            ) : (
+              <p className="whitespace-pre-wrap break-words">{aiContent}</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function getLatestSpeakableAvatarMessage(session: TutorChatSession | null) {
+  const latestAiMessage = getLatestAiMessage(session);
+  if (!latestAiMessage?.ragSources) return null;
+
+  return latestAiMessage;
+}
+
+function getAvatarSpokenText(message: TutorMessage | null) {
+  if (!message) return "";
+  if (!message.ragSources || typeof message.ragSources !== "object") {
+    return message.content.trim();
+  }
+
+  const spokenText = (message.ragSources as { spokenText?: unknown }).spokenText;
+  return typeof spokenText === "string" && spokenText.trim()
+    ? spokenText.trim()
+    : message.content.trim();
 }
 
 function getLatestAiAvatarExpression(session: TutorChatSession | null): AvatarExpression {
@@ -437,24 +619,33 @@ async function getTtsErrorMessage(response: Response) {
 }
 
 export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
-  const expression = getAvatarExpression(props);
   const [avatarReady, setAvatarReady] = useState(false);
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
+  const [avatarPreparingSpeech, setAvatarPreparingSpeech] = useState(false);
   const [avatarSpeaking, setAvatarSpeaking] = useState(false);
-  const [spokenSubtitle, setSpokenSubtitle] = useState("");
-  const speechText = getLatestSpeakableAvatarAnswer(props.activeSession);
+  const animationMode: AvatarAnimationMode = avatarSpeaking
+    ? "talking"
+    : props.sending || avatarPreparingSpeech
+      ? "thinking"
+      : "idle";
+  const expression = getAvatarExpression(props, animationMode);
+  const speechMessage = getLatestSpeakableAvatarMessage(props.activeSession);
+  const speechMessageId = speechMessage?.id ?? null;
+  const speechText = getAvatarSpokenText(speechMessage);
+  const latestExchange = getLatestAvatarExchange(props.activeSession);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
   const speechUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const lastSpokenTextRef = useRef(speechText);
+  const wasSendingRef = useRef(props.sending);
+  const speechBaselineMessageIdRef = useRef(props.sending ? speechMessageId : null);
   const handleAvatarReady = useCallback((ready: boolean) => {
     setAvatarReady(ready);
+    setAvatarLoadFailed(!ready);
   }, []);
-  const waitingForSpeech = props.sending && !avatarSpeaking;
-
-  const startAvatarSpeech = useCallback((text: string) => {
-    setSpokenSubtitle(text);
+  const startAvatarSpeech = useCallback(() => {
+    setAvatarPreparingSpeech(false);
     setAvatarSpeaking(true);
   }, []);
 
@@ -509,8 +700,8 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
 
   const stopAvatarSpeech = useCallback(() => {
     clearAvatarAudio();
+    setAvatarPreparingSpeech(false);
     setAvatarSpeaking(false);
-    setSpokenSubtitle("");
   }, [clearAvatarAudio]);
 
   const unlockAvatarAudio = useCallback(() => {
@@ -521,13 +712,13 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
   }, [getAvatarAudioContext]);
 
   const playWithHtmlAudio = useCallback(
-    async (audioBlob: Blob, text: string) => {
+    async (audioBlob: Blob) => {
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
 
       audioUrlRef.current = audioUrl;
       audioRef.current = audio;
-      audio.onplay = () => startAvatarSpeech(text);
+      audio.onplay = startAvatarSpeech;
       audio.onended = stopAvatarSpeech;
       audio.onerror = stopAvatarSpeech;
       audio.onpause = () => {
@@ -541,10 +732,10 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
   );
 
   const playWithWebAudio = useCallback(
-    async (audioBlob: Blob, text: string) => {
+    async (audioBlob: Blob) => {
       const audioContext = getAvatarAudioContext();
       if (!audioContext) {
-        await playWithHtmlAudio(audioBlob, text);
+        await playWithHtmlAudio(audioBlob);
         return;
       }
 
@@ -559,7 +750,7 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
       source.onended = stopAvatarSpeech;
       audioSourceRef.current = source;
 
-      startAvatarSpeech(text);
+      startAvatarSpeech();
       source.start(0);
     },
     [getAvatarAudioContext, playWithHtmlAudio, startAvatarSpeech, stopAvatarSpeech]
@@ -580,7 +771,7 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
       utterance.lang = "id-ID";
       utterance.rate = 0.96;
       utterance.pitch = 1.02;
-      utterance.onstart = () => startAvatarSpeech(text);
+      utterance.onstart = startAvatarSpeech;
       utterance.onend = stopAvatarSpeech;
       utterance.onerror = stopAvatarSpeech;
       speechUtteranceRef.current = utterance;
@@ -600,10 +791,31 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
   }, [unlockAvatarAudio]);
 
   useEffect(() => {
-    if (!speechText || speechText === lastSpokenTextRef.current) return;
+    if (props.sending) {
+      if (!wasSendingRef.current) {
+        speechBaselineMessageIdRef.current = speechMessageId;
+      }
+      wasSendingRef.current = true;
+      return;
+    }
 
-    lastSpokenTextRef.current = speechText;
+    if (!wasSendingRef.current) return;
+
+    wasSendingRef.current = false;
+    const baselineMessageId = speechBaselineMessageIdRef.current;
+    speechBaselineMessageIdRef.current = null;
+
+    if (
+      props.loadingSession ||
+      !speechMessageId ||
+      !speechText ||
+      speechMessageId === baselineMessageId
+    ) {
+      return;
+    }
+
     const controller = new AbortController();
+    setAvatarPreparingSpeech(true);
     clearAvatarAudio();
 
     async function playAvatarSpeech() {
@@ -629,7 +841,7 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
           throw new Error("Audio avatar kosong");
         }
 
-        await playWithWebAudio(audioBlob, speechText);
+        await playWithWebAudio(audioBlob);
       } catch (error) {
         console.warn("[avatar-tts] Audio avatar gagal diputar.", error);
         if (!controller.signal.aborted) {
@@ -646,12 +858,16 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
 
     return () => {
       controller.abort();
+      setAvatarPreparingSpeech(false);
     };
   }, [
     clearAvatarAudio,
     playWithBrowserSpeech,
     playWithWebAudio,
     props.courseId,
+    props.loadingSession,
+    props.sending,
+    speechMessageId,
     speechText,
     stopAvatarSpeech,
   ]);
@@ -675,6 +891,8 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
         }}
       >
         <AvatarStage
+          animationMode={animationMode}
+          customization={props.customization}
           expression={expression}
           onReady={handleAvatarReady}
           speaking={avatarSpeaking}
@@ -683,25 +901,16 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
       {!avatarReady && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="flex items-center gap-2 rounded-full border bg-background/80 px-3 py-2 text-sm text-muted-foreground shadow-sm backdrop-blur">
-            <Loader2 className="size-4 animate-spin" />
-            Memuat avatar
+            {!avatarLoadFailed && <Loader2 className="size-4 animate-spin" />}
+            {avatarLoadFailed ? "Avatar gagal dimuat" : "Memuat avatar"}
           </div>
         </div>
       )}
-      {waitingForSpeech && (
-        <div className="pointer-events-none absolute inset-x-4 bottom-48 z-10 flex justify-center sm:bottom-52">
-          <div className="max-w-[min(680px,calc(100vw-2rem))] rounded-md bg-zinc-700/78 px-4 py-3 text-center text-sm font-medium leading-relaxed text-zinc-200 shadow-xl backdrop-blur sm:text-base">
-            Tutor AI sedang berpikir...
-          </div>
-        </div>
-      )}
-      {avatarSpeaking && spokenSubtitle && (
-        <div className="pointer-events-none absolute inset-x-4 bottom-48 z-10 flex justify-center sm:bottom-52">
-          <div className="max-w-[min(680px,calc(100vw-2rem))] rounded-md bg-black/88 px-4 py-3 text-center text-sm font-medium leading-relaxed text-white shadow-xl backdrop-blur sm:text-base">
-            {spokenSubtitle}
-          </div>
-        </div>
-      )}
+      <LatestAvatarExchange
+        aiMessage={latestExchange.aiMessage}
+        sending={props.sending}
+        userMessage={latestExchange.userMessage}
+      />
     </div>
   );
 }
