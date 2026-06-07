@@ -489,8 +489,9 @@ function getAvatarExpression({
   transcribing,
 }: TutorAvatarPanelProps, animationMode: AvatarAnimationMode): AvatarExpression {
   if (animationMode === "thinking") return "thinking";
+  if (loadingSession) return "neutral";
   if (recording) return "happy";
-  if (transcribing || loadingSession) return "concerned";
+  if (transcribing) return "concerned";
 
   return getLatestAiAvatarExpression(activeSession);
 }
