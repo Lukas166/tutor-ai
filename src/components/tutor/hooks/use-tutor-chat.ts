@@ -123,7 +123,7 @@ export function useTutorChat({
         }
       } catch (err) {
         if (loadSessionRequestIdRef.current === requestId) {
-          setActiveSession(previousSession);
+          setActiveSession(previousSession ?? null);
           toast.error(err instanceof Error ? err.message : "Gagal memuat chat");
           if (previousSession) {
             onSessionChange?.(previousSession.id);
@@ -311,6 +311,10 @@ export function useTutorChat({
   async function handleSend() {
     const question = input.trim();
     if (!question || sending) return;
+    if (loadingSessionRef.current) {
+      toast("Harap tunggu chat selesai dimuat sebelum mengirim pesan");
+      return;
+    }
 
     let session = activeSession;
     if (!session) {
@@ -408,6 +412,93 @@ export function useTutorChat({
       let accumulatedText = "";
       let ragSources: unknown = null;
       let responseTimeMs: number | null = null;
+      let streamDone = false;
+      let eventType = "";
+
+      const finalizeStream = () => {
+        streamDone = true;
+        setActiveSession((prev) => {
+          if (!prev) return prev;
+          const sessionId = isNewSession ? realSessionId : prev.id;
+          const messages = prev.messages.map((msg) => {
+            if (msg.id === pendingMessage.id) {
+              return { ...msg, id: `user-${Date.now()}` };
+            }
+            if (msg.id === streamingAiMessage.id) {
+              return {
+                ...msg,
+                id: `ai-${Date.now()}`,
+                content: accumulatedText,
+                ragSources,
+                responseTimeMs,
+              };
+            }
+            return msg;
+          });
+          return { ...prev, id: sessionId, messages };
+        });
+        setChatSessions((sessions) => {
+          const sid = isNewSession ? realSessionId : session.id;
+          const summary: TutorChatSessionSummary = {
+            id: sid,
+            title: question.slice(0, 72),
+            messageCount: (session.messages.length || 0) + 2,
+            startedAt: session.startedAt,
+            lastActiveAt: new Date().toISOString(),
+          };
+          const others = sessions.filter(
+            (item) => item.id !== sid && item.id !== session.id
+          );
+          return [summary, ...others];
+        });
+      };
+
+      const handleStreamEvent = (type: string, rawData: string) => {
+        let data: {
+          text?: string;
+          ragSources?: unknown;
+          responseTimeMs?: number | null;
+          error?: string;
+        };
+
+        try {
+          data = JSON.parse(rawData);
+        } catch {
+          throw new Error("Respons Tutor AI tidak valid");
+        }
+
+        if (type === "text") {
+          accumulatedText += data.text ?? "";
+          setActiveSession((prev) => {
+            if (!prev) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.id === streamingAiMessage.id) {
+              messages[messages.length - 1] = {
+                ...lastMsg,
+                content: accumulatedText,
+              };
+            }
+            return { ...prev, messages };
+          });
+          return;
+        }
+
+        if (type === "metadata") {
+          ragSources = data.ragSources;
+          responseTimeMs = data.responseTimeMs ?? null;
+          return;
+        }
+
+        if (type === "done") {
+          finalizeStream();
+          return;
+        }
+
+        if (type === "error") {
+          throw new Error(data.error ?? "Tutor AI gagal menjawab");
+        }
+      };
 
       while (true) {
         const { done, value } = await reader.read();
@@ -418,79 +509,18 @@ export function useTutorChat({
         const lines = buffer.split("\n");
         buffer = lines.pop() ?? "";
 
-        let eventType = "";
         for (const line of lines) {
           if (line.startsWith("event: ")) {
             eventType = line.slice(7).trim();
           } else if (line.startsWith("data: ") && eventType) {
-            try {
-              const data = JSON.parse(line.slice(6));
-
-              if (eventType === "text") {
-                accumulatedText += data.text;
-                setActiveSession((prev) => {
-                  if (!prev) return prev;
-                  const messages = [...prev.messages];
-                  const lastMsg = messages[messages.length - 1];
-                  if (lastMsg && lastMsg.id === streamingAiMessage.id) {
-                    messages[messages.length - 1] = {
-                      ...lastMsg,
-                      content: accumulatedText,
-                    };
-                  }
-                  return { ...prev, messages };
-                });
-              } else if (eventType === "metadata") {
-                ragSources = data.ragSources;
-                responseTimeMs = data.responseTimeMs;
-              } else if (eventType === "done") {
-                setActiveSession((prev) => {
-                  if (!prev) return prev;
-                  const sessionId = isNewSession ? realSessionId : prev.id;
-                  const messages = prev.messages.map((msg) => {
-                    if (msg.id === pendingMessage.id) {
-                      return { ...msg, id: `user-${Date.now()}` };
-                    }
-                    if (msg.id === streamingAiMessage.id) {
-                      return {
-                        ...msg,
-                        id: `ai-${Date.now()}`,
-                        content: accumulatedText,
-                        ragSources,
-                        responseTimeMs,
-                      };
-                    }
-                    return msg;
-                  });
-                  return { ...prev, id: sessionId, messages };
-                });
-                setChatSessions((sessions) => {
-                  const sid = isNewSession ? realSessionId : session.id;
-                  const summary: TutorChatSessionSummary = {
-                    id: sid,
-                    title: question.slice(0, 72),
-                    messageCount: (session.messages.length || 0) + 2,
-                    startedAt: session.startedAt,
-                    lastActiveAt: new Date().toISOString(),
-                  };
-                  const others = sessions.filter(
-                    (item) => item.id !== sid && item.id !== session.id
-                  );
-                  return [summary, ...others];
-                });
-              } else if (eventType === "error") {
-                throw new Error(data.error ?? "Tutor AI gagal menjawab");
-              }
-            } catch (parseError) {
-              if (parseError instanceof Error && parseError.message !== "Tutor AI gagal menjawab") {
-                // Ignore
-              } else {
-                throw parseError;
-              }
-            }
+            handleStreamEvent(eventType, line.slice(6));
             eventType = "";
           }
         }
+      }
+
+      if (!streamDone && accumulatedText.trim()) {
+        finalizeStream();
       }
     } catch (err) {
       const isAborted = err instanceof DOMException && err.name === "AbortError";

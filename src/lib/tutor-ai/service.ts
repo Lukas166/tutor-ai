@@ -1224,6 +1224,9 @@ export async function askTutorStream(input: {
 
         if (!fullAnswer.trim()) {
           fullAnswer = "Materi yang tersedia belum cukup untuk menjawab dengan pasti.";
+          if (!closed) {
+            controller.enqueue(sseEvent("text", { text: fullAnswer }));
+          }
         }
 
         const avatarExpression = await chooseAvatarExpression({
