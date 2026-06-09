@@ -578,11 +578,13 @@ function buildAvatarSpokenText(answer: string) {
 function buildAvatarRagSources(
   chunks: RetrievedChunkRow[],
   avatarExpression: AvatarExpression,
+  responseMode: TutorResponseMode,
   reason?: string,
   spokenText?: string
 ) {
   return {
     avatarExpression,
+    responseMode,
     reason: reason ?? null,
     sources: chunks.map(toRagSource),
     spokenText: spokenText ? buildAvatarSpokenText(spokenText) : null,
@@ -930,6 +932,7 @@ export async function askTutor(input: {
       ragSources: buildAvatarRagSources(
         [],
         avatarExpression,
+        responseMode,
         "no_selected_materials",
         responseMode === "avatar" ? insufficientContextAnswer : undefined
       ),
@@ -997,6 +1000,7 @@ export async function askTutor(input: {
     ragSources: buildAvatarRagSources(
       chunks,
       avatarExpression,
+      responseMode,
       undefined,
       responseMode === "avatar" ? answer : undefined
     ),
@@ -1077,6 +1081,7 @@ export async function askTutorStream(input: {
     const ragSources = buildAvatarRagSources(
       [],
       avatarExpression,
+      responseMode,
       "no_selected_materials",
       responseMode === "avatar" ? insufficientContextAnswer : undefined
     );
@@ -1191,6 +1196,7 @@ export async function askTutorStream(input: {
         const ragSources = buildAvatarRagSources(
           capturedChunks,
           avatarExpression,
+          responseMode,
           undefined,
           responseMode === "avatar" ? fullAnswer.trim() : undefined
         );

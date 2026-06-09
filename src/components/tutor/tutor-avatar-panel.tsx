@@ -503,7 +503,26 @@ function getLatestAiMessage(session: TutorChatSession | null) {
     .find((message) => message.senderType === "ai" && message.content.trim());
 }
 
-function getLatestAvatarExchange(session: TutorChatSession | null) {
+function isAvatarAiMessage(message: TutorMessage | null | undefined) {
+  if (!message?.ragSources || typeof message.ragSources !== "object") {
+    return false;
+  }
+
+  const metadata = message.ragSources as {
+    responseMode?: unknown;
+    spokenText?: unknown;
+  };
+
+  if (metadata.responseMode === "avatar") return true;
+  if (metadata.responseMode === "chat") return false;
+
+  return typeof metadata.spokenText === "string" && !!metadata.spokenText.trim();
+}
+
+function getLatestAvatarExchange(
+  session: TutorChatSession | null,
+  sending: boolean
+) {
   const messages = session?.messages ?? [];
   const latestUserIndex = messages.findLastIndex(
     (message) => message.senderType === "user" && message.content.trim()
@@ -519,15 +538,21 @@ function getLatestAvatarExchange(session: TutorChatSession | null) {
       .slice(latestUserIndex + 1)
       .find((message) => message.senderType === "ai") ?? null;
 
+  if (!sending && !isAvatarAiMessage(aiMessage)) {
+    return { aiMessage: null, userMessage: null };
+  }
+
   return { aiMessage, userMessage };
 }
 
 function LatestAvatarExchange({
   aiMessage,
+  answerVisible,
   sending,
   userMessage,
 }: {
   aiMessage: TutorMessage | null;
+  answerVisible: boolean;
   sending: boolean;
   userMessage: TutorMessage | null;
 }) {
@@ -546,10 +571,12 @@ function LatestAvatarExchange({
       {(aiContent || sending) && (
         <div className="pointer-events-auto w-full">
           <div className="max-h-[34vh] overflow-y-auto rounded-2xl border bg-card/95 px-4 py-3 text-sm leading-relaxed text-card-foreground shadow-lg backdrop-blur-md">
-            {sending ? (
+            {!answerVisible || sending ? (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="size-4 animate-spin" />
-                Tutor AI sedang menjawab...
+                {sending
+                  ? "Tutor AI sedang menjawab..."
+                  : "Tutor AI sedang menyiapkan suara..."}
               </div>
             ) : (
               <p className="whitespace-pre-wrap break-words">{aiContent}</p>
@@ -563,12 +590,12 @@ function LatestAvatarExchange({
 
 function getLatestSpeakableAvatarMessage(session: TutorChatSession | null) {
   const latestAiMessage = getLatestAiMessage(session);
-  if (!latestAiMessage?.ragSources) return null;
+  if (!isAvatarAiMessage(latestAiMessage)) return null;
 
   return latestAiMessage;
 }
 
-function getAvatarSpokenText(message: TutorMessage | null) {
+function getAvatarSpokenText(message: TutorMessage | null | undefined) {
   if (!message) return "";
   if (!message.ragSources || typeof message.ragSources !== "object") {
     return message.content.trim();
@@ -581,7 +608,10 @@ function getAvatarSpokenText(message: TutorMessage | null) {
 }
 
 function getLatestAiAvatarExpression(session: TutorChatSession | null): AvatarExpression {
-  const ragSources = getLatestAiMessage(session)?.ragSources;
+  const latestAiMessage = getLatestAiMessage(session);
+  if (!isAvatarAiMessage(latestAiMessage)) return "neutral";
+
+  const ragSources = latestAiMessage?.ragSources;
   if (!ragSources || typeof ragSources !== "object") return "neutral";
 
   const avatarExpression = (ragSources as { avatarExpression?: unknown }).avatarExpression;
@@ -622,6 +652,7 @@ async function getTtsErrorMessage(response: Response) {
 export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
   const [avatarReady, setAvatarReady] = useState(false);
   const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
+  const [avatarAnswerVisible, setAvatarAnswerVisible] = useState(!props.sending);
   const [avatarPreparingSpeech, setAvatarPreparingSpeech] = useState(false);
   const [avatarSpeaking, setAvatarSpeaking] = useState(false);
   const animationMode: AvatarAnimationMode = avatarSpeaking
@@ -633,7 +664,10 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
   const speechMessage = getLatestSpeakableAvatarMessage(props.activeSession);
   const speechMessageId = speechMessage?.id ?? null;
   const speechText = getAvatarSpokenText(speechMessage);
-  const latestExchange = getLatestAvatarExchange(props.activeSession);
+  const latestExchange = getLatestAvatarExchange(
+    props.activeSession,
+    props.sending
+  );
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -646,6 +680,7 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
     setAvatarLoadFailed(!ready);
   }, []);
   const startAvatarSpeech = useCallback(() => {
+    setAvatarAnswerVisible(true);
     setAvatarPreparingSpeech(false);
     setAvatarSpeaking(true);
   }, []);
@@ -782,6 +817,14 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
   );
 
   useEffect(() => {
+    if (props.sending) {
+      setAvatarAnswerVisible(false);
+    } else if (props.loadingSession) {
+      setAvatarAnswerVisible(true);
+    }
+  }, [props.loadingSession, props.sending]);
+
+  useEffect(() => {
     document.addEventListener("pointerdown", unlockAvatarAudio, { passive: true });
     document.addEventListener("keydown", unlockAvatarAudio);
 
@@ -849,6 +892,7 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
           try {
             playWithBrowserSpeech(speechText);
           } catch {
+            setAvatarAnswerVisible(true);
             stopAvatarSpeech();
           }
         }
@@ -909,6 +953,7 @@ export function TutorAvatarPanel(props: TutorAvatarPanelProps) {
       )}
       <LatestAvatarExchange
         aiMessage={latestExchange.aiMessage}
+        answerVisible={avatarAnswerVisible}
         sending={props.sending}
         userMessage={latestExchange.userMessage}
       />
