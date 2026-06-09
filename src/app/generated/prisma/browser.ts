@@ -87,3 +87,8 @@ export type AiChatSession = Prisma.AiChatSessionModel
  * 
  */
 export type AiChatMessage = Prisma.AiChatMessageModel
+/**
+ * Model TutorPromptConfig
+ * 
+ */
+export type TutorPromptConfig = Prisma.TutorPromptConfigModel

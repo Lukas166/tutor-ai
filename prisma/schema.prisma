@@ -320,3 +320,21 @@ model AiChatMessage {
   @@index([aiChatSessionId])
   @@map("ai_chat_message")
 }
+
+// ==========================================
+// TUTOR AI — PROMPT PERSONALISASI
+// ==========================================
+
+model TutorPromptConfig {
+  id            String   @id @default(cuid())
+  academicLevel String   // S1 | S2 | S3
+  responseMode  String   // chat | avatar
+  promptContent String   // isi prompt gaya akademik
+  isDefault     Boolean  @default(true) // true = prompt bawaan sistem, false = sudah diedit admin
+  updatedBy     String?  // userId admin yang terakhir edit
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([academicLevel, responseMode])
+  @@map("tutor_prompt_config")
+}
