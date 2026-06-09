@@ -1,6 +1,7 @@
 import { Prisma } from "@/app/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { embedTutorQuestion, generateTutorAnswer, streamTutorAnswer, toPgVector } from "@/lib/tutor-ai/gemini";
+import { getPromptContent } from "@/lib/services/tutor-prompt.service";
 
 type AcademicLevel = "S1" | "S2" | "S3";
 type TutorResponseMode = "chat" | "avatar";
@@ -75,57 +76,8 @@ function normalizeAcademicLevel(level: string | null): AcademicLevel {
   return "S1";
 }
 
-function getChatAcademicStyle(level: AcademicLevel) {
-  if (level === "S2") {
-    return `Gunakan gaya bahasa profesional, analitis, logis, dan berorientasi pada pemecahan masalah.
-Asumsikan pengguna sudah memahami definisi teori dasar sehingga penjelasan harfiah tidak perlu diulang terlalu panjang.
-Fokuskan pembahasan pada bagaimana konsep tersebut diimplementasikan secara praktis.
-Berikan contoh studi kasus nyata di dunia industri untuk memperjelas penerapan metode tersebut.
-Lakukan komparasi atau perbandingan mendalam dengan metode alternatif yang relevan.
-Jabarkan dengan jelas kelebihan, kekurangan, trade-offs, serta efisiensi dari pendekatan yang dibahas.
-Gunakan jargon ilmiah dan terminologi industri secara tepat untuk menjaga standar profesional.`;
-  }
-
-  if (level === "S3") {
-    return `Gunakan gaya bahasa yang sangat formal, kritis, berwibawa, dan berorientasi murni pada riset akademis.
-Lakukan evaluasi secara kritis terhadap teori, model, atau metodologi yang sedang didiskusikan.
-Pertanyakan asumsi-asumsi dasar di balik teori tersebut serta batas-batas validitasnya.
-Arahkan jawaban untuk mengidentifikasi celah riset atau research gap dari topik yang dibahas.
-Sajikan sintesis literatur yang komprehensif dengan menghubungkannya ke mazhab pemikiran besar lainnya.
-Susun argumen dengan struktur yang sangat sistematis, objektif, deduktif, dan berbasis pada bukti kuat.
-Gunakan terminologi akademis tingkat lanjut dan dorong pemikiran independen level Doktoral.`;
-  }
-
-  return `Gunakan gaya bahasa yang ramah, hangat, komunikatif, dan mudah dipahami oleh mahasiswa Sarjana.
-Fokuslah untuk membangun pemahaman konsep dasar dan alur logika secara fundamental.
-Jelaskan materi langkah demi langkah dengan urutan yang sangat terstruktur agar mudah diikuti.
-Gunakan analogi kreatif atau contoh dari kehidupan sehari-hari untuk menyederhanakan materi yang abstrak.
-Kurangi penggunaan jargon teknis yang padat, atau langsung berikan definisi singkat jika ada istilah baru.
-Pastikan penyederhanaan materi ini tetap menjaga keakuratan ilmiah dari konteks aslinya.
-Selipkan kalimat apresiasi atau motivasi ringan untuk menyemangati proses belajar pengguna.`;
-}
-
-function getAvatarAcademicStyle(level: AcademicLevel) {
-  if (level === "S2") {
-    return `Gunakan bahasa profesional dan analitis, tetapi tetap singkat.
-Fokus pada inti konsep, penerapan praktis, dan trade-off terpenting saja.
-Gunakan istilah akademik/industri seperlunya tanpa memperpanjang jawaban.`;
-  }
-
-  if (level === "S3") {
-    return `Gunakan bahasa formal, kritis, dan berbasis riset, tetapi padat.
-Sorot asumsi, batas validitas, atau research gap hanya bila memang relevan.
-Hindari sintesis panjang kecuali pengguna memintanya secara eksplisit.`;
-  }
-
-  return `Gunakan bahasa ramah, hangat, dan mudah dipahami mahasiswa Sarjana.
-Jelaskan inti konsep dengan sederhana dan akurat.
-Pakai contoh singkat hanya jika membantu pemahaman.`;
-}
-
-function getAcademicStyle(level: AcademicLevel, responseMode: TutorResponseMode) {
-  if (responseMode === "avatar") return getAvatarAcademicStyle(level);
-  return getChatAcademicStyle(level);
+async function getAcademicStyle(level: AcademicLevel, responseMode: TutorResponseMode) {
+  return getPromptContent(level, responseMode === "avatar" ? "avatar" : "chat");
 }
 
 function uniqueIds(ids: string[]) {
@@ -384,11 +336,13 @@ function buildResponseModeInstruction(responseMode: TutorResponseMode) {
 - Tetap hindari pengulangan dan pembuka yang tidak perlu.`;
 }
 
-function buildSystemInstruction(
+async function buildSystemInstruction(
   user: { name: string | null; role: string; academicLevel: string | null },
   responseMode: TutorResponseMode
 ) {
   const level = normalizeAcademicLevel(user.academicLevel);
+  const academicStyle = await getAcademicStyle(level, responseMode);
+
   return `Kamu adalah Tutor AI dalam Mini LMS berbasis RAG. Tugasmu membantu mahasiswa memahami materi kuliah berdasarkan konteks PDF yang telah disediakan.
 
 Informasi Pengguna:
@@ -408,7 +362,7 @@ ${buildResponseModeInstruction(responseMode)}
 
 Ikuti gaya bicara dari level akademik user tanpa menulis jenjangnya secara eksplisit:
 
-${getAcademicStyle(level, responseMode)}
+${academicStyle}
 
 Guardrail tambahan:
 - Jawab hanya untuk topik yang relevan dengan course dan konteks materi.
@@ -1015,7 +969,7 @@ export async function askTutor(input: {
     const activeMaterials = readyMaterials.filter((m) => selectedMaterialIds.includes(m.id));
 
     answer = await generateTutorAnswer({
-      systemInstruction: buildSystemInstruction(user, responseMode),
+      systemInstruction: await buildSystemInstruction(user, responseMode),
       prompt: buildPrompt({
         course,
         question,
@@ -1178,7 +1132,7 @@ export async function askTutorStream(input: {
 
     const activeMaterials = readyMaterials.filter((m) => selectedMaterialIds.includes(m.id));
 
-    systemInstruction = buildSystemInstruction(user, responseMode);
+    systemInstruction = await buildSystemInstruction(user, responseMode);
     prompt = buildPrompt({
       course,
       question,
