@@ -64,7 +64,8 @@ export const ModelName = {
   MaterialChunk: 'MaterialChunk',
   MaterialProcessingLog: 'MaterialProcessingLog',
   AiChatSession: 'AiChatSession',
-  AiChatMessage: 'AiChatMessage'
+  AiChatMessage: 'AiChatMessage',
+  TutorPromptConfig: 'TutorPromptConfig'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -303,6 +304,20 @@ export const AiChatMessageScalarFieldEnum = {
 } as const
 
 export type AiChatMessageScalarFieldEnum = (typeof AiChatMessageScalarFieldEnum)[keyof typeof AiChatMessageScalarFieldEnum]
+
+
+export const TutorPromptConfigScalarFieldEnum = {
+  id: 'id',
+  academicLevel: 'academicLevel',
+  responseMode: 'responseMode',
+  promptContent: 'promptContent',
+  isDefault: 'isDefault',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TutorPromptConfigScalarFieldEnum = (typeof TutorPromptConfigScalarFieldEnum)[keyof typeof TutorPromptConfigScalarFieldEnum]
 
 
 export const SortOrder = {
