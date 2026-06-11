@@ -23,7 +23,7 @@ function StatCard({
 }: {
   title: string;
   value: number | undefined;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   color: string;
 }) {
   return (

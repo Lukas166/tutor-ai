@@ -397,7 +397,8 @@ export const ModelName = {
   MaterialChunk: 'MaterialChunk',
   MaterialProcessingLog: 'MaterialProcessingLog',
   AiChatSession: 'AiChatSession',
-  AiChatMessage: 'AiChatMessage'
+  AiChatMessage: 'AiChatMessage',
+  TutorPromptConfig: 'TutorPromptConfig'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -413,7 +414,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "course" | "courseInstructor" | "enrollment" | "courseSession" | "material" | "materialPage" | "materialChunk" | "materialProcessingLog" | "aiChatSession" | "aiChatMessage"
+    modelProps: "user" | "session" | "account" | "verification" | "course" | "courseInstructor" | "enrollment" | "courseSession" | "material" | "materialPage" | "materialChunk" | "materialProcessingLog" | "aiChatSession" | "aiChatMessage" | "tutorPromptConfig"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1453,6 +1454,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TutorPromptConfig: {
+      payload: Prisma.$TutorPromptConfigPayload<ExtArgs>
+      fields: Prisma.TutorPromptConfigFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TutorPromptConfigFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TutorPromptConfigPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TutorPromptConfigFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TutorPromptConfigPayload>
+        }
+        findFirst: {
+          args: Prisma.TutorPromptConfigFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TutorPromptConfigPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TutorPromptConfigFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TutorPromptConfigPayload>
+        }
+        findMany: {
+          args: Prisma.TutorPromptConfigFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TutorPromptConfigPayload>[]
+        }
+        create: {
+          args: Prisma.TutorPromptConfigCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TutorPromptConfigPayload>
+        }
+        createMany: {
+          args: Prisma.TutorPromptConfigCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TutorPromptConfigCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TutorPromptConfigPayload>[]
+        }
+        delete: {
+          args: Prisma.TutorPromptConfigDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TutorPromptConfigPayload>
+        }
+        update: {
+          args: Prisma.TutorPromptConfigUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TutorPromptConfigPayload>
+        }
+        deleteMany: {
+          args: Prisma.TutorPromptConfigDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TutorPromptConfigUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TutorPromptConfigUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TutorPromptConfigPayload>[]
+        }
+        upsert: {
+          args: Prisma.TutorPromptConfigUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TutorPromptConfigPayload>
+        }
+        aggregate: {
+          args: Prisma.TutorPromptConfigAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTutorPromptConfig>
+        }
+        groupBy: {
+          args: Prisma.TutorPromptConfigGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TutorPromptConfigGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TutorPromptConfigCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TutorPromptConfigCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1712,6 +1787,20 @@ export const AiChatMessageScalarFieldEnum = {
 } as const
 
 export type AiChatMessageScalarFieldEnum = (typeof AiChatMessageScalarFieldEnum)[keyof typeof AiChatMessageScalarFieldEnum]
+
+
+export const TutorPromptConfigScalarFieldEnum = {
+  id: 'id',
+  academicLevel: 'academicLevel',
+  responseMode: 'responseMode',
+  promptContent: 'promptContent',
+  isDefault: 'isDefault',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TutorPromptConfigScalarFieldEnum = (typeof TutorPromptConfigScalarFieldEnum)[keyof typeof TutorPromptConfigScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1975,6 +2064,7 @@ export type GlobalOmitConfig = {
   materialProcessingLog?: Prisma.MaterialProcessingLogOmit
   aiChatSession?: Prisma.AiChatSessionOmit
   aiChatMessage?: Prisma.AiChatMessageOmit
+  tutorPromptConfig?: Prisma.TutorPromptConfigOmit
 }
 
 /* Types for Logging */

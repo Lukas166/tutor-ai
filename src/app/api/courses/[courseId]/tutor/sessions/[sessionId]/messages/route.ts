@@ -9,6 +9,7 @@ type TutorMessagesRouteContext = {
 
 const messageSchema = z.object({
   content: z.string().trim().min(1, "Pertanyaan tidak boleh kosong").max(8000),
+  responseMode: z.enum(["chat", "avatar"]).default("chat"),
 });
 
 export async function POST(request: NextRequest, context: TutorMessagesRouteContext) {
@@ -27,6 +28,7 @@ export async function POST(request: NextRequest, context: TutorMessagesRouteCont
       sessionId,
       userId: userId!,
       content: parsed.data.content,
+      responseMode: parsed.data.responseMode,
       signal: request.signal,
     });
 

@@ -32,13 +32,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import Link from "next/link";
-import { ElementType, useState } from "react";
+import { ComponentType, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export interface NavItem {
   title: string;
   href: string;
-  icon: ElementType;
+  icon: ComponentType<{ className?: string }>;
   exact?: boolean;
 }
 

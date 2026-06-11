@@ -6,24 +6,43 @@ import type {
   TutorChatSession,
   TutorOverview,
 } from "../tutor-chat-types";
+import type { TutorPanelMode } from "../tutor-chat-input";
 
 type UseTutorChatProps = {
   courseId: string;
+  initialSessionId?: string;
+  onNewChat?: () => void;
+  onSessionChange?: (sessionId: string) => void;
   input: string;
   setInput: (value: string) => void;
+  panelMode: TutorPanelMode;
 };
 
-export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
+export function useTutorChat({
+  courseId,
+  initialSessionId,
+  onNewChat,
+  onSessionChange,
+  input,
+  setInput,
+  panelMode,
+}: UseTutorChatProps) {
   const [overview, setOverview] = useState<TutorOverview | null>(null);
   const [chatSessions, setChatSessions] = useState<TutorChatSessionSummary[]>([]);
   const [activeSession, setActiveSession] = useState<TutorChatSession | null>(null);
 
   const activeSessionIdRef = useRef<string | null>(null);
+  const activeSessionRef = useRef<TutorChatSession | null>(null);
+  const chatSessionsRef = useRef<TutorChatSessionSummary[]>([]);
+  const readyMaterialsRef = useRef<TutorOverview["readyMaterials"]>([]);
+  const loadingSessionRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const loadSessionRequestIdRef = useRef(0);
 
   useEffect(() => {
     activeSessionIdRef.current = activeSession?.id ?? null;
-  }, [activeSession?.id]);
+    activeSessionRef.current = activeSession;
+  }, [activeSession]);
 
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [loadingSession, setLoadingSession] = useState(false);
@@ -45,7 +64,19 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
   const [deletingSession, setDeletingSession] = useState(false);
 
-  const readyMaterials = overview?.readyMaterials ?? [];
+  const readyMaterials = useMemo(() => overview?.readyMaterials ?? [], [overview?.readyMaterials]);
+  useEffect(() => {
+    chatSessionsRef.current = chatSessions;
+  }, [chatSessions]);
+
+  useEffect(() => {
+    readyMaterialsRef.current = readyMaterials;
+  }, [readyMaterials]);
+
+  useEffect(() => {
+    loadingSessionRef.current = loadingSession;
+  }, [loadingSession]);
+
   const selectedMaterialIds = useMemo(
     () => activeSession?.selectedMaterialIds ?? [],
     [activeSession]
@@ -64,20 +95,49 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
         toast("Harap tunggu Tutor AI membalas sebelum pindah chat");
         return;
       }
-      if (activeSessionIdRef.current === sessionId) return;
+
+      if (activeSessionIdRef.current === sessionId && !loadingSessionRef.current) return;
+
+      const requestId = loadSessionRequestIdRef.current + 1;
+      loadSessionRequestIdRef.current = requestId;
+      const previousSession = activeSessionRef.current;
+      const sessionSummary = chatSessionsRef.current.find((session) => session.id === sessionId);
+
+      onSessionChange?.(sessionId);
+      setActiveSession({
+        id: sessionId,
+        courseId,
+        selectedMaterialIds: readyMaterialsRef.current.map((material) => material.id),
+        startedAt: sessionSummary?.startedAt ?? new Date().toISOString(),
+        lastActiveAt: sessionSummary?.lastActiveAt ?? new Date().toISOString(),
+        messages: [],
+      });
       setLoadingSession(true);
+
       try {
         const response = await fetch(`/api/courses/${courseId}/tutor/sessions/${sessionId}`);
         const data = await response.json();
         if (!response.ok) throw new Error(data.error ?? "Gagal memuat chat");
-        setActiveSession(data);
+        if (loadSessionRequestIdRef.current === requestId) {
+          setActiveSession(data);
+        }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Gagal memuat chat");
+        if (loadSessionRequestIdRef.current === requestId) {
+          setActiveSession(previousSession ?? null);
+          toast.error(err instanceof Error ? err.message : "Gagal memuat chat");
+          if (previousSession) {
+            onSessionChange?.(previousSession.id);
+          } else {
+            onNewChat?.();
+          }
+        }
       } finally {
-        setLoadingSession(false);
+        if (loadSessionRequestIdRef.current === requestId) {
+          setLoadingSession(false);
+        }
       }
     },
-    [courseId]
+    [courseId, onNewChat, onSessionChange]
   );
 
   const loadOverview = useCallback(async () => {
@@ -87,11 +147,13 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Gagal memuat Tutor AI");
 
+      chatSessionsRef.current = data.chatSessions;
+      readyMaterialsRef.current = data.readyMaterials;
       setOverview(data);
       setChatSessions(data.chatSessions);
 
-      if (data.chatSessions.length > 0 && !activeSessionIdRef.current) {
-        await loadSession(data.chatSessions[0].id);
+      if (initialSessionId && activeSessionIdRef.current !== initialSessionId) {
+        void loadSession(initialSessionId);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Gagal memuat Tutor AI");
@@ -99,9 +161,11 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
     } finally {
       setLoadingOverview(false);
     }
-  }, [courseId, loadSession]);
+  }, [courseId, initialSessionId, loadSession]);
 
   async function createNewChat() {
+    onNewChat?.();
+
     if (activeSession && activeSession.messages.length === 0) {
       return activeSession;
     }
@@ -162,6 +226,11 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
       ? Array.from(new Set([...selectedMaterialIds, materialId]))
       : selectedMaterialIds.filter((id) => id !== materialId);
 
+    await updateContext(nextIds);
+  }
+
+  async function handleMaterialToggleAll(checked: boolean) {
+    const nextIds = checked ? readyMaterialsRef.current.map((m) => m.id) : [];
     await updateContext(nextIds);
   }
 
@@ -242,6 +311,10 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
   async function handleSend() {
     const question = input.trim();
     if (!question || sending) return;
+    if (loadingSessionRef.current) {
+      toast("Harap tunggu chat selesai dimuat sebelum mengirim pesan");
+      return;
+    }
 
     let session = activeSession;
     if (!session) {
@@ -297,6 +370,7 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
         if (!response.ok) throw new Error(data.error ?? "Gagal membuat sesi baru");
         
         realSessionId = data.id;
+        onSessionChange?.(realSessionId);
         
         if (session.selectedMaterialIds.length > 0) {
           await fetch(`/api/courses/${courseId}/tutor/sessions/${realSessionId}`, {
@@ -320,7 +394,7 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: question }),
+          body: JSON.stringify({ content: question, responseMode: panelMode }),
           signal: abortController.signal,
         }
       );
@@ -338,6 +412,93 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
       let accumulatedText = "";
       let ragSources: unknown = null;
       let responseTimeMs: number | null = null;
+      let streamDone = false;
+      let eventType = "";
+
+      const finalizeStream = () => {
+        streamDone = true;
+        setActiveSession((prev) => {
+          if (!prev) return prev;
+          const sessionId = isNewSession ? realSessionId : prev.id;
+          const messages = prev.messages.map((msg) => {
+            if (msg.id === pendingMessage.id) {
+              return { ...msg, id: `user-${Date.now()}` };
+            }
+            if (msg.id === streamingAiMessage.id) {
+              return {
+                ...msg,
+                id: `ai-${Date.now()}`,
+                content: accumulatedText,
+                ragSources,
+                responseTimeMs,
+              };
+            }
+            return msg;
+          });
+          return { ...prev, id: sessionId, messages };
+        });
+        setChatSessions((sessions) => {
+          const sid = isNewSession ? realSessionId : session.id;
+          const summary: TutorChatSessionSummary = {
+            id: sid,
+            title: question.slice(0, 72),
+            messageCount: (session.messages.length || 0) + 2,
+            startedAt: session.startedAt,
+            lastActiveAt: new Date().toISOString(),
+          };
+          const others = sessions.filter(
+            (item) => item.id !== sid && item.id !== session.id
+          );
+          return [summary, ...others];
+        });
+      };
+
+      const handleStreamEvent = (type: string, rawData: string) => {
+        let data: {
+          text?: string;
+          ragSources?: unknown;
+          responseTimeMs?: number | null;
+          error?: string;
+        };
+
+        try {
+          data = JSON.parse(rawData);
+        } catch {
+          throw new Error("Respons Tutor AI tidak valid");
+        }
+
+        if (type === "text") {
+          accumulatedText += data.text ?? "";
+          setActiveSession((prev) => {
+            if (!prev) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.id === streamingAiMessage.id) {
+              messages[messages.length - 1] = {
+                ...lastMsg,
+                content: accumulatedText,
+              };
+            }
+            return { ...prev, messages };
+          });
+          return;
+        }
+
+        if (type === "metadata") {
+          ragSources = data.ragSources;
+          responseTimeMs = data.responseTimeMs ?? null;
+          return;
+        }
+
+        if (type === "done") {
+          finalizeStream();
+          return;
+        }
+
+        if (type === "error") {
+          throw new Error(data.error ?? "Tutor AI gagal menjawab");
+        }
+      };
 
       while (true) {
         const { done, value } = await reader.read();
@@ -348,79 +509,18 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
         const lines = buffer.split("\n");
         buffer = lines.pop() ?? "";
 
-        let eventType = "";
         for (const line of lines) {
           if (line.startsWith("event: ")) {
             eventType = line.slice(7).trim();
           } else if (line.startsWith("data: ") && eventType) {
-            try {
-              const data = JSON.parse(line.slice(6));
-
-              if (eventType === "text") {
-                accumulatedText += data.text;
-                setActiveSession((prev) => {
-                  if (!prev) return prev;
-                  const messages = [...prev.messages];
-                  const lastMsg = messages[messages.length - 1];
-                  if (lastMsg && lastMsg.id === streamingAiMessage.id) {
-                    messages[messages.length - 1] = {
-                      ...lastMsg,
-                      content: accumulatedText,
-                    };
-                  }
-                  return { ...prev, messages };
-                });
-              } else if (eventType === "metadata") {
-                ragSources = data.ragSources;
-                responseTimeMs = data.responseTimeMs;
-              } else if (eventType === "done") {
-                setActiveSession((prev) => {
-                  if (!prev) return prev;
-                  const sessionId = isNewSession ? realSessionId : prev.id;
-                  const messages = prev.messages.map((msg) => {
-                    if (msg.id === pendingMessage.id) {
-                      return { ...msg, id: `user-${Date.now()}` };
-                    }
-                    if (msg.id === streamingAiMessage.id) {
-                      return {
-                        ...msg,
-                        id: `ai-${Date.now()}`,
-                        content: accumulatedText.trim(),
-                        ragSources,
-                        responseTimeMs,
-                      };
-                    }
-                    return msg;
-                  });
-                  return { ...prev, id: sessionId, messages };
-                });
-                setChatSessions((sessions) => {
-                  const sid = isNewSession ? realSessionId : session.id;
-                  const summary: TutorChatSessionSummary = {
-                    id: sid,
-                    title: question.slice(0, 72),
-                    messageCount: (session.messages.length || 0) + 2,
-                    startedAt: session.startedAt,
-                    lastActiveAt: new Date().toISOString(),
-                  };
-                  const others = sessions.filter(
-                    (item) => item.id !== sid && item.id !== session.id
-                  );
-                  return [summary, ...others];
-                });
-              } else if (eventType === "error") {
-                throw new Error(data.error ?? "Tutor AI gagal menjawab");
-              }
-            } catch (parseError) {
-              if (parseError instanceof Error && parseError.message !== "Tutor AI gagal menjawab") {
-                // Ignore
-              } else {
-                throw parseError;
-              }
-            }
+            handleStreamEvent(eventType, line.slice(6));
             eventType = "";
           }
         }
+      }
+
+      if (!streamDone && accumulatedText.trim()) {
+        finalizeStream();
       }
     } catch (err) {
       const isAborted = err instanceof DOMException && err.name === "AbortError";
@@ -480,6 +580,7 @@ export function useTutorChat({ courseId, input, setInput }: UseTutorChatProps) {
     loadSession,
     createNewChat,
     handleMaterialToggle,
+    handleMaterialToggleAll,
     handleRenameSession,
     handleDeleteSession,
     handleStop,
